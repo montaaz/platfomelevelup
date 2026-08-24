@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+storage/uploads/
+# local tooling
+.qodo/
+.sentry-native/
+# confidential client documents (public repo) — keep locally only
+data/

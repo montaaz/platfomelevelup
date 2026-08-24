@@ -1,0 +1,37 @@
+{
+  "name": "levelup-ai-platforme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Level Up IA — Dashboard (espace admin + espace client)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:apply": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f database/schema.sql",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.14.0",
+    "bcryptjs": "^3.0.2",
+    "graphql": "^16.11.0",
+    "graphql-yoga": "^5.15.1",
+    "jose": "^6.0.13",
+    "next": "^15.4.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "recharts": "^3.1.2",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "prisma": "^6.14.0",
+    "tailwindcss": "^4.1.12",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
+  }
+}

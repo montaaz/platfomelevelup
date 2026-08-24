@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  /* Level Up IA brand — bleu #1860FC, violet #6C24FC, encre #000024 */
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dbe6fe;
+  --color-brand-200: #bfd3fe;
+  --color-brand-300: #93b4fd;
+  --color-brand-400: #608bfa;
+  --color-brand-500: #1860fc;
+  --color-brand-600: #1148e0;
+  --color-brand-700: #0e39b4;
+  --color-brand-800: #103292;
+  --color-brand-900: #122e75;
+
+  --color-violet-50: #f4f0ff;
+  --color-violet-100: #ebe2ff;
+  --color-violet-300: #c4a5fe;
+  --color-violet-500: #6c24fc;
+  --color-violet-600: #5b16e0;
+  --color-violet-700: #4c12b8;
+
+  --color-ink: #000024;
+  --color-ink-800: #0a0a3c;
+  --color-ink-700: #16165a;
+
+  --color-surface: #f5f6fb;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 1px 2px rgb(16 24 64 / 0.04), 0 4px 16px rgb(16 24 64 / 0.06);
+  --shadow-hero: 0 12px 32px rgb(0 0 36 / 0.25);
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dark hero banner shared by every screen */
+.hero-gradient {
+  background:
+    radial-gradient(120% 180% at 100% 0%, rgb(108 36 252 / 0.55) 0%, transparent 55%),
+    radial-gradient(120% 180% at 0% 100%, rgb(24 96 252 / 0.5) 0%, transparent 55%),
+    linear-gradient(115deg, #000024 0%, #101052 55%, #2b1878 100%);
+}
+
+.brand-text-gradient {
+  background: linear-gradient(90deg, #1860fc, #6c24fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+::selection {
+  background: rgb(24 96 252 / 0.2);
+}
