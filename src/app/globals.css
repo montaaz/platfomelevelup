@@ -352,8 +352,7 @@ body::before {
   .avatar-3d:hover { transform: translateY(-2px) scale(1.06); }
 
   /* --- table rows ------------------------------------------------------ */
-  .glass tbody tr { transition: background 0.15s, transform 0.15s; }
-  .glass tbody tr:hover { transform: translateX(3px); }
+  .glass tbody tr { transition: background 0.15s; }
 
   /* --- entrance ------------------------------------------------------ */
   main > * > * { animation: rise 0.45s cubic-bezier(.2,.8,.2,1) both; }
@@ -442,6 +441,10 @@ body::before {
 
 .sheet { animation: sheetUp 0.28s cubic-bezier(.2,.8,.2,1); box-shadow: 0 -20px 60px rgb(7 17 46 / 0.35); }
 @keyframes sheetUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* card scroll containers (tables): scroll silently, no visible bars */
+.glass .overflow-x-auto { scrollbar-width: none; -ms-overflow-style: none; }
+.glass .overflow-x-auto::-webkit-scrollbar { display: none; }
 
 /* sidebar nav: scrolls if needed, never shows scrollbars */
 .sidebar-nav { scrollbar-width: none; -ms-overflow-style: none; }
