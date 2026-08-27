@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui";
-import { IconSearch } from "@/components/icons";
+import { GlobalSearch } from "@/components/layout/GlobalSearch";
 import { NotificationsBell, type NotificationData } from "@/components/layout/NotificationsBell";
 
 const TITLES: Record<string, { title: string; subtitle?: (name: string) => string }> = {
@@ -48,18 +48,7 @@ export function Topbar({
       </div>
 
       <div className="order-3 flex w-full items-center gap-3 sm:order-2 sm:w-auto">
-        <label className="relative flex-1 sm:w-64 lg:w-80">
-          <IconSearch
-            width={16}
-            height={16}
-            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink/60"
-          />
-          <input
-            type="search"
-            placeholder={searchPlaceholder}
-            className="w-full rounded-full border border-white/80 bg-white/60 backdrop-blur-xl py-2.5 pr-4 pl-10 text-[13px] shadow-sm outline-none placeholder:text-ink/45 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-          />
-        </label>
+        <GlobalSearch placeholder={searchPlaceholder} />
         <NotificationsBell notifications={notifications} />
       </div>
 

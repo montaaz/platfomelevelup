@@ -12,6 +12,7 @@ import {
   getMyProfile, updateMyProfile, listServicesPublic,
 } from "@/server/services/clientActions";
 import { listNotifications, markAllNotificationsRead } from "@/server/services/notifications";
+import { globalSearch } from "@/server/services/search";
 import {
   createClient, updateClient, getClient, createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
@@ -55,6 +56,7 @@ const typeDefs = /* GraphQL */ `
     clientDetail(id: ID!): ClientDetail!
     projectRequests: [RequestRow!]!
     notifications: [NotificationRow!]!
+    search(q: String!): [SearchHit!]!
   }
 
   type Mutation {
@@ -75,6 +77,7 @@ const typeDefs = /* GraphQL */ `
     markNotificationsRead: Boolean!
   }
 
+  type SearchHit { type: String!, title: String!, subtitle: String, badge: String, href: String! }
   type NotificationRow {
     id: ID!, type: String!, title: String!, body: String, href: String!, read: Boolean!, createdAt: String!
   }
@@ -225,6 +228,7 @@ export const schema = createSchema<GqlContext>({
       clientDetail: (_p, a: { id: string }, c) => wrap(() => getClient(auth(c), BigInt(a.id))),
       projectRequests: (_p, _a, c) => wrap(() => listProjectRequests(auth(c))),
       notifications: (_p, _a, c) => wrap(() => listNotifications(auth(c))),
+      search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
     },
     Mutation: {
       sendMessage: (_p, a: { projectId: string; body: string }, c) =>
