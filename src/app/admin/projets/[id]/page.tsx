@@ -158,7 +158,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
 
           <Link
             href={`/admin/messagerie/${p.id}`}
-            className="glass block rounded-2xl px-6 py-4 text-center text-[13.5px] font-semibold text-brand-500 hover:bg-white/80"
+            className="glass relative block rounded-2xl px-6 py-4 text-center text-[13.5px] font-semibold text-brand-500 hover:bg-white/80"
           >
             Ouvrir la conversation du projet →
           </Link>

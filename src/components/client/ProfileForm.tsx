@@ -37,7 +37,7 @@ function Field({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(e) => onChange?.(e.target.value)}
-        className="w-full rounded-xl border border-white/80 bg-white/70 px-4 py-3 text-[14px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-50 disabled:text-slate-400"
+        className="w-full rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-3 text-[14px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-50 disabled:text-slate-400"
       />
     </div>
   );
@@ -80,7 +80,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl space-y-6">
-      <section className="space-y-4 glass rounded-2xl p-6 sm:p-7">
+      <section className="space-y-4 glass relative rounded-2xl p-6 sm:p-7">
         <h3 className="text-[14.5px] font-semibold text-ink">Coordonnées</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nom complet" id="fullName" value={fullName} onChange={setFullName} />
@@ -90,7 +90,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         </div>
       </section>
 
-      <section className="space-y-4 glass rounded-2xl p-6 sm:p-7">
+      <section className="space-y-4 glass relative rounded-2xl p-6 sm:p-7">
         <h3 className="text-[14.5px] font-semibold text-ink">Informations de facturation</h3>
         <p className="-mt-2 text-[12.5px] text-slate-400">Ces informations seront reprises sur vos prochaines factures.</p>
         <div className="grid gap-4 sm:grid-cols-2">

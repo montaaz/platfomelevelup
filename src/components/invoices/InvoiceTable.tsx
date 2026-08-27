@@ -46,7 +46,7 @@ export function InvoiceTable({
           </thead>
           <tbody>
             {invoices.map((invoice) => (
-              <tr key={invoice.id} className="border-b border-ink/4 last:border-0 hover:bg-slate-50/60">
+              <tr key={invoice.id} className="border-b border-ink/4 last:border-0 hover:bg-white/40">
                 <td className="px-6 py-3.5">
                   <Link href={`${basePath}/${invoice.id}`} className="flex items-center gap-3">
                     <Avatar name={invoice.clientCompany} size={36} />

@@ -52,7 +52,7 @@ export default async function AdminClientsPage() {
             </thead>
             <tbody>
               {clients.map((client) => (
-                <tr key={client.id} className="border-b border-ink/4 last:border-0 hover:bg-slate-50/60">
+                <tr key={client.id} className="border-b border-ink/4 last:border-0 hover:bg-white/40">
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-3">
                       <Avatar name={client.companyName} size={38} />

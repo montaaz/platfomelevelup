@@ -48,9 +48,9 @@ export function Modal({
 }
 
 export const inputCls =
-  "w-full rounded-xl border border-white/80 bg-white/70 px-3.5 py-2.5 text-[13.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-50";
+  "w-full rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-3.5 py-2.5 text-[13.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-50";
 export const labelCls = "mb-1 block text-[12.5px] font-medium text-ink";
 export const primaryBtnCls =
   "rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 px-5 py-2.5 text-[13.5px] font-semibold text-white shadow-md shadow-brand-500/25 hover:opacity-95 disabled:opacity-60";
 export const secondaryBtnCls =
-  "rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 text-[13.5px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60";
+  "rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13.5px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60";

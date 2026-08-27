@@ -67,7 +67,7 @@ export default async function AdminProjectsPage() {
             </thead>
             <tbody>
               {projects.map((project) => (
-                <tr key={project.id} className="border-b border-ink/4 last:border-0 hover:bg-slate-50/60">
+                <tr key={project.id} className="border-b border-ink/4 last:border-0 hover:bg-white/40">
                   <td className="px-6 py-3.5">
                     <Link href={`/admin/projets/${project.id}`} className="flex items-center gap-3">
                       <Avatar name={project.clientCompany} size={36} />
