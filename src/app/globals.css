@@ -265,6 +265,85 @@ body::before {
     box-shadow: 6px 0 24px -8px rgb(7 17 46 / 0.18), 1px 0 0 rgb(255 255 255 / 0.9);
   }
 
+  /* --- floating 3D sidebar ------------------------------------------- */
+  .sidebar-panel {
+    transform-origin: left center;
+    transform: perspective(1600px) rotateY(7deg);
+    transition: transform 0.45s cubic-bezier(.2,.8,.2,1), box-shadow 0.45s;
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 1) inset,
+      0 -3px 0 rgb(7 17 46 / 0.08) inset,
+      12px 0 0 -8px rgb(255 255 255 / 0.35),
+      18px 24px 60px -20px rgb(7 17 46 / 0.45),
+      30px 40px 90px -30px rgb(133 39 255 / 0.5);
+  }
+  .sidebar-panel:hover {
+    transform: perspective(1600px) rotateY(0deg);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 1) inset,
+      0 -3px 0 rgb(7 17 46 / 0.08) inset,
+      0 24px 60px -18px rgb(7 17 46 / 0.4),
+      0 40px 90px -30px rgb(22 135 255 / 0.5);
+  }
+  /* 3D keycap icon boxes */
+  .keycap {
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.55) inset,
+      0 -3px 0 rgb(0 0 0 / 0.22) inset,
+      0 3px 0 rgb(7 17 46 / 0.28),
+      0 8px 16px -6px rgb(7 17 46 / 0.45);
+    transition: transform 0.2s cubic-bezier(.2,.8,.2,1), box-shadow 0.2s;
+  }
+  .keycap-sm { box-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 2px 0 rgb(7 17 46 / 0.12); }
+  .nav-tile {
+    position: relative;
+    transition: transform 0.22s cubic-bezier(.2,.8,.2,1), background 0.22s, box-shadow 0.22s;
+    border: 1px solid transparent;
+  }
+  .nav-tile:hover {
+    transform: translateX(6px) translateZ(20px);
+    background: rgb(255 255 255 / 0.55);
+    border-color: rgb(255 255 255 / 0.9);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 3px 0 rgb(7 17 46 / 0.06), 0 12px 24px -10px rgb(7 17 46 / 0.35);
+  }
+  .nav-tile:hover .keycap { transform: translateY(-2px) rotate(-6deg) scale(1.08); }
+  .nav-tile:active { transform: translateX(6px) translateY(2px); }
+  .nav-tile-active {
+    background: linear-gradient(120deg, #1687ff 0%, #8527ff 100%);
+    border-color: rgb(255 255 255 / 0.35);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.45) inset,
+      0 -3px 0 rgb(0 0 0 / 0.22) inset,
+      0 5px 0 #4c12b8,
+      0 16px 32px -8px rgb(133 39 255 / 0.7);
+    animation: pillGlow 3s ease-in-out infinite;
+  }
+  .nav-tile-active:hover {
+    transform: translateX(6px) translateY(-1px);
+    background: linear-gradient(120deg, #2a92ff 0%, #9440ff 100%);
+    border-color: rgb(255 255 255 / 0.5);
+  }
+  /* active indicator bar on the panel edge */
+  .nav-tile-active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 22%;
+    height: 56%;
+    width: 4px;
+    border-radius: 4px;
+    background: linear-gradient(#1687ff, #8527ff);
+    box-shadow: 0 0 12px rgb(133 39 255 / 0.9);
+  }
+  .logo-tile, .user-tile {
+    background: linear-gradient(135deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.35));
+    border: 1px solid rgb(255 255 255 / 0.9);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 1) inset, 0 3px 0 rgb(7 17 46 / 0.06), 0 12px 24px -12px rgb(7 17 46 / 0.35);
+    transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
+  }
+  .logo-tile:hover { transform: translateY(-2px); }
+  .logo-tile:hover .keycap { transform: rotate(-8deg) scale(1.08); }
+
   /* --- avatars: glossy bubbles ----------------------------------------- */
   .avatar-3d {
     box-shadow: 0 1px 0 rgb(255 255 255 / 0.55) inset, 0 -2px 0 rgb(0 0 0 / 0.18) inset, 0 4px 10px -2px rgb(7 17 46 / 0.35);
@@ -286,7 +365,7 @@ body::before {
     to   { opacity: 1; transform: translateY(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    [data-tilt], .btn-3d, .nav-item, .glass-dark, main > * > * { transition: none; animation: none; }
+    [data-tilt], .btn-3d, .nav-item, .nav-tile, .sidebar-panel, .keycap, .glass-dark, main > * > * { transition: none; animation: none; transform: none; }
   }
 }
 

@@ -30,8 +30,8 @@ export default async function ClientLayout({ children }: { children: React.React
   return (
     <div className="min-h-screen">
       <TiltEffects />
-      <Sidebar space="ESPACE CLIENT" items={nav} />
-      <div className="pb-20 lg:pb-6 lg:pl-60 print:p-0 print:lg:pl-0">
+      <Sidebar space="ESPACE CLIENT" items={nav} userName={ctx.fullName} roleLabel={client?.companyName ?? "Client"} />
+      <div className="pb-24 lg:pb-6 lg:pl-[17.5rem] print:p-0 print:lg:pl-0">
         <div className="print:hidden">
           <Topbar
             userName={ctx.fullName}
