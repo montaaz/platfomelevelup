@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen">
       <TiltEffects />
       <Sidebar space="ESPACE ADMIN" items={nav} userName={ctx.fullName} roleLabel="Admin" />
-      <div className="pb-24 lg:pb-6 lg:pl-[17.5rem] print:p-0 print:lg:pl-0">
+      <div className="pb-28 lg:pb-6 lg:pl-[17.5rem] print:p-0 print:lg:pl-0">
         <div className="print:hidden">
           <Topbar
             userName={ctx.fullName}

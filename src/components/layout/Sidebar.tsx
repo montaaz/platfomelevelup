@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   IconGrid, IconUser, IconUsers, IconFolder, IconChat, IconInvoice,
   IconRepeat, IconTeam, IconLogout, IconHistory, IconPlus,
@@ -30,6 +30,19 @@ export function Sidebar({
   const pathname = usePathname();
   const rootHref = items[0]!.href;
   const isActive = (href: string) => (href === rootHref ? pathname === href : pathname.startsWith(href));
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // header hamburger (Topbar) opens the same sheet
+  useEffect(() => {
+    const open = () => setMenuOpen(true);
+    window.addEventListener("open-mobile-menu", open);
+    return () => window.removeEventListener("open-mobile-menu", open);
+  }, []);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
 
   return (
     <>
@@ -107,9 +120,9 @@ export function Sidebar({
         </div>
       </aside>
 
-      {/* ===================== Mobile: floating bottom dock */}
+      {/* ===================== Mobile: floating bottom dock (4 items + Menu) */}
       <nav className="dock fixed inset-x-2 bottom-2 z-30 flex items-stretch justify-around rounded-[22px] px-1 py-1.5 lg:hidden print:hidden">
-        {items.slice(0, 5).map((item) => {
+        {items.slice(0, 4).map((item) => {
           const Icon = ICONS[item.icon]!;
           const active = isActive(item.href);
           return (
@@ -130,7 +143,76 @@ export function Sidebar({
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          className={`dock-item flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 text-[10.5px] font-semibold ${menuOpen ? "dock-active text-white" : "text-ink/65"}`}
+          aria-label="Ouvrir le menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          <span>Menu</span>
+        </button>
       </nav>
+
+      {/* ===================== Mobile: full navigation sheet */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+          <button type="button" aria-label="Fermer" onClick={() => setMenuOpen(false)} className="absolute inset-0 bg-ink/45 backdrop-blur-sm" />
+          <div className="sheet absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-[28px] bg-white px-4 pt-3 pb-6">
+            <span className="mx-auto mb-3 block h-1.5 w-12 rounded-full bg-ink/15" />
+            <div className="mb-4 flex items-center gap-3 px-1">
+              <span className="keycap flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 text-[15px] font-black text-white">LU</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-extrabold tracking-wide text-ink">LEVEL UP<span className="brand-text-gradient"> IA</span></p>
+                <p className="text-[10px] font-semibold tracking-[0.16em] text-ink/50 uppercase">{space}</p>
+              </div>
+              <button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer" className="rounded-full bg-ink/5 p-2.5 text-ink/70">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {items.map((item) => {
+                const Icon = ICONS[item.icon]!;
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`nav-tile relative flex items-center gap-3 rounded-2xl border p-3 text-[13px] font-semibold ${
+                      active ? "nav-tile-active border-transparent text-white" : "border-ink/8 bg-ink/[0.03] text-ink"
+                    }`}
+                  >
+                    <span className={`keycap flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white ${active ? "from-white/30 to-white/10" : ICON_TINT[item.icon]}`}>
+                      <Icon width={17} height={17} />
+                    </span>
+                    <span className="min-w-0 flex-1 leading-tight">{item.label}</span>
+                    {item.count != null && item.count > 0 && (
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10.5px] font-bold ${active ? "bg-white/25 text-white" : "bg-violet-500 text-white"}`}>{item.count}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="user-tile mt-4 rounded-2xl p-3">
+              <div className="flex items-center gap-3">
+                <Avatar name={userName} size={40} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13.5px] font-semibold text-ink">{userName}</p>
+                  <p className="truncate text-[11.5px] text-ink/60">{roleLabel}</p>
+                </div>
+              </div>
+              <form action="/api/auth/logout" method="POST" className="mt-3">
+                <button type="submit" className="btn-glass flex w-full items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white py-2.5 text-[13px] font-semibold text-ink/80 hover:text-red-600">
+                  <IconLogout width={15} height={15} />
+                  Déconnexion
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

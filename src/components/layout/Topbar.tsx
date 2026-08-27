@@ -52,7 +52,15 @@ export function Topbar({
         <NotificationsBell notifications={notifications} />
       </div>
 
-      <div className="order-2 flex items-center gap-3 sm:order-3">
+      <div className="order-2 flex items-center gap-2.5 sm:order-3 sm:gap-3">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-mobile-menu"))}
+          aria-label="Ouvrir le menu"
+          className="rounded-xl border border-white/80 bg-white/70 p-2.5 text-ink/70 shadow-sm lg:hidden"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
         <Avatar name={userName} size={38} />
         <div className="hidden sm:block">
           <p className="text-[13px] leading-tight font-semibold text-ink">{userName}</p>

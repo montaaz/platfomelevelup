@@ -40,27 +40,27 @@ export default async function ClientHomePage() {
               </span>
             </div>
 
-            <div className="mt-6 kpi-scroll flex gap-3 overflow-x-auto sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 sm:overflow-visible lg:grid-cols-4">
-              <div className="glass-dark kpi-tile rounded-2xl p-4">
+            <div className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-x-6 sm:gap-y-5 lg:grid-cols-4">
+              <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
                 <p className="text-[12px] text-white/80">Statut actuel</p>
                 <p className="mt-1 text-[19px] leading-tight font-bold sm:text-[26px]">{PROJECT_STATUS_LABEL[featured.status]}</p>
                 <p className="mt-1 text-[11.5px] text-white/78">
                   {featured.status === "EN_REVISION" ? "votre validation est attendue" : "l'équipe travaille pour vous"}
                 </p>
               </div>
-              <div className="glass-dark kpi-tile rounded-2xl p-4">
+              <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
                 <p className="text-[12px] text-white/80">Livrables disponibles</p>
                 <p className="mt-1 text-[19px] leading-tight font-bold sm:text-[26px]">{featured.deliverables.length}</p>
                 <p className="mt-1 text-[11.5px] text-white/78">prêts à télécharger</p>
               </div>
-              <div className="glass-dark kpi-tile rounded-2xl p-4">
+              <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
                 <p className="text-[12px] text-white/80">Échéance prévue</p>
                 <p className="mt-1 text-[19px] leading-tight font-bold sm:text-[26px]">{formatDateShort(featured.dueDate)}</p>
                 <p className="mt-1 text-[11.5px] text-white/78">
                   {days != null ? (days >= 0 ? `dans ${days} jour${days > 1 ? "s" : ""}` : `dépassée de ${-days} j`) : "à planifier"}
                 </p>
               </div>
-              <div className="glass-dark kpi-tile rounded-2xl p-4">
+              <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
                 <p className="text-[12px] text-white/80">Facture liée</p>
                 <p className="mt-1 text-[19px] leading-tight font-bold sm:text-[26px]">{featured.pendingInvoices}</p>
                 <p className="mt-1 text-[11.5px] text-white/78">
