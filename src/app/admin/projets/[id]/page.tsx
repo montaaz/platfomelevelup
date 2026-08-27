@@ -24,7 +24,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
 
   return (
     <div className="space-y-5 pb-8">
-      <section className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
+      <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <Link href="/admin/projets" className="text-[12.5px] font-medium text-white/82 hover:text-white">
@@ -158,7 +158,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
 
           <Link
             href={`/admin/messagerie/${p.id}`}
-            className="glass relative block rounded-2xl px-6 py-4 text-center text-[13.5px] font-semibold text-brand-500 hover:bg-white/80"
+            data-tilt className="glass relative block rounded-2xl px-6 py-4 text-center text-[13.5px] font-semibold text-brand-500 hover:bg-white/80"
           >
             Ouvrir la conversation du projet →
           </Link>

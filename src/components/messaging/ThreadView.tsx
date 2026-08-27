@@ -57,7 +57,7 @@ export function ThreadView({
   }
 
   return (
-    <section className="flex min-h-[60vh] flex-col glass relative rounded-2xl">
+    <section data-tilt className="flex min-h-[60vh] flex-col glass relative rounded-2xl">
       <div className="flex items-center gap-3 border-b border-ink/5 px-5 py-4 sm:px-6">
         <Link href={backHref} className="text-[13px] font-medium text-brand-500 hover:text-brand-600">
           ← Retour
@@ -80,7 +80,7 @@ export function ThreadView({
               <div
                 className={`mt-1 inline-block rounded-2xl px-4 py-2.5 text-left text-[13.5px] leading-relaxed whitespace-pre-wrap ${
                   m.mine
-                    ? "rounded-tr-md bg-gradient-to-r from-brand-500 to-violet-500 text-white"
+                    ? "rounded-tr-md btn-3d bg-gradient-to-r from-brand-500 to-violet-500 text-white"
                     : "rounded-tl-md bg-slate-100 text-ink"
                 }`}
               >
@@ -108,7 +108,7 @@ export function ThreadView({
         <button
           type="submit"
           disabled={busy || !body.trim()}
-          className="rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 px-5 py-3 text-[13.5px] font-semibold text-white shadow-md shadow-brand-500/25 hover:opacity-95 disabled:opacity-50"
+          className="rounded-xl btn-3d bg-gradient-to-r from-brand-500 to-violet-500 px-5 py-3 text-[13.5px] font-semibold text-white shadow-md shadow-brand-500/25 hover:opacity-95 disabled:opacity-50"
         >
           {busy ? "Envoi…" : "Envoyer"}
         </button>

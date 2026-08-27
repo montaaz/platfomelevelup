@@ -35,7 +35,7 @@ export function NewRequestForm({ services }: { services: { id: string; name: str
 
   if (state === "sent") {
     return (
-      <section className="glass relative rounded-2xl p-8 text-center ">
+      <section data-tilt className="glass relative rounded-2xl p-8 text-center ">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-2xl">✓</span>
         <h3 className="mt-4 text-[16px] font-semibold text-ink">Demande envoyée</h3>
         <p className="mx-auto mt-1.5 max-w-md text-[13.5px] text-ink/72">
@@ -47,7 +47,7 @@ export function NewRequestForm({ services }: { services: { id: string; name: str
   }
 
   return (
-    <form onSubmit={onSubmit} className="max-w-2xl space-y-4 glass relative rounded-2xl p-6 sm:p-7">
+    <form onSubmit={onSubmit} data-tilt className="max-w-2xl space-y-4 glass relative rounded-2xl p-6 sm:p-7">
       <div>
         <label htmlFor="title" className="mb-1.5 block text-[13px] font-medium text-ink">
           Titre de votre demande *
@@ -103,7 +103,7 @@ export function NewRequestForm({ services }: { services: { id: string; name: str
       <button
         type="submit"
         disabled={state === "busy"}
-        className="rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 px-6 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand-500/25 hover:opacity-95 disabled:opacity-60"
+        className="rounded-xl btn-3d bg-gradient-to-r from-brand-500 to-violet-500 px-6 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand-500/25 hover:opacity-95 disabled:opacity-60"
       >
         {state === "busy" ? "Envoi…" : "Envoyer la demande"}
       </button>

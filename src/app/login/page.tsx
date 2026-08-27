@@ -79,7 +79,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand-500/25 transition hover:opacity-95 disabled:opacity-60"
+        className="w-full rounded-xl btn-3d bg-gradient-to-r from-brand-500 to-violet-500 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand-500/25 transition hover:opacity-95 disabled:opacity-60"
       >
         {loading ? "Connexion…" : "Se connecter"}
       </button>

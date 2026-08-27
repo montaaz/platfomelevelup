@@ -26,7 +26,7 @@ export default async function ClientHomePage() {
       {featured ? (
         <>
           {/* ============================== Hero: the project awaiting action */}
-          <section className="hero-gradient relative overflow-hidden rounded-3xl p-6 text-white shadow-hero sm:p-7">
+          <section data-tilt className="hero-gradient relative overflow-hidden rounded-3xl p-6 text-white shadow-hero sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-[16px] font-semibold">{featured.title}</h2>

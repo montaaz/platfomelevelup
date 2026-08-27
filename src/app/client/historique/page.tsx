@@ -11,7 +11,7 @@ export default async function ClientHistoryPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      <section className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
+      <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Historique des commandes</h2>
         <p className="mt-0.5 text-[12px] text-white/78">
           Tous vos projets, passés et en cours — un projet clôturé reste consultable.

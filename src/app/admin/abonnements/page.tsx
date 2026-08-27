@@ -19,7 +19,7 @@ export default async function AdminSubscriptionsPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      <section className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
+      <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Abonnements mensuels</h2>
         <div className="mt-5 grid grid-cols-3 gap-6">
           <div className="glass-dark rounded-2xl p-4">

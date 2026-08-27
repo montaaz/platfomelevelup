@@ -4,6 +4,7 @@ import { unreadTotal } from "@/server/services/messaging";
 import { listNotifications } from "@/server/services/notifications";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
+import { TiltEffects } from "@/components/layout/TiltEffects";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireCtx("CLIENT");
@@ -28,6 +29,7 @@ export default async function ClientLayout({ children }: { children: React.React
 
   return (
     <div className="min-h-screen">
+      <TiltEffects />
       <Sidebar space="ESPACE CLIENT" items={nav} />
       <div className="pb-20 lg:pb-6 lg:pl-60 print:p-0 print:lg:pl-0">
         <div className="print:hidden">

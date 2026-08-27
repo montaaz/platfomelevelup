@@ -27,7 +27,7 @@ export default async function AdminDashboardPage({
   return (
     <div className="space-y-5 pb-8">
       {/* ============================== Hero banner */}
-      <section className="hero-gradient relative overflow-hidden rounded-3xl p-6 text-white shadow-hero sm:p-7">
+      <section data-tilt className="hero-gradient relative overflow-hidden rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-[15px] font-semibold">Pilotage de l&apos;agence</h2>

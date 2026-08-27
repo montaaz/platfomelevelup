@@ -5,6 +5,7 @@ import { listNotifications } from "@/server/services/notifications";
 import { runMaintenanceSweep } from "@/server/maintenance";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
+import { TiltEffects } from "@/components/layout/TiltEffects";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireCtx("ADMIN");
@@ -29,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen">
+      <TiltEffects />
       <Sidebar space="ESPACE ADMIN" items={nav} />
       <div className="pb-20 lg:pb-6 lg:pl-60 print:p-0 print:lg:pl-0">
         <div className="print:hidden">

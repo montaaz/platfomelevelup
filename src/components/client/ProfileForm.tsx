@@ -80,7 +80,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl space-y-6">
-      <section className="space-y-4 glass relative rounded-2xl p-6 sm:p-7">
+      <section data-tilt className="space-y-4 glass relative rounded-2xl p-6 sm:p-7">
         <h3 className="text-[14.5px] font-semibold text-ink">Coordonnées</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nom complet" id="fullName" value={fullName} onChange={setFullName} />
@@ -90,7 +90,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         </div>
       </section>
 
-      <section className="space-y-4 glass relative rounded-2xl p-6 sm:p-7">
+      <section data-tilt className="space-y-4 glass relative rounded-2xl p-6 sm:p-7">
         <h3 className="text-[14.5px] font-semibold text-ink">Informations de facturation</h3>
         <p className="-mt-2 text-[12.5px] text-ink/60">Ces informations seront reprises sur vos prochaines factures.</p>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -107,7 +107,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <button
           type="submit"
           disabled={state === "busy"}
-          className="rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 px-6 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand-500/25 hover:opacity-95 disabled:opacity-60"
+          className="rounded-xl btn-3d bg-gradient-to-r from-brand-500 to-violet-500 px-6 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand-500/25 hover:opacity-95 disabled:opacity-60"
         >
           {state === "busy" ? "Enregistrement…" : "Enregistrer"}
         </button>

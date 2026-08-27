@@ -6,7 +6,7 @@ import { IconArrowRight } from "@/components/icons";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <section className={`glass relative rounded-2xl ${className}`}>
+    <section data-tilt className={`glass relative rounded-2xl ${className}`}>
       {children}
     </section>
   );
@@ -97,7 +97,7 @@ export function Avatar({ name, size = 38 }: { name: string; size?: number }) {
   const gradient = AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} font-semibold text-white`}
+      className={`avatar-3d inline-flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} font-semibold text-white`}
       style={{ width: size, height: size, fontSize: size * 0.34 }}
     >
       {initials(name)}
@@ -111,7 +111,7 @@ export function ProgressBar({ percent }: { percent: number }) {
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
       <div
-        className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500"
+        className="h-full rounded-full btn-3d bg-gradient-to-r from-brand-500 to-violet-500"
         style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
       />
     </div>

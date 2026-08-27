@@ -10,7 +10,7 @@ export default async function NewProjectPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      <section className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
+      <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Nouveau projet ou devis</h2>
         <p className="mt-0.5 max-w-xl text-[12.5px] text-white/80">
           Décrivez votre besoin : la demande arrive directement chez l&apos;équipe Level Up IA, qui revient vers vous avec
