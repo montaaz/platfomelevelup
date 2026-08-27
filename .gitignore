@@ -12,3 +12,4 @@ storage/uploads/
 .sentry-native/
 # confidential client documents (public repo) — keep locally only
 data/
+.next-verify/

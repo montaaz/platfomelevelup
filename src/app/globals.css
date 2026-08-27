@@ -417,6 +417,26 @@ body::before {
   .rt td:empty { display: none; }
 }
 
+/* KPI carousel on phones */
+.kpi-scroll { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.kpi-scroll::-webkit-scrollbar { display: none; }
+@media (max-width: 639px) {
+  .kpi-scroll { margin-inline: -8px; padding-inline: 8px; padding-bottom: 4px; }
+  .kpi-tile { flex: 0 0 74%; scroll-snap-align: start; }
+  .kpi-tile p:nth-child(2) { font-size: 30px; line-height: 1; margin-top: 8px; }
+  .kpi-tile p:last-child { margin-top: 8px; }
+  /* stacked table rows → clean chip layout */
+  .rt tr { padding: 14px 16px; }
+  .rt td:not(:first-child) {
+    background: rgb(7 17 46 / 0.045);
+    border-radius: 10px;
+    padding: 5px 10px !important;
+    margin: 6px 6px 0 0;
+    font-size: 12px;
+  }
+  .rt td:not(:first-child):has(> span.rounded-full) { background: transparent; padding: 4px 0 !important; }
+}
+
 .brand-text-gradient {
   background: linear-gradient(90deg, #1687ff, #8527ff);
   -webkit-background-clip: text;

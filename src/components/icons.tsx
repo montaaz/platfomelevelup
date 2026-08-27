@@ -139,3 +139,10 @@ export const IconHistory = (p: P) => (
     <path d="M3.5 3.5v5h5M12 8v4.5l3 2" />
   </svg>
 );
+
+export const IconTrend = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M14 7h7v7" />
+  </svg>
+);

@@ -15,16 +15,16 @@ export default async function AdminClientsPage() {
     <div className="space-y-5 pb-8">
       <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Clients de l&apos;agence</h2>
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6">
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+        <div className="mt-5 kpi-scroll flex gap-3 overflow-x-auto sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Clients actifs</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{clients.filter((c) => c.isActive).length}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Projets en cours</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{clients.reduce((s, c) => s + c.activeProjects, 0)}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Impayés cumulés</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatDT(totalUnpaid)}</p>
           </div>

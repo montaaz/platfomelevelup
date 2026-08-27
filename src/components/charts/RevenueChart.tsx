@@ -1,19 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const MONTHS = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"];
 
 export function RevenueChart({ data }: { data: { month: string; total: number }[] }) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
   const rows = data.map((d) => {
     const date = new Date(d.month);
     return { label: MONTHS[date.getMonth()], value: Math.round(d.total / 1000 * 10) / 10 };
   });
 
   return (
-    <div className="h-56 w-full sm:h-64">
+    <div className="h-48 w-full sm:h-64">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={rows} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+        <AreaChart data={rows} margin={{ top: 8, right: 8, left: mobile ? -30 : -18, bottom: 0 }}>
           <defs>
             <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#1687ff" stopOpacity={0.28} />
@@ -31,12 +40,14 @@ export function RevenueChart({ data }: { data: { month: string; total: number }[
             axisLine={false}
             tick={{ fontSize: 11, fill: "#4a5680" }}
             dy={6}
+            interval={mobile ? 1 : 0}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
             tick={{ fontSize: 11, fill: "#4a5680" }}
             width={46}
+            hide={mobile}
             tickFormatter={(v: number) => `${v}`}
           />
           <Tooltip

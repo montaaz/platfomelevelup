@@ -35,12 +35,12 @@ export default async function AdminDashboardPage({
               {new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}, mis à jour à l&apos;instant
             </p>
           </div>
-          <div className="flex rounded-full bg-white/10 p-1 text-[12px] font-medium">
+          <div className="flex w-full rounded-full bg-white/10 p-1 text-[12px] font-medium sm:w-auto">
             {PERIODS.map((period) => (
               <Link
                 key={period.key}
                 href={`/admin?p=${period.key}`}
-                className={`rounded-full px-3.5 py-1.5 transition ${
+                className={`flex-1 rounded-full px-3.5 py-1.5 text-center transition sm:flex-none ${
                   String(periodDays) === period.key ? "bg-white text-ink shadow" : "text-white/82 hover:text-white"
                 }`}
               >
@@ -50,8 +50,8 @@ export default async function AdminDashboardPage({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-x-6 sm:gap-y-5 lg:grid-cols-4">
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+        <div className="mt-6 kpi-scroll flex gap-3 overflow-x-auto sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5 sm:overflow-visible lg:grid-cols-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Chiffre d&apos;affaires du mois</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[30px] tracking-tight">{formatDT(kpis.revenueMonth)}</p>
             <p className="mt-1.5 text-[11.5px] text-emerald-300">
@@ -60,19 +60,19 @@ export default async function AdminDashboardPage({
                 : "premier mois facturé"}
             </p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Projets en cours</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[30px] tracking-tight">{kpis.projectsInProgress}</p>
             <p className="mt-1.5 text-[11.5px] text-emerald-300">
               ↑ {kpis.newProjectsThisWeek} nouveau{kpis.newProjectsThisWeek > 1 ? "x" : ""} cette semaine
             </p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Factures impayées</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[30px] tracking-tight">{kpis.unpaidCount}</p>
             <p className="mt-1.5 text-[11.5px] text-white/78">{formatDT(kpis.unpaidTotal)} à recouvrer</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Demandes de révision</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[30px] tracking-tight">{kpis.revisionRequests}</p>
             <p className="mt-1.5 text-[11.5px] text-white/78">en attente de réponse</p>

@@ -1,6 +1,23 @@
 import type { ReactNode } from "react";
 import { initials } from "@/lib/format";
-import { IconArrowRight } from "@/components/icons";
+import {
+  IconArrowRight, IconFolder, IconChat, IconInvoice, IconFile, IconClock, IconUsers, IconRepeat, IconPlus, IconGrid, IconTrend,
+} from "@/components/icons";
+
+/* section icon derived from the title — one look everywhere, zero call-site changes */
+function headerIcon(title: string): { Icon: (p: { width?: number; height?: number }) => ReactNode; tone: string } {
+  const t = title.toLowerCase();
+  if (t.includes("chiffre")) return { Icon: IconTrend, tone: "from-brand-400 to-brand-600" };
+  if (t.includes("revenu")) return { Icon: IconGrid, tone: "from-violet-400 to-violet-600" };
+  if (t.includes("livrable") || t.includes("fichier")) return { Icon: IconFile, tone: "from-sky-400 to-brand-500" };
+  if (t.includes("avancement") || t.includes("étape") || t.includes("historique")) return { Icon: IconClock, tone: "from-indigo-400 to-violet-600" };
+  if (t.includes("messag") || t.includes("conversation")) return { Icon: IconChat, tone: "from-fuchsia-400 to-violet-600" };
+  if (t.includes("factur")) return { Icon: IconInvoice, tone: "from-emerald-400 to-teal-600" };
+  if (t.includes("client")) return { Icon: IconUsers, tone: "from-sky-400 to-brand-500" };
+  if (t.includes("abonnement")) return { Icon: IconRepeat, tone: "from-amber-400 to-orange-500" };
+  if (t.includes("demande")) return { Icon: IconPlus, tone: "from-pink-400 to-rose-500" };
+  return { Icon: IconFolder, tone: "from-brand-400 to-violet-500" };
+}
 
 /* ------------------------------------------------------------------ Card */
 
@@ -23,16 +40,27 @@ export function CardHeader({
 }) {
   return (
     <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
-      <div>
-        <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-[12.5px] text-ink/72">{subtitle}</p>}
+      <div className="flex min-w-0 items-start gap-3">
+        {(() => {
+          const { Icon, tone } = headerIcon(title);
+          return (
+            <span className={`keycap mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${tone} text-white`}>
+              <Icon width={17} height={17} />
+            </span>
+          );
+        })()}
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+          {subtitle && <p className="mt-0.5 text-[12.5px] text-ink/72">{subtitle}</p>}
+        </div>
       </div>
       {action && (
         <a
           href={action.href}
-          className="inline-flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand-500 hover:text-brand-600"
+          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1.5 text-[13px] font-medium text-brand-600 hover:bg-brand-100 sm:bg-transparent sm:px-0 sm:py-0 sm:text-brand-500 sm:hover:bg-transparent sm:hover:text-brand-600"
+          aria-label={action.label}
         >
-          {action.label}
+          <span className="hidden sm:inline">{action.label}</span>
           <IconArrowRight width={14} height={14} />
         </a>
       )}

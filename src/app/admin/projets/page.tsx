@@ -25,16 +25,16 @@ export default async function AdminProjectsPage() {
     <div className="space-y-5 pb-8">
       <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Projets</h2>
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6">
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+        <div className="mt-5 kpi-scroll flex gap-3 overflow-x-auto sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">En cours</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{active.length}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">En retard</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{projects.filter((p) => p.overdue).length}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Valeur en production</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatDT(active.reduce((s, p) => s + p.price, 0))}</p>
           </div>

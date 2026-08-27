@@ -9,6 +9,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // separate build folder for verification runs (never clashes with the dev server's .next)
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

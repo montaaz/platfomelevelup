@@ -38,16 +38,16 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
           </div>
           <StatusBadge status={p.status} label={PROJECT_STATUS_LABEL[p.status] ?? p.status} />
         </div>
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6">
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+        <div className="mt-5 kpi-scroll flex gap-3 overflow-x-auto sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Prix</p>
             <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDT(p.price)}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Début</p>
             <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDateShort(p.startDate)}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-3 sm:p-4">
+          <div className="glass-dark kpi-tile rounded-2xl p-4">
             <p className="text-[12px] text-white/80">Échéance</p>
             <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDateShort(p.dueDate)}</p>
           </div>
