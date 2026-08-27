@@ -16,12 +16,12 @@ export function RevenueChart({ data }: { data: { month: string; total: number }[
         <AreaChart data={rows} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
           <defs>
             <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1860fc" stopOpacity={0.28} />
-              <stop offset="100%" stopColor="#6c24fc" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="#1687ff" stopOpacity={0.28} />
+              <stop offset="100%" stopColor="#8527ff" stopOpacity={0.02} />
             </linearGradient>
             <linearGradient id="revStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#1860fc" />
-              <stop offset="100%" stopColor="#6c24fc" />
+              <stop offset="0%" stopColor="#1687ff" />
+              <stop offset="100%" stopColor="#8527ff" />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 6" vertical={false} stroke="#e8eaf3" />
@@ -55,7 +55,7 @@ export function RevenueChart({ data }: { data: { month: string; total: number }[
             strokeWidth={2.5}
             fill="url(#revFill)"
             dot={false}
-            activeDot={{ r: 4, fill: "#6c24fc", strokeWidth: 2, stroke: "#fff" }}
+            activeDot={{ r: 4, fill: "#8527ff", strokeWidth: 2, stroke: "#fff" }}
           />
         </AreaChart>
       </ResponsiveContainer>

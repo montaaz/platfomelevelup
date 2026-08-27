@@ -37,7 +37,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-ink/5 bg-white lg:flex print:lg:hidden">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-white/70 bg-white/55 backdrop-blur-2xl lg:flex print:lg:hidden">
         <div className="px-6 pt-6 pb-5">
           <Link href={rootHref} className="block">
             <span className="text-[19px] font-extrabold tracking-wide text-ink">
@@ -61,7 +61,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
                 href={item.href}
                 className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[13.5px] font-medium transition-colors ${
                   active
-                    ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-md shadow-brand-500/25"
+                    ? "bg-gradient-to-r from-brand-500 to-violet-500 text-white shadow-md shadow-brand-500/30"
                     : "text-slate-500 hover:bg-brand-50 hover:text-brand-600"
                 }`}
               >
@@ -93,7 +93,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
       </aside>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-ink/5 bg-white/95 backdrop-blur lg:hidden print:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-white/70 bg-white/70 backdrop-blur-2xl lg:hidden print:hidden">
         {items.slice(0, 5).map((item) => {
           const Icon = ICONS[item.icon]!;
           const active = isActive(item.href);

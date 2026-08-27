@@ -57,7 +57,7 @@ export function Topbar({
           <input
             type="search"
             placeholder={searchPlaceholder}
-            className="w-full rounded-full border border-ink/8 bg-white py-2.5 pr-4 pl-10 text-[13px] shadow-sm outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+            className="w-full rounded-full border border-white/80 bg-white/60 backdrop-blur-xl py-2.5 pr-4 pl-10 text-[13px] shadow-sm outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
           />
         </label>
         <NotificationsBell notifications={notifications} />

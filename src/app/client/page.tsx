@@ -40,27 +40,27 @@ export default async function ClientHomePage() {
               </span>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4 lg:divide-x lg:divide-white/10">
-              <div className="lg:pr-6">
+            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
+              <div className="glass-dark rounded-2xl p-4">
                 <p className="text-[12px] text-white/55">Statut actuel</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{PROJECT_STATUS_LABEL[featured.status]}</p>
                 <p className="mt-1 text-[11.5px] text-white/50">
                   {featured.status === "EN_REVISION" ? "votre validation est attendue" : "l'équipe travaille pour vous"}
                 </p>
               </div>
-              <div className="lg:px-6">
+              <div className="glass-dark rounded-2xl p-4">
                 <p className="text-[12px] text-white/55">Livrables disponibles</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{featured.deliverables.length}</p>
                 <p className="mt-1 text-[11.5px] text-white/50">prêts à télécharger</p>
               </div>
-              <div className="lg:px-6">
+              <div className="glass-dark rounded-2xl p-4">
                 <p className="text-[12px] text-white/55">Échéance prévue</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{formatDateShort(featured.dueDate)}</p>
                 <p className="mt-1 text-[11.5px] text-white/50">
                   {days != null ? (days >= 0 ? `dans ${days} jour${days > 1 ? "s" : ""}` : `dépassée de ${-days} j`) : "à planifier"}
                 </p>
               </div>
-              <div className="lg:pl-6">
+              <div className="glass-dark rounded-2xl p-4">
                 <p className="text-[12px] text-white/55">Facture liée</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{featured.pendingInvoices}</p>
                 <p className="mt-1 text-[11.5px] text-white/50">

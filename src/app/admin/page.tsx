@@ -50,8 +50,8 @@ export default async function AdminDashboardPage({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4 lg:divide-x lg:divide-white/10">
-          <div className="lg:pr-6">
+        <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Chiffre d&apos;affaires du mois</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{formatDT(kpis.revenueMonth)}</p>
             <p className="mt-1.5 text-[11.5px] text-emerald-300">
@@ -60,19 +60,19 @@ export default async function AdminDashboardPage({
                 : "premier mois facturé"}
             </p>
           </div>
-          <div className="lg:px-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Projets en cours</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{kpis.projectsInProgress}</p>
             <p className="mt-1.5 text-[11.5px] text-emerald-300">
               ↑ {kpis.newProjectsThisWeek} nouveau{kpis.newProjectsThisWeek > 1 ? "x" : ""} cette semaine
             </p>
           </div>
-          <div className="lg:px-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Factures impayées</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{kpis.unpaidCount}</p>
             <p className="mt-1.5 text-[11.5px] text-white/50">{formatDT(kpis.unpaidTotal)} à recouvrer</p>
           </div>
-          <div className="lg:pl-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Demandes de révision</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{kpis.revisionRequests}</p>
             <p className="mt-1.5 text-[11.5px] text-white/50">en attente de réponse</p>
@@ -115,7 +115,7 @@ export default async function AdminDashboardPage({
                       className="h-full rounded-full"
                       style={{
                         width: `${Math.max(6, (s.total / max) * 100)}%`,
-                        background: s.color ?? ["#1860fc", "#38bdf8", "#a855f7", "#6c24fc", "#818cf8"][i % 5],
+                        background: s.color ?? ["#1687ff", "#38bdf8", "#a855f7", "#8527ff", "#818cf8"][i % 5],
                       }}
                     />
                   </div>

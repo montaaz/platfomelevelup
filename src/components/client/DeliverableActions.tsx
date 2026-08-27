@@ -71,7 +71,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
             onChange={(e) => setComment(e.target.value)}
             rows={3}
             placeholder="Ce qui doit changer…"
-            className="w-full rounded-xl border border-ink/10 px-3.5 py-2.5 text-[13px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            className="w-full rounded-xl border border-white/80 bg-white/70 px-3.5 py-2.5 text-[13px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
           <div className="flex flex-wrap gap-2.5">
             <button
@@ -84,7 +84,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
             <button
               onClick={() => setMode("idle")}
               disabled={busy}
-              className="rounded-xl border border-ink/10 px-4 py-2.5 text-[13px] font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 text-[13px] font-medium text-slate-600 hover:bg-slate-50"
             >
               Annuler
             </button>
@@ -95,7 +95,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
           <button
             onClick={() => setMode("revision")}
             disabled={busy}
-            className="rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            className="rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             Demander une révision
           </button>

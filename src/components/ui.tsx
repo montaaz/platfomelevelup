@@ -6,7 +6,7 @@ import { IconArrowRight } from "@/components/icons";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl border border-ink/5 bg-white shadow-card ${className}`}>
+    <section className={`glass rounded-2xl ${className}`}>
       {children}
     </section>
   );

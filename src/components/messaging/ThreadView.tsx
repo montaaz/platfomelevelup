@@ -57,7 +57,7 @@ export function ThreadView({
   }
 
   return (
-    <section className="flex min-h-[60vh] flex-col rounded-2xl border border-ink/5 bg-white shadow-card">
+    <section className="flex min-h-[60vh] flex-col glass rounded-2xl">
       <div className="flex items-center gap-3 border-b border-ink/5 px-5 py-4 sm:px-6">
         <Link href={backHref} className="text-[13px] font-medium text-brand-500 hover:text-brand-600">
           ← Retour
@@ -103,7 +103,7 @@ export function ThreadView({
           }}
           rows={2}
           placeholder="Écrire un message…"
-          className="min-h-11 flex-1 resize-none rounded-xl border border-ink/10 px-4 py-2.5 text-[13.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          className="min-h-11 flex-1 resize-none rounded-xl border border-white/80 bg-white/70 px-4 py-2.5 text-[13.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
         />
         <button
           type="submit"

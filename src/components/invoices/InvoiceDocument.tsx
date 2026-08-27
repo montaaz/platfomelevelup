@@ -24,7 +24,7 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
         <PrintButton />
       </div>
 
-      <section className="mx-auto max-w-3xl rounded-2xl border border-ink/5 bg-white p-8 shadow-card print:max-w-none print:rounded-none print:border-0 print:p-2 print:shadow-none sm:p-10">
+      <section className="mx-auto max-w-3xl glass rounded-2xl p-8 print:max-w-none print:rounded-none print:border-0 print:p-2 print:shadow-none sm:p-10">
         {/* header */}
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>

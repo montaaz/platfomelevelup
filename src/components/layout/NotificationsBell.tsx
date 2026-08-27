@@ -59,7 +59,7 @@ export function NotificationsBell({ notifications }: { notifications: Notificati
       <button
         type="button"
         onClick={toggle}
-        className="relative rounded-xl border border-ink/8 bg-white p-2.5 text-slate-500 shadow-sm hover:text-brand-500"
+        className="relative rounded-xl border border-white/80 bg-white/60 backdrop-blur-xl p-2.5 text-slate-500 shadow-sm hover:text-brand-500"
         aria-label="Notifications"
         aria-expanded={open}
       >
@@ -72,7 +72,7 @@ export function NotificationsBell({ notifications }: { notifications: Notificati
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 max-h-105 w-[min(92vw,380px)] overflow-y-auto rounded-2xl border border-ink/8 bg-white shadow-hero">
+        <div className="absolute right-0 z-40 mt-2 max-h-105 w-[min(92vw,380px)] overflow-y-auto glass-strong rounded-2xl">
           <p className="border-b border-ink/5 px-4 py-3 text-[13px] font-semibold text-ink">Notifications</p>
           {notifications.length === 0 && (
             <p className="px-4 py-8 text-center text-[13px] text-slate-400">Aucune notification.</p>

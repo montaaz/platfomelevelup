@@ -100,7 +100,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-8 shadow-hero">
+        <div className="glass-strong rounded-3xl p-8">
           <h1 className="text-lg font-bold text-ink">Connexion</h1>
           <p className="mt-1 mb-6 text-[13px] text-slate-500">
             Accédez à votre espace client ou à l'espace d'administration.

@@ -16,12 +16,12 @@ export default async function AdminTeamPage() {
         <p className="mt-0.5 text-[12px] text-white/50">
           Membres à qui un projet est attribué — la charge de chacun se lit ici.
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-6 lg:divide-x lg:divide-white/10">
-          <div className="lg:pr-6">
+        <div className="mt-5 grid grid-cols-2 gap-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Membres actifs</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{team.length}</p>
           </div>
-          <div className="lg:pl-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Projets portés</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{totalActive}</p>
           </div>

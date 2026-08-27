@@ -38,16 +38,16 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
           </div>
           <StatusBadge status={p.status} label={PROJECT_STATUS_LABEL[p.status] ?? p.status} />
         </div>
-        <div className="mt-5 grid grid-cols-3 gap-6 lg:divide-x lg:divide-white/10">
-          <div className="lg:pr-6">
+        <div className="mt-5 grid grid-cols-3 gap-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Prix</p>
             <p className="mt-1 text-[24px] leading-none font-bold">{formatDT(p.price)}</p>
           </div>
-          <div className="lg:px-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Début</p>
             <p className="mt-1 text-[24px] leading-none font-bold">{formatDateShort(p.startDate)}</p>
           </div>
-          <div className="lg:pl-6">
+          <div className="glass-dark rounded-2xl p-4">
             <p className="text-[12px] text-white/55">Échéance</p>
             <p className="mt-1 text-[24px] leading-none font-bold">{formatDateShort(p.dueDate)}</p>
           </div>
@@ -158,7 +158,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
 
           <Link
             href={`/admin/messagerie/${p.id}`}
-            className="block rounded-2xl border border-ink/5 bg-white px-6 py-4 text-center text-[13.5px] font-semibold text-brand-500 shadow-card hover:bg-brand-50"
+            className="glass block rounded-2xl px-6 py-4 text-center text-[13.5px] font-semibold text-brand-500 hover:bg-white/80"
           >
             Ouvrir la conversation du projet →
           </Link>
