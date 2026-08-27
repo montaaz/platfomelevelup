@@ -193,7 +193,7 @@ export default async function AdminDashboardPage({
                 <Link
                   key={thread.projectId}
                   href={`/admin/messagerie/${thread.projectId}`}
-                  className="flex gap-3 px-5 py-3.5 hover:bg-white/40 sm:px-6"
+                  className="flex gap-3 px-4 py-3.5 hover:bg-white/40 sm:px-6"
                 >
                   <Avatar name={thread.clientCompany} size={36} />
                   <div className="min-w-0 flex-1">
@@ -215,14 +215,18 @@ export default async function AdminDashboardPage({
             <div className="divide-y divide-ink/4 pb-2">
               {data.invoicesToFollow.length === 0 && <EmptyState message="Aucune facture à suivre." />}
               {data.invoicesToFollow.map((invoice) => (
-                <div key={invoice.id} className="flex items-center gap-3 px-5 py-3 sm:px-6">
+                <div key={invoice.id} className="flex items-center gap-3 px-4 py-3 sm:px-6">
                   <Avatar name={invoice.clientCompany} size={34} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold text-ink">{invoice.clientCompany}</p>
-                    <p className="text-[11.5px] text-ink/60">{invoice.number}</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-[13px] font-semibold text-ink">{invoice.clientCompany}</p>
+                      <p className="shrink-0 text-[13px] font-semibold whitespace-nowrap">{formatDT(invoice.total, { decimals: 2 })}</p>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <p className="text-[11.5px] whitespace-nowrap text-ink/60">{invoice.number}</p>
+                      <StatusBadge status={invoice.status} label={INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status} />
+                    </div>
                   </div>
-                  <StatusBadge status={invoice.status} label={INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status} />
-                  <p className="w-24 text-right text-[13px] font-semibold whitespace-nowrap">{formatDT(invoice.total, { decimals: 2 })}</p>
                 </div>
               ))}
             </div>

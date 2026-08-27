@@ -201,7 +201,7 @@ export default async function ClientHomePage() {
               <Link
                 key={i}
                 href={`/client/messages/${message.projectId}`}
-                className="flex gap-3 px-5 py-3.5 hover:bg-white/40 sm:px-6"
+                className="flex gap-3 px-4 py-3.5 hover:bg-white/40 sm:px-6"
               >
                 <Avatar name={message.senderName} size={36} />
                 <div className="min-w-0 flex-1">

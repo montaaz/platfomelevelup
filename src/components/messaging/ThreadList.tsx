@@ -34,7 +34,7 @@ export function ThreadList({
           <Link
             key={thread.projectId}
             href={`${basePath}/${thread.projectId}`}
-            className="flex gap-3.5 px-5 py-4 hover:bg-white/40 sm:px-6"
+            className="flex gap-3.5 px-4 py-4 hover:bg-white/40 sm:px-6"
           >
             <Avatar name={showClient ? thread.clientCompany : thread.projectTitle} size={42} />
             <div className="min-w-0 flex-1">

@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin", label: "Tableau de bord", short: "Accueil", icon: "grid" },
     { href: "/admin/clients", label: "Clients", icon: "user" },
     { href: "/admin/projets", label: "Projets", icon: "folder", count: projectCount },
-    { href: "/admin/messagerie", label: "Messagerie", icon: "chat", count: unread },
+    { href: "/admin/messagerie", label: "Messagerie", short: "Messages", icon: "chat", count: unread },
     { href: "/admin/factures", label: "Factures", icon: "invoice", count: unpaidCount },
     { href: "/admin/abonnements", label: "Abonnements", icon: "repeat" },
     { href: "/admin/equipe", label: "Équipe", icon: "team" },

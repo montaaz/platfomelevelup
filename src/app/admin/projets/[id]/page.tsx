@@ -147,10 +147,10 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
             <div className="divide-y divide-ink/4 pb-2">
               {p.invoices.length === 0 && <EmptyState message="Aucune facture liée." />}
               {p.invoices.map((i) => (
-                <div key={i.id} className="flex items-center gap-3 px-5 py-3 sm:px-6">
-                  <p className="flex-1 text-[13px] font-medium text-ink">{i.number}</p>
+                <div key={i.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:px-6">
+                  <p className="text-[13px] font-medium whitespace-nowrap text-ink">{i.number}</p>
                   <StatusBadge status={i.status} label={INVOICE_STATUS_LABEL[i.status] ?? i.status} />
-                  <p className="w-24 text-right text-[13px] font-semibold">{formatDT(i.total, { decimals: 2 })}</p>
+                  <p className="ml-auto text-[13px] font-semibold whitespace-nowrap">{formatDT(i.total, { decimals: 2 })}</p>
                 </div>
               ))}
             </div>

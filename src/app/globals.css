@@ -412,7 +412,7 @@ body::before {
   .rt, .rt tbody, .rt tr { display: block; width: 100%; }
   .rt tr { padding: 12px 16px 12px; border-bottom: 1px solid rgb(7 17 46 / 0.07); }
   .rt tr:last-child { border-bottom: 0; }
-  .rt td { display: inline-block; width: auto; padding: 4px 12px 2px 0 !important; text-align: left !important; vertical-align: middle; }
+  .rt td { display: inline-block; width: auto; padding: 4px 12px 2px 0 !important; text-align: left !important; vertical-align: middle; white-space: nowrap; }
   .rt td:first-child { display: block; width: 100%; padding: 0 0 6px !important; }
   .rt td:empty { display: none; }
 }

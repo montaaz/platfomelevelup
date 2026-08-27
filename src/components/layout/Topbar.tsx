@@ -43,7 +43,7 @@ export function Topbar({
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-[19px] font-bold text-ink">{match.title}</h1>
         {match.subtitle && (
-          <p className="mt-0.5 truncate text-[12.5px] text-ink/60">{match.subtitle(userName)}</p>
+          <p className="mt-0.5 hidden truncate text-[12.5px] text-ink/60 sm:block">{match.subtitle(userName)}</p>
         )}
       </div>
 
