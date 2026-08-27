@@ -24,9 +24,9 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
         <PrintButton />
       </div>
 
-      <section className="mx-auto max-w-3xl glass relative rounded-2xl p-8 print:max-w-none print:rounded-none print:border-0 print:p-2 print:shadow-none sm:p-10">
+      <section className="mx-auto max-w-3xl glass relative rounded-2xl p-5 print:max-w-none print:rounded-none print:border-0 print:p-2 print:shadow-none sm:p-10">
         {/* header */}
-        <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           <div>
             <p className="text-[20px] font-extrabold tracking-wide text-ink">
               LEVEL UP<span className="brand-text-gradient"> IA</span>
@@ -40,13 +40,13 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
               contact@levelupia.tn
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-[22px] font-bold text-ink">Facture {invoice.number}</p>
+          <div className="sm:text-right">
+            <p className="text-[20px] font-bold text-ink sm:text-[22px]">Facture {invoice.number}</p>
             <p className="mt-1 text-[12.5px] text-ink/72">Émise le {formatDateFull(invoice.issueDate)}</p>
             {invoice.dueDate && (
               <p className="text-[12.5px] text-ink/72">Échéance le {formatDateFull(invoice.dueDate)}</p>
             )}
-            <div className="mt-2 flex justify-end">
+            <div className="mt-2 flex sm:justify-end">
               <StatusBadge status={invoice.status} label={INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status} />
             </div>
           </div>
@@ -80,13 +80,13 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
           )}
         </div>
 
-        {/* lines */}
-        <table className="mt-8 w-full text-left">
+        {/* lines — table from tablet up */}
+        <table className="mt-8 hidden w-full text-left sm:table print:table">
           <thead>
             <tr className="border-y border-ink/10 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
               <th className="py-2.5 pr-4">Description</th>
               <th className="py-2.5 pr-4 text-right">Qté</th>
-              <th className="py-2.5 pr-4 text-right">Prix unitaire HT</th>
+              <th className="py-2.5 pr-4 text-right whitespace-nowrap">Prix unitaire HT</th>
               <th className="py-2.5 text-right">Total HT</th>
             </tr>
           </thead>
@@ -95,15 +95,30 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
               <tr key={i} className="border-b border-ink/5">
                 <td className="py-3 pr-4 text-[13.5px] text-ink">{line.description}</td>
                 <td className="py-3 pr-4 text-right text-[13.5px] text-ink/82">{line.quantity}</td>
-                <td className="py-3 pr-4 text-right text-[13.5px] text-ink/82">{formatDT(line.unitPrice, { decimals: 3 })}</td>
-                <td className="py-3 text-right text-[13.5px] font-medium text-ink">{formatDT(line.lineTotal, { decimals: 3 })}</td>
+                <td className="py-3 pr-4 text-right text-[13.5px] whitespace-nowrap text-ink/82">{formatDT(line.unitPrice, { decimals: 3 })}</td>
+                <td className="py-3 text-right text-[13.5px] font-medium whitespace-nowrap text-ink">{formatDT(line.lineTotal, { decimals: 3 })}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
+        {/* lines — stacked cards on phones */}
+        <div className="mt-6 divide-y divide-ink/5 border-y border-ink/10 sm:hidden print:hidden">
+          {invoice.lines.map((line, i) => (
+            <div key={i} className="py-3">
+              <p className="text-[13.5px] font-medium text-ink">{line.description}</p>
+              <div className="mt-1 flex items-baseline justify-between gap-3">
+                <p className="text-[12px] text-ink/60">
+                  {line.quantity} × {formatDT(line.unitPrice, { decimals: 3 })}
+                </p>
+                <p className="text-[13.5px] font-semibold whitespace-nowrap text-ink">{formatDT(line.lineTotal, { decimals: 3 })}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* totals */}
-        <div className="mt-6 ml-auto w-full max-w-64 space-y-1.5 text-[13.5px]">
+        <div className="mt-6 w-full space-y-1.5 text-[13.5px] sm:ml-auto sm:max-w-64">
           <div className="flex justify-between text-ink/72">
             <span>Sous-total HT</span>
             <span>{formatDT(invoice.subtotal, { decimals: 3 })}</span>
