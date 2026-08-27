@@ -327,7 +327,7 @@ body::before {
   .nav-tile-active::before {
     content: "";
     position: absolute;
-    left: -14px;
+    left: -8px;
     top: 22%;
     height: 56%;
     width: 4px;
@@ -442,6 +442,10 @@ body::before {
 
 .sheet { animation: sheetUp 0.28s cubic-bezier(.2,.8,.2,1); box-shadow: 0 -20px 60px rgb(7 17 46 / 0.35); }
 @keyframes sheetUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* sidebar nav: scrolls if needed, never shows scrollbars */
+.sidebar-nav { scrollbar-width: none; -ms-overflow-style: none; }
+.sidebar-nav::-webkit-scrollbar { display: none; }
 
 .brand-text-gradient {
   background: linear-gradient(90deg, #1687ff, #8527ff);

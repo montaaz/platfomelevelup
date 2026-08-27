@@ -65,7 +65,7 @@ export function Sidebar({
 
         <p className="mt-5 mb-2 px-4 text-[10px] font-bold tracking-[0.18em] text-ink/45">{space}</p>
 
-        <nav className="flex-1 space-y-1.5 overflow-y-auto px-1">
+        <nav className="sidebar-nav -mx-1 flex-1 space-y-1.5 overflow-x-hidden overflow-y-auto px-2 pr-3">
           {items.map((item) => {
             const Icon = ICONS[item.icon]!;
             const active = isActive(item.href);
