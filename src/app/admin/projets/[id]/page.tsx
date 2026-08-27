@@ -38,23 +38,23 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
           </div>
           <StatusBadge status={p.status} label={PROJECT_STATUS_LABEL[p.status] ?? p.status} />
         </div>
-        <div className="mt-5 grid grid-cols-3 gap-6">
-          <div className="glass-dark rounded-2xl p-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Prix</p>
-            <p className="mt-1 text-[24px] leading-none font-bold">{formatDT(p.price)}</p>
+            <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDT(p.price)}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-4">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Début</p>
-            <p className="mt-1 text-[24px] leading-none font-bold">{formatDateShort(p.startDate)}</p>
+            <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDateShort(p.startDate)}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-4">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Échéance</p>
-            <p className="mt-1 text-[24px] leading-none font-bold">{formatDateShort(p.dueDate)}</p>
+            <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDateShort(p.dueDate)}</p>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
+      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
         <div className="space-y-5">
           <Card>
             <CardHeader title="Fichiers du projet" subtitle="Livrables visibles côté client dès le dépôt" />

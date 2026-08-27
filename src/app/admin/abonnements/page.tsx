@@ -21,18 +21,18 @@ export default async function AdminSubscriptionsPage() {
     <div className="space-y-5 pb-8">
       <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Abonnements mensuels</h2>
-        <div className="mt-5 grid grid-cols-3 gap-6">
-          <div className="glass-dark rounded-2xl p-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Abonnements actifs</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{active.length}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{active.length}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-4">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Revenu mensuel récurrent</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{formatDT(active.reduce((s, x) => s + x.monthlyAmount, 0))}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatDT(active.reduce((s, x) => s + x.monthlyAmount, 0))}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-4">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Échéances sous 14 jours</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{subs.filter((s) => s.renewalSoon).length}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{subs.filter((s) => s.renewalSoon).length}</p>
           </div>
         </div>
       </section>

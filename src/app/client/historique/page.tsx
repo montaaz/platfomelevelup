@@ -16,14 +16,14 @@ export default async function ClientHistoryPage() {
         <p className="mt-0.5 text-[12px] text-white/78">
           Tous vos projets, passés et en cours — un projet clôturé reste consultable.
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-6">
-          <div className="glass-dark rounded-2xl p-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Projets au total</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{history.length}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{history.length}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-4">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Montant total commandé</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{formatDT(history.reduce((s, h) => s + h.price, 0))}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatDT(history.reduce((s, h) => s + h.price, 0))}</p>
           </div>
         </div>
       </section>

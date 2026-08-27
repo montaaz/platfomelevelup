@@ -40,7 +40,7 @@ export default async function ClientLayout({ children }: { children: React.React
             notifications={notifications}
           />
         </div>
-        <main className="px-4 sm:px-6 lg:px-8 print:p-0">{children}</main>
+        <main className="px-3 sm:px-6 lg:px-8 print:p-0">{children}</main>
       </div>
     </div>
   );

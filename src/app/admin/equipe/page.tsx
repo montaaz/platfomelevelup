@@ -16,19 +16,19 @@ export default async function AdminTeamPage() {
         <p className="mt-0.5 text-[12px] text-white/78">
           Membres à qui un projet est attribué — la charge de chacun se lit ici.
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-6">
-          <div className="glass-dark rounded-2xl p-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Membres actifs</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{team.length}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{team.length}</p>
           </div>
-          <div className="glass-dark rounded-2xl p-4">
+          <div className="glass-dark rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Projets portés</p>
-            <p className="mt-1 text-[28px] leading-none font-bold">{totalActive}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{totalActive}</p>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {team.length === 0 && (
           <Card className="md:col-span-2 xl:col-span-3">
             <EmptyState message="Aucun membre d'équipe." />

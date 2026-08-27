@@ -6,7 +6,7 @@ import { IconArrowRight } from "@/components/icons";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <section data-tilt className={`glass relative rounded-2xl ${className}`}>
+    <section data-tilt className={`glass relative min-w-0 rounded-2xl ${className}`}>
       {children}
     </section>
   );
