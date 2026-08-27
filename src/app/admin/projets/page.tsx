@@ -27,15 +27,15 @@ export default async function AdminProjectsPage() {
         <h2 className="text-[15px] font-semibold">Projets</h2>
         <div className="mt-5 grid grid-cols-3 gap-6">
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">En cours</p>
+            <p className="text-[12px] text-white/80">En cours</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{active.length}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">En retard</p>
+            <p className="text-[12px] text-white/80">En retard</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{projects.filter((p) => p.overdue).length}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Valeur en production</p>
+            <p className="text-[12px] text-white/80">Valeur en production</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{formatDT(active.reduce((s, p) => s + p.price, 0))}</p>
           </div>
         </div>
@@ -56,7 +56,7 @@ export default async function AdminProjectsPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-175 text-left">
             <thead>
-              <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+              <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Client et projet</th>
                 <th className="px-4 py-2.5">Service</th>
                 <th className="px-4 py-2.5">Statut</th>
@@ -73,17 +73,17 @@ export default async function AdminProjectsPage() {
                       <Avatar name={project.clientCompany} size={36} />
                       <div className="min-w-0">
                         <p className="truncate text-[13.5px] font-semibold text-ink hover:text-brand-600">{project.clientCompany}</p>
-                        <p className="truncate text-[12px] text-slate-400">{project.title}</p>
+                        <p className="truncate text-[12px] text-ink/60">{project.title}</p>
                       </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-3.5 text-[13px] text-slate-600">{project.serviceName}</td>
+                  <td className="px-4 py-3.5 text-[13px] text-ink/82">{project.serviceName}</td>
                   <td className="px-4 py-3.5">
                     <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />
                   </td>
-                  <td className="px-4 py-3.5 text-[13px] text-slate-600">{project.assigneeName ?? "—"}</td>
+                  <td className="px-4 py-3.5 text-[13px] text-ink/82">{project.assigneeName ?? "—"}</td>
                   <td className="px-4 py-3.5 text-right text-[13px] font-medium">{formatDT(project.price)}</td>
-                  <td className={`px-6 py-3.5 text-right text-[13px] font-medium ${project.overdue ? "text-red-500" : "text-slate-500"}`}>
+                  <td className={`px-6 py-3.5 text-right text-[13px] font-medium ${project.overdue ? "text-red-500" : "text-ink/72"}`}>
                     {project.overdue ? "en retard" : formatDateShort(project.dueDate)}
                   </td>
                 </tr>

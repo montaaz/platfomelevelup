@@ -122,7 +122,7 @@ export function ProjectFormButton({
           <button type="submit" disabled={busy} className={primaryBtnCls}>
             {busy ? "Création…" : "Créer le projet"}
           </button>
-          <p className="text-[12px] text-slate-400">
+          <p className="text-[12px] text-ink/60">
             Le projet apparaît immédiatement dans l&apos;espace du client, avec ses étapes par défaut.
           </p>
         </form>

@@ -63,7 +63,7 @@ export function RequestsCard({ requests }: { requests: RequestData[] }) {
           Demandes de projet
           <span className="ml-2 rounded-full bg-violet-500 px-2 py-0.5 text-[11px] font-bold text-white">{requests.length}</span>
         </h2>
-        <p className="mt-0.5 text-[12.5px] text-slate-500">Envoyées par vos clients depuis leur espace</p>
+        <p className="mt-0.5 text-[12.5px] text-ink/72">Envoyées par vos clients depuis leur espace</p>
       </div>
       <div className="divide-y divide-violet-100">
         {requests.map((r) => (
@@ -74,10 +74,10 @@ export function RequestsCard({ requests }: { requests: RequestData[] }) {
                 {r.title}
                 {r.serviceName && <span className="ml-2 text-[11.5px] font-medium text-violet-600">{r.serviceName}</span>}
               </p>
-              <p className="truncate text-[12px] text-slate-500">
+              <p className="truncate text-[12px] text-ink/72">
                 {r.clientCompany} · {r.byName} · {relativeTime(r.createdAt)}
               </p>
-              {r.description && <p className="mt-0.5 line-clamp-2 text-[12.5px] text-slate-500">{r.description}</p>}
+              {r.description && <p className="mt-0.5 line-clamp-2 text-[12.5px] text-ink/72">{r.description}</p>}
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setAccepting(r)} className={`${primaryBtnCls} !px-4 !py-2 text-[12.5px]`}>
@@ -93,7 +93,7 @@ export function RequestsCard({ requests }: { requests: RequestData[] }) {
 
       <Modal title={`Accepter — ${accepting?.title ?? ""}`} open={!!accepting} onClose={() => setAccepting(null)}>
         <div className="space-y-4">
-          <p className="text-[13px] text-slate-500">
+          <p className="text-[13px] text-ink/72">
             Un projet sera créé pour <strong>{accepting?.clientCompany}</strong> et apparaîtra immédiatement dans son espace.
           </p>
           <div>

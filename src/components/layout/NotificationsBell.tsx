@@ -59,7 +59,7 @@ export function NotificationsBell({ notifications }: { notifications: Notificati
       <button
         type="button"
         onClick={toggle}
-        className="relative rounded-xl border border-white/80 bg-white/60 backdrop-blur-xl p-2.5 text-slate-500 shadow-sm hover:text-brand-500"
+        className="relative rounded-xl border border-white/80 bg-white/60 backdrop-blur-xl p-2.5 text-ink/72 shadow-sm hover:text-brand-500"
         aria-label="Notifications"
         aria-expanded={open}
       >
@@ -75,7 +75,7 @@ export function NotificationsBell({ notifications }: { notifications: Notificati
         <div className="absolute right-0 z-40 mt-2 max-h-105 w-[min(92vw,380px)] overflow-y-auto glass-strong rounded-2xl">
           <p className="border-b border-ink/5 px-4 py-3 text-[13px] font-semibold text-ink">Notifications</p>
           {notifications.length === 0 && (
-            <p className="px-4 py-8 text-center text-[13px] text-slate-400">Aucune notification.</p>
+            <p className="px-4 py-8 text-center text-[13px] text-ink/60">Aucune notification.</p>
           )}
           {notifications.map((n) => (
             <Link
@@ -87,12 +87,12 @@ export function NotificationsBell({ notifications }: { notifications: Notificati
               <span className="text-[18px] leading-6">{TYPE_EMOJI[n.type] ?? "🔔"}</span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline gap-2">
-                  <span className={`truncate text-[13px] ${n.read ? "font-medium text-slate-600" : "font-semibold text-ink"}`}>
+                  <span className={`truncate text-[13px] ${n.read ? "font-medium text-ink/82" : "font-semibold text-ink"}`}>
                     {n.title}
                   </span>
-                  <span className="ml-auto shrink-0 text-[10.5px] text-slate-400">{relativeTime(n.createdAt)}</span>
+                  <span className="ml-auto shrink-0 text-[10.5px] text-ink/60">{relativeTime(n.createdAt)}</span>
                 </span>
-                {n.body && <span className="mt-0.5 line-clamp-2 block text-[12px] text-slate-500">{n.body}</span>}
+                {n.body && <span className="mt-0.5 line-clamp-2 block text-[12px] text-ink/72">{n.body}</span>}
               </span>
               {!n.read && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" />}
             </Link>

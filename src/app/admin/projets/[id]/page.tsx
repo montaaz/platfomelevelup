@@ -27,11 +27,11 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
       <section className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <Link href="/admin/projets" className="text-[12.5px] font-medium text-white/60 hover:text-white">
+            <Link href="/admin/projets" className="text-[12.5px] font-medium text-white/82 hover:text-white">
               ← Tous les projets
             </Link>
             <h2 className="mt-1 text-[18px] font-semibold">{p.title}</h2>
-            <p className="mt-0.5 text-[12.5px] text-white/55">
+            <p className="mt-0.5 text-[12.5px] text-white/80">
               {p.clientCompany} · {p.serviceName}
               {p.assigneeName ? ` · assigné à ${p.assigneeName}` : ""}
             </p>
@@ -40,15 +40,15 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
         </div>
         <div className="mt-5 grid grid-cols-3 gap-6">
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Prix</p>
+            <p className="text-[12px] text-white/80">Prix</p>
             <p className="mt-1 text-[24px] leading-none font-bold">{formatDT(p.price)}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Début</p>
+            <p className="text-[12px] text-white/80">Début</p>
             <p className="mt-1 text-[24px] leading-none font-bold">{formatDateShort(p.startDate)}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Échéance</p>
+            <p className="text-[12px] text-white/80">Échéance</p>
             <p className="mt-1 text-[24px] leading-none font-bold">{formatDateShort(p.dueDate)}</p>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13.5px] font-semibold text-ink">{f.name}</p>
-                    <p className="text-[11.5px] text-slate-400">
+                    <p className="text-[11.5px] text-ink/60">
                       v{f.version} · {formatBytes(f.sizeBytes)} · {f.uploadedByName} · {formatDateFull(f.createdAt)}
                       {f.kind === "ELEMENT_CLIENT" && " · interne"}
                     </p>
@@ -101,11 +101,11 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
                   <p className="text-[13px] text-ink">
                     {h.oldStatus ? `${PROJECT_STATUS_LABEL[h.oldStatus]} → ` : ""}
                     <span className="font-semibold">{PROJECT_STATUS_LABEL[h.newStatus]}</span>
-                    <span className="ml-2 text-[11.5px] text-slate-400">
+                    <span className="ml-2 text-[11.5px] text-ink/60">
                       {h.byName} · {formatDateFull(h.createdAt)}
                     </span>
                   </p>
-                  {h.comment && <p className="mt-0.5 text-[12.5px] text-slate-500">{h.comment}</p>}
+                  {h.comment && <p className="mt-0.5 text-[12.5px] text-ink/72">{h.comment}</p>}
                 </div>
               ))}
             </div>
@@ -131,9 +131,9 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
                   >
                     {step.reachedAt && <IconCheck width={11} height={11} />}
                   </span>
-                  <span className={`flex-1 text-[13px] ${step.reachedAt ? "text-ink" : "text-slate-400"}`}>{step.label}</span>
+                  <span className={`flex-1 text-[13px] ${step.reachedAt ? "text-ink" : "text-ink/60"}`}>{step.label}</span>
                   {step.reachedAt ? (
-                    <span className="text-[11.5px] text-slate-400">{formatDateShort(step.reachedAt)}</span>
+                    <span className="text-[11.5px] text-ink/60">{formatDateShort(step.reachedAt)}</span>
                   ) : (
                     <ReachStepButton projectId={p.id} position={step.position} />
                   )}

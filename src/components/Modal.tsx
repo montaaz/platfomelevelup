@@ -34,7 +34,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-ink"
+            className="rounded-full p-2 text-ink/60 hover:bg-slate-100 hover:text-ink"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 6l12 12M18 6L6 18" />
@@ -53,4 +53,4 @@ export const labelCls = "mb-1 block text-[12.5px] font-medium text-ink";
 export const primaryBtnCls =
   "rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 px-5 py-2.5 text-[13.5px] font-semibold text-white shadow-md shadow-brand-500/25 hover:opacity-95 disabled:opacity-60";
 export const secondaryBtnCls =
-  "rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13.5px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60";
+  "rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13.5px] font-medium text-ink/82 hover:bg-slate-50 disabled:opacity-60";

@@ -43,7 +43,7 @@ export function Topbar({
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-[19px] font-bold text-ink">{match.title}</h1>
         {match.subtitle && (
-          <p className="mt-0.5 truncate text-[12.5px] text-slate-400">{match.subtitle(userName)}</p>
+          <p className="mt-0.5 truncate text-[12.5px] text-ink/60">{match.subtitle(userName)}</p>
         )}
       </div>
 
@@ -52,12 +52,12 @@ export function Topbar({
           <IconSearch
             width={16}
             height={16}
-            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink/60"
           />
           <input
             type="search"
             placeholder={searchPlaceholder}
-            className="w-full rounded-full border border-white/80 bg-white/60 backdrop-blur-xl py-2.5 pr-4 pl-10 text-[13px] shadow-sm outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+            className="w-full rounded-full border border-white/80 bg-white/60 backdrop-blur-xl py-2.5 pr-4 pl-10 text-[13px] shadow-sm outline-none placeholder:text-ink/45 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
           />
         </label>
         <NotificationsBell notifications={notifications} />
@@ -67,7 +67,7 @@ export function Topbar({
         <Avatar name={userName} size={38} />
         <div className="hidden sm:block">
           <p className="text-[13px] leading-tight font-semibold text-ink">{userName}</p>
-          <p className="text-[11.5px] leading-tight text-slate-400">{roleLabel}</p>
+          <p className="text-[11.5px] leading-tight text-ink/60">{roleLabel}</p>
         </div>
       </div>
     </header>

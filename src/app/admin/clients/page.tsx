@@ -17,15 +17,15 @@ export default async function AdminClientsPage() {
         <h2 className="text-[15px] font-semibold">Clients de l&apos;agence</h2>
         <div className="mt-5 grid grid-cols-3 gap-6">
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Clients actifs</p>
+            <p className="text-[12px] text-white/80">Clients actifs</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{clients.filter((c) => c.isActive).length}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Projets en cours</p>
+            <p className="text-[12px] text-white/80">Projets en cours</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{clients.reduce((s, c) => s + c.activeProjects, 0)}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Impayés cumulés</p>
+            <p className="text-[12px] text-white/80">Impayés cumulés</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{formatDT(totalUnpaid)}</p>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default async function AdminClientsPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-175 text-left">
             <thead>
-              <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+              <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Entreprise</th>
                 <th className="px-4 py-2.5">Contact</th>
                 <th className="px-4 py-2.5">Projets</th>
@@ -58,15 +58,15 @@ export default async function AdminClientsPage() {
                       <Avatar name={client.companyName} size={38} />
                       <div className="min-w-0">
                         <p className="truncate text-[13.5px] font-semibold text-ink">{client.companyName}</p>
-                        <p className="truncate text-[12px] text-slate-400">{client.city ?? client.email ?? "—"}</p>
+                        <p className="truncate text-[12px] text-ink/60">{client.city ?? client.email ?? "—"}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3.5">
                     <p className="text-[13px] text-ink">{client.contactName}</p>
-                    <p className="text-[11.5px] text-slate-400">{client.phone ?? client.email ?? "—"}</p>
+                    <p className="text-[11.5px] text-ink/60">{client.phone ?? client.email ?? "—"}</p>
                   </td>
-                  <td className="px-4 py-3.5 text-[13px] text-slate-600">
+                  <td className="px-4 py-3.5 text-[13px] text-ink/82">
                     <span className="font-semibold text-ink">{client.activeProjects}</span> en cours ·{" "}
                     {client.totalProjects} au total
                   </td>
@@ -76,13 +76,13 @@ export default async function AdminClientsPage() {
                         {client.subscription}
                       </span>
                     ) : (
-                      <span className="text-[12.5px] text-slate-400">—</span>
+                      <span className="text-[12.5px] text-ink/60">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3.5 text-right text-[13px] font-medium text-emerald-600">
                     {formatDT(client.paidTotal)}
                   </td>
-                  <td className={`px-4 py-3.5 text-right text-[13px] font-semibold ${client.unpaidTotal > 0 ? "text-red-500" : "text-slate-400"}`}>
+                  <td className={`px-4 py-3.5 text-right text-[13px] font-semibold ${client.unpaidTotal > 0 ? "text-red-500" : "text-ink/60"}`}>
                     {client.unpaidTotal > 0 ? formatDT(client.unpaidTotal) : "—"}
                   </td>
                   <td className="px-6 py-3.5 text-right">

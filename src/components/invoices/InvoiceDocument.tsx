@@ -31,10 +31,10 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
             <p className="text-[20px] font-extrabold tracking-wide text-ink">
               LEVEL UP<span className="brand-text-gradient"> IA</span>
             </p>
-            <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+            <p className="text-[10px] font-medium tracking-[0.14em] text-ink/60 uppercase">
               Digital marketing powered by AI
             </p>
-            <p className="mt-3 text-[12px] leading-relaxed text-slate-500">
+            <p className="mt-3 text-[12px] leading-relaxed text-ink/72">
               Tunis, Tunisie
               <br />
               contact@levelupia.tn
@@ -42,9 +42,9 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
           </div>
           <div className="text-right">
             <p className="text-[22px] font-bold text-ink">Facture {invoice.number}</p>
-            <p className="mt-1 text-[12.5px] text-slate-500">Émise le {formatDateFull(invoice.issueDate)}</p>
+            <p className="mt-1 text-[12.5px] text-ink/72">Émise le {formatDateFull(invoice.issueDate)}</p>
             {invoice.dueDate && (
-              <p className="text-[12.5px] text-slate-500">Échéance le {formatDateFull(invoice.dueDate)}</p>
+              <p className="text-[12.5px] text-ink/72">Échéance le {formatDateFull(invoice.dueDate)}</p>
             )}
             <div className="mt-2 flex justify-end">
               <StatusBadge status={invoice.status} label={INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status} />
@@ -54,9 +54,9 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
 
         {/* billed to */}
         <div className="mt-8 rounded-xl bg-slate-50 p-5 print:border print:border-slate-200 print:bg-white">
-          <p className="text-[10.5px] font-semibold tracking-[0.12em] text-slate-400 uppercase">Facturé à</p>
+          <p className="text-[10.5px] font-semibold tracking-[0.12em] text-ink/60 uppercase">Facturé à</p>
           <p className="mt-1.5 text-[15px] font-semibold text-ink">{invoice.client.companyName}</p>
-          <p className="text-[12.5px] leading-relaxed text-slate-500">
+          <p className="text-[12.5px] leading-relaxed text-ink/72">
             {invoice.client.contactName}
             {invoice.client.address && (
               <>
@@ -73,7 +73,7 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
             )}
           </p>
           {invoice.projectTitle && (
-            <p className="mt-2 text-[12.5px] text-slate-500">
+            <p className="mt-2 text-[12.5px] text-ink/72">
               Projet : <span className="font-medium text-ink">{invoice.projectTitle}</span>
               {invoice.serviceName ? ` (${invoice.serviceName})` : ""}
             </p>
@@ -83,7 +83,7 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
         {/* lines */}
         <table className="mt-8 w-full text-left">
           <thead>
-            <tr className="border-y border-ink/10 text-[10.5px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+            <tr className="border-y border-ink/10 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
               <th className="py-2.5 pr-4">Description</th>
               <th className="py-2.5 pr-4 text-right">Qté</th>
               <th className="py-2.5 pr-4 text-right">Prix unitaire HT</th>
@@ -94,8 +94,8 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
             {invoice.lines.map((line, i) => (
               <tr key={i} className="border-b border-ink/5">
                 <td className="py-3 pr-4 text-[13.5px] text-ink">{line.description}</td>
-                <td className="py-3 pr-4 text-right text-[13.5px] text-slate-600">{line.quantity}</td>
-                <td className="py-3 pr-4 text-right text-[13.5px] text-slate-600">{formatDT(line.unitPrice, { decimals: 3 })}</td>
+                <td className="py-3 pr-4 text-right text-[13.5px] text-ink/82">{line.quantity}</td>
+                <td className="py-3 pr-4 text-right text-[13.5px] text-ink/82">{formatDT(line.unitPrice, { decimals: 3 })}</td>
                 <td className="py-3 text-right text-[13.5px] font-medium text-ink">{formatDT(line.lineTotal, { decimals: 3 })}</td>
               </tr>
             ))}
@@ -104,11 +104,11 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
 
         {/* totals */}
         <div className="mt-6 ml-auto w-full max-w-64 space-y-1.5 text-[13.5px]">
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-ink/72">
             <span>Sous-total HT</span>
             <span>{formatDT(invoice.subtotal, { decimals: 3 })}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-ink/72">
             <span>TVA {invoice.vatRate} %</span>
             <span>{formatDT(invoice.vatAmount, { decimals: 3 })}</span>
           </div>
@@ -131,9 +131,9 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
           </div>
         )}
 
-        {invoice.notes && <p className="mt-8 text-[12.5px] text-slate-500">{invoice.notes}</p>}
+        {invoice.notes && <p className="mt-8 text-[12.5px] text-ink/72">{invoice.notes}</p>}
 
-        <p className="mt-10 border-t border-ink/5 pt-4 text-center text-[11px] text-slate-400">
+        <p className="mt-10 border-t border-ink/5 pt-4 text-center text-[11px] text-ink/60">
           Level Up IA — Digital marketing powered by AI · Merci de votre confiance.
         </p>
       </section>

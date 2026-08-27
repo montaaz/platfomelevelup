@@ -50,7 +50,7 @@ function LoginForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-ink/10 bg-white px-4 py-3 text-[14px] outline-none placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          className="w-full rounded-xl border border-ink/10 bg-white px-4 py-3 text-[14px] outline-none placeholder:text-ink/45 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           placeholder="vous@entreprise.tn"
         />
       </div>
@@ -95,14 +95,14 @@ export default function LoginPage() {
           <span className="text-3xl font-extrabold tracking-wide text-white">
             LEVEL UP<span className="brand-text-gradient"> IA</span>
           </span>
-          <p className="mt-1 text-[11px] font-medium tracking-[0.2em] text-white/50 uppercase">
+          <p className="mt-1 text-[11px] font-medium tracking-[0.2em] text-white/78 uppercase">
             Digital marketing powered by AI
           </p>
         </div>
 
         <div className="glass-strong rounded-3xl p-8">
           <h1 className="text-lg font-bold text-ink">Connexion</h1>
-          <p className="mt-1 mb-6 text-[13px] text-slate-500">
+          <p className="mt-1 mb-6 text-[13px] text-ink/72">
             Accédez à votre espace client ou à l'espace d'administration.
           </p>
           <Suspense>
@@ -110,7 +110,7 @@ export default function LoginPage() {
           </Suspense>
         </div>
 
-        <p className="mt-6 text-center text-[12px] text-white/40">
+        <p className="mt-6 text-center text-[12px] text-white/70">
           © {new Date().getFullYear()} Level Up IA — Tous droits réservés
         </p>
       </div>

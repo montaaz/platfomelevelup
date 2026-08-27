@@ -12,7 +12,7 @@ export default async function ProfilePage() {
     <div className="space-y-5 pb-8">
       <section className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
         <h2 className="text-[15px] font-semibold">Mon profil</h2>
-        <p className="mt-0.5 text-[12.5px] text-white/55">
+        <p className="mt-0.5 text-[12.5px] text-white/80">
           Coordonnées, entreprise et informations de facturation — reprises sur vos prochaines factures.
         </p>
       </section>

@@ -47,12 +47,12 @@ export function ThreadList({
                     {thread.unread}
                   </span>
                 )}
-                <span className="ml-auto shrink-0 text-[11.5px] text-slate-400">{relativeTime(thread.lastAt)}</span>
+                <span className="ml-auto shrink-0 text-[11.5px] text-ink/60">{relativeTime(thread.lastAt)}</span>
               </div>
               <p className="truncate text-[12px] font-medium text-brand-500">
                 {showClient ? `${thread.projectTitle} · ${thread.serviceName}` : thread.serviceName}
               </p>
-              <p className="mt-0.5 truncate text-[12.5px] text-slate-500">
+              <p className="mt-0.5 truncate text-[12.5px] text-ink/72">
                 {thread.lastSenderName.split(" ")[0]} : {thread.lastMessage}
               </p>
             </div>

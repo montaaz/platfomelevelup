@@ -150,7 +150,7 @@ export function InvoiceFormButton({
                       type="button"
                       aria-label="Supprimer la ligne"
                       onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}
-                      className="rounded-xl px-2 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                      className="rounded-xl px-2 text-ink/60 hover:bg-red-50 hover:text-red-500"
                     >
                       ✕
                     </button>
@@ -168,11 +168,11 @@ export function InvoiceFormButton({
           </div>
 
           <div className="rounded-xl bg-slate-50 px-4 py-3 text-[13px]">
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-ink/72">
               <span>Sous-total HT</span>
               <span>{subtotal.toFixed(3)} DT</span>
             </div>
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-ink/72">
               <span>TVA {vatRate || 0} %</span>
               <span>{vat.toFixed(3)} DT</span>
             </div>
@@ -187,7 +187,7 @@ export function InvoiceFormButton({
           <button type="submit" disabled={busy} className={primaryBtnCls}>
             {busy ? "Création…" : "Créer la facture"}
           </button>
-          <p className="text-[12px] text-slate-400">Le numéro est attribué automatiquement, en séquence, sans doublon.</p>
+          <p className="text-[12px] text-ink/60">Le numéro est attribué automatiquement, en séquence, sans doublon.</p>
         </form>
       </Modal>
     </>

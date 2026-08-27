@@ -31,7 +31,7 @@ export default async function AdminDashboardPage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-[15px] font-semibold">Pilotage de l&apos;agence</h2>
-            <p className="mt-0.5 text-[12px] text-white/50">
+            <p className="mt-0.5 text-[12px] text-white/78">
               {new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}, mis à jour à l&apos;instant
             </p>
           </div>
@@ -41,7 +41,7 @@ export default async function AdminDashboardPage({
                 key={period.key}
                 href={`/admin?p=${period.key}`}
                 className={`rounded-full px-3.5 py-1.5 transition ${
-                  String(periodDays) === period.key ? "bg-white text-ink shadow" : "text-white/60 hover:text-white"
+                  String(periodDays) === period.key ? "bg-white text-ink shadow" : "text-white/82 hover:text-white"
                 }`}
               >
                 {period.label}
@@ -52,7 +52,7 @@ export default async function AdminDashboardPage({
 
         <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Chiffre d&apos;affaires du mois</p>
+            <p className="text-[12px] text-white/80">Chiffre d&apos;affaires du mois</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{formatDT(kpis.revenueMonth)}</p>
             <p className="mt-1.5 text-[11.5px] text-emerald-300">
               {kpis.revenueTrendPct != null
@@ -61,21 +61,21 @@ export default async function AdminDashboardPage({
             </p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Projets en cours</p>
+            <p className="text-[12px] text-white/80">Projets en cours</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{kpis.projectsInProgress}</p>
             <p className="mt-1.5 text-[11.5px] text-emerald-300">
               ↑ {kpis.newProjectsThisWeek} nouveau{kpis.newProjectsThisWeek > 1 ? "x" : ""} cette semaine
             </p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Factures impayées</p>
+            <p className="text-[12px] text-white/80">Factures impayées</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{kpis.unpaidCount}</p>
-            <p className="mt-1.5 text-[11.5px] text-white/50">{formatDT(kpis.unpaidTotal)} à recouvrer</p>
+            <p className="mt-1.5 text-[11.5px] text-white/78">{formatDT(kpis.unpaidTotal)} à recouvrer</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Demandes de révision</p>
+            <p className="text-[12px] text-white/80">Demandes de révision</p>
             <p className="mt-1 text-[30px] leading-none font-bold tracking-tight">{kpis.revisionRequests}</p>
-            <p className="mt-1.5 text-[11.5px] text-white/50">en attente de réponse</p>
+            <p className="mt-1.5 text-[11.5px] text-white/78">en attente de réponse</p>
           </div>
         </div>
       </section>
@@ -104,7 +104,7 @@ export default async function AdminDashboardPage({
                   <div className="mb-1.5 flex items-baseline justify-between gap-3">
                     <p className="text-[13px] font-medium text-ink">
                       {s.name}
-                      <span className="ml-2 text-[11.5px] font-normal text-slate-400">
+                      <span className="ml-2 text-[11.5px] font-normal text-ink/60">
                         {s.projectCount} projet{s.projectCount > 1 ? "s" : ""}
                       </span>
                     </p>
@@ -137,7 +137,7 @@ export default async function AdminDashboardPage({
           <div className="overflow-x-auto">
             <table className="w-full min-w-130 text-left">
               <thead>
-                <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                   <th className="px-6 py-2.5">Client et service</th>
                   <th className="px-4 py-2.5">Statut</th>
                   <th className="px-4 py-2.5">Assigné à</th>
@@ -152,14 +152,14 @@ export default async function AdminDashboardPage({
                         <Avatar name={project.clientCompany} size={36} />
                         <div className="min-w-0">
                           <p className="truncate text-[13.5px] font-semibold text-ink">{project.clientCompany}</p>
-                          <p className="truncate text-[12px] text-slate-400">{project.serviceName}</p>
+                          <p className="truncate text-[12px] text-ink/60">{project.serviceName}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-slate-500">
+                    <td className="px-4 py-3 text-[13px] text-ink/72">
                       {project.assigneeName ? (
                         <span className="flex items-center gap-2">
                           <Avatar name={project.assigneeName} size={26} />
@@ -169,7 +169,7 @@ export default async function AdminDashboardPage({
                         "—"
                       )}
                     </td>
-                    <td className={`px-6 py-3 text-right text-[13px] font-medium ${project.overdue ? "text-red-500" : "text-slate-500"}`}>
+                    <td className={`px-6 py-3 text-right text-[13px] font-medium ${project.overdue ? "text-red-500" : "text-ink/72"}`}>
                       {project.overdue ? "en retard" : formatDateShort(project.dueDate)}
                     </td>
                   </tr>
@@ -200,10 +200,10 @@ export default async function AdminDashboardPage({
                     <div className="flex items-center gap-2">
                       <p className="truncate text-[13px] font-semibold text-ink">{thread.clientCompany}</p>
                       {thread.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" />}
-                      <span className="ml-auto shrink-0 text-[11px] text-slate-400">{relativeTime(thread.createdAt)}</span>
+                      <span className="ml-auto shrink-0 text-[11px] text-ink/60">{relativeTime(thread.createdAt)}</span>
                     </div>
                     <p className="truncate text-[11.5px] font-medium text-brand-500">{thread.projectTitle}</p>
-                    <p className="mt-0.5 line-clamp-2 text-[12px] text-slate-500">{thread.excerpt}</p>
+                    <p className="mt-0.5 line-clamp-2 text-[12px] text-ink/72">{thread.excerpt}</p>
                   </div>
                 </Link>
               ))}
@@ -219,7 +219,7 @@ export default async function AdminDashboardPage({
                   <Avatar name={invoice.clientCompany} size={34} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold text-ink">{invoice.clientCompany}</p>
-                    <p className="text-[11.5px] text-slate-400">{invoice.number}</p>
+                    <p className="text-[11.5px] text-ink/60">{invoice.number}</p>
                   </div>
                   <StatusBadge status={invoice.status} label={INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status} />
                   <p className="w-24 text-right text-[13px] font-semibold whitespace-nowrap">{formatDT(invoice.total, { decimals: 2 })}</p>
@@ -230,7 +230,7 @@ export default async function AdminDashboardPage({
         </div>
       </div>
 
-      <p className="text-center text-[11px] text-slate-300">
+      <p className="text-center text-[11px] text-ink/40">
         Données au {formatDateFull(new Date())} — Level Up IA
       </p>
     </div>

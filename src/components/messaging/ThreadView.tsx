@@ -67,13 +67,13 @@ export function ThreadView({
 
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
         {messages.length === 0 && (
-          <p className="py-10 text-center text-sm text-slate-400">Commencez la conversation.</p>
+          <p className="py-10 text-center text-sm text-ink/60">Commencez la conversation.</p>
         )}
         {messages.map((m) => (
           <div key={m.id} className={`flex gap-3 ${m.mine ? "flex-row-reverse" : ""}`}>
             <Avatar name={m.senderName} size={32} />
             <div className={`max-w-[78%] ${m.mine ? "text-right" : ""}`}>
-              <p className="text-[11.5px] text-slate-400">
+              <p className="text-[11.5px] text-ink/60">
                 {m.senderName}
                 {m.senderRole === "ADMIN" ? ", Level Up IA" : ""} · {formatDateShort(m.createdAt)}
               </p>

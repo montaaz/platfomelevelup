@@ -38,7 +38,7 @@ export function NewRequestForm({ services }: { services: { id: string; name: str
       <section className="glass relative rounded-2xl p-8 text-center ">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-2xl">✓</span>
         <h3 className="mt-4 text-[16px] font-semibold text-ink">Demande envoyée</h3>
-        <p className="mx-auto mt-1.5 max-w-md text-[13.5px] text-slate-500">
+        <p className="mx-auto mt-1.5 max-w-md text-[13.5px] text-ink/72">
           L&apos;équipe a bien reçu votre demande et revient vers vous rapidement. Vous serez notifié dès qu&apos;une
           réponse est disponible.
         </p>

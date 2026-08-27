@@ -30,7 +30,7 @@ export default async function ClientHomePage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-[16px] font-semibold">{featured.title}</h2>
-                <p className="mt-0.5 text-[12px] text-white/50">
+                <p className="mt-0.5 text-[12px] text-white/78">
                   {featured.serviceName}
                   {featured.startDate ? `, démarré le ${formatDateShort(featured.startDate)}` : ""}
                 </p>
@@ -42,28 +42,28 @@ export default async function ClientHomePage() {
 
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
               <div className="glass-dark rounded-2xl p-4">
-                <p className="text-[12px] text-white/55">Statut actuel</p>
+                <p className="text-[12px] text-white/80">Statut actuel</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{PROJECT_STATUS_LABEL[featured.status]}</p>
-                <p className="mt-1 text-[11.5px] text-white/50">
+                <p className="mt-1 text-[11.5px] text-white/78">
                   {featured.status === "EN_REVISION" ? "votre validation est attendue" : "l'équipe travaille pour vous"}
                 </p>
               </div>
               <div className="glass-dark rounded-2xl p-4">
-                <p className="text-[12px] text-white/55">Livrables disponibles</p>
+                <p className="text-[12px] text-white/80">Livrables disponibles</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{featured.deliverables.length}</p>
-                <p className="mt-1 text-[11.5px] text-white/50">prêts à télécharger</p>
+                <p className="mt-1 text-[11.5px] text-white/78">prêts à télécharger</p>
               </div>
               <div className="glass-dark rounded-2xl p-4">
-                <p className="text-[12px] text-white/55">Échéance prévue</p>
+                <p className="text-[12px] text-white/80">Échéance prévue</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{formatDateShort(featured.dueDate)}</p>
-                <p className="mt-1 text-[11.5px] text-white/50">
+                <p className="mt-1 text-[11.5px] text-white/78">
                   {days != null ? (days >= 0 ? `dans ${days} jour${days > 1 ? "s" : ""}` : `dépassée de ${-days} j`) : "à planifier"}
                 </p>
               </div>
               <div className="glass-dark rounded-2xl p-4">
-                <p className="text-[12px] text-white/55">Facture liée</p>
+                <p className="text-[12px] text-white/80">Facture liée</p>
                 <p className="mt-1 text-[26px] leading-tight font-bold">{featured.pendingInvoices}</p>
-                <p className="mt-1 text-[11.5px] text-white/50">
+                <p className="mt-1 text-[11.5px] text-white/78">
                   {featured.pendingInvoices > 0 ? "en attente de paiement" : "aucun paiement attendu"}
                 </p>
               </div>
@@ -83,7 +83,7 @@ export default async function ClientHomePage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13.5px] font-semibold text-ink">{file.name}</p>
-                      <p className="text-[11.5px] text-slate-400">
+                      <p className="text-[11.5px] text-ink/60">
                         {file.mime.split("/")[1]?.toUpperCase()}, {formatBytes(file.sizeBytes)} · Version {file.version} · déposée
                         le {formatDateShort(file.createdAt)}
                       </p>
@@ -135,10 +135,10 @@ export default async function ClientHomePage() {
                         )}
                       </span>
                       <div className="pt-0.5">
-                        <p className={`text-[13.5px] font-medium ${done || isCurrent ? "text-ink" : "text-slate-400"}`}>
+                        <p className={`text-[13.5px] font-medium ${done || isCurrent ? "text-ink" : "text-ink/60"}`}>
                           {step.label}
                         </p>
-                        <p className={`text-[11.5px] ${isCurrent ? "font-medium text-violet-500" : "text-slate-400"}`}>
+                        <p className={`text-[11.5px] ${isCurrent ? "font-medium text-violet-500" : "text-ink/60"}`}>
                           {done ? formatDateShort(step.reachedAt) : isCurrent ? "en attente" : "à venir"}
                         </p>
                       </div>
@@ -172,7 +172,7 @@ export default async function ClientHomePage() {
                   <Avatar name={project.title} size={36} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13.5px] font-semibold text-ink">{project.title}</p>
-                    <p className="text-[11.5px] text-slate-400">{project.serviceName}</p>
+                    <p className="text-[11.5px] text-ink/60">{project.serviceName}</p>
                   </div>
                   <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />
                 </div>
@@ -180,7 +180,7 @@ export default async function ClientHomePage() {
                   <div className="flex-1">
                     <ProgressBar percent={project.progress} />
                   </div>
-                  <p className="text-[11.5px] whitespace-nowrap text-slate-400">
+                  <p className="text-[11.5px] whitespace-nowrap text-ink/60">
                     {project.dueDate ? `Échéance ${formatDateShort(project.dueDate)}` : `${project.progress} %`}
                   </p>
                 </div>
@@ -208,10 +208,10 @@ export default async function ClientHomePage() {
                   <div className="flex items-center gap-2">
                     <p className="truncate text-[13px] font-semibold text-ink">{message.senderName}, Level Up IA</p>
                     {message.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" />}
-                    <span className="ml-auto shrink-0 text-[11px] text-slate-400">{relativeTime(message.createdAt)}</span>
+                    <span className="ml-auto shrink-0 text-[11px] text-ink/60">{relativeTime(message.createdAt)}</span>
                   </div>
                   <p className="truncate text-[11.5px] font-medium text-brand-500">{message.projectTitle}</p>
-                  <p className="mt-0.5 line-clamp-2 text-[12px] text-slate-500">{message.excerpt}</p>
+                  <p className="mt-0.5 line-clamp-2 text-[12px] text-ink/72">{message.excerpt}</p>
                 </div>
               </Link>
             ))}

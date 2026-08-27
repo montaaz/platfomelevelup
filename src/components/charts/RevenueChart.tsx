@@ -24,18 +24,18 @@ export function RevenueChart({ data }: { data: { month: string; total: number }[
               <stop offset="100%" stopColor="#8527ff" />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 6" vertical={false} stroke="#e8eaf3" />
+          <CartesianGrid strokeDasharray="3 6" vertical={false} stroke="rgba(7,17,46,0.12)" />
           <XAxis
             dataKey="label"
             tickLine={false}
             axisLine={false}
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "#4a5680" }}
             dy={6}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "#4a5680" }}
             width={46}
             tickFormatter={(v: number) => `${v}`}
           />

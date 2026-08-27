@@ -43,13 +43,13 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
             <span className="text-[19px] font-extrabold tracking-wide text-ink">
               LEVEL UP<span className="brand-text-gradient"> IA</span>
             </span>
-            <span className="mt-0.5 block text-[9.5px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+            <span className="mt-0.5 block text-[9.5px] font-medium tracking-[0.14em] text-ink/60 uppercase">
               Digital marketing powered by AI
             </span>
           </Link>
         </div>
 
-        <p className="px-6 pb-2 text-[10.5px] font-semibold tracking-[0.14em] text-slate-400">{space}</p>
+        <p className="px-6 pb-2 text-[10.5px] font-semibold tracking-[0.14em] text-ink/60">{space}</p>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3">
           {items.map((item) => {
@@ -62,7 +62,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
                 className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[13.5px] font-medium transition-colors ${
                   active
                     ? "bg-gradient-to-r from-brand-500 to-violet-500 text-white shadow-md shadow-brand-500/30"
-                    : "text-slate-500 hover:bg-brand-50 hover:text-brand-600"
+                    : "text-ink/72 hover:bg-brand-50 hover:text-brand-600"
                 }`}
               >
                 <Icon width={18} height={18} />
@@ -70,7 +70,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
                 {item.count != null && item.count > 0 && (
                   <span
                     className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                      active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                      active ? "bg-white/20 text-white" : "bg-slate-100 text-ink/72"
                     }`}
                   >
                     {item.count}
@@ -84,7 +84,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
         <form action="/api/auth/logout" method="POST" className="border-t border-ink/5 p-3">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-[13.5px] font-medium text-slate-500 hover:bg-red-50 hover:text-red-600"
+            className="flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-[13.5px] font-medium text-ink/72 hover:bg-red-50 hover:text-red-600"
           >
             <IconLogout width={18} height={18} />
             Déconnexion
@@ -102,7 +102,7 @@ export function Sidebar({ space, items }: { space: "ESPACE ADMIN" | "ESPACE CLIE
               key={item.href}
               href={item.href}
               className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium ${
-                active ? "text-brand-500" : "text-slate-400"
+                active ? "text-brand-500" : "text-ink/60"
               }`}
             >
               <Icon width={20} height={20} />

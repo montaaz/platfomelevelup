@@ -25,7 +25,7 @@ export function CardHeader({
     <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-3 sm:px-6">
       <div>
         <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-[12.5px] text-slate-500">{subtitle}</p>}
+        {subtitle && <p className="mt-0.5 text-[12.5px] text-ink/72">{subtitle}</p>}
       </div>
       {action && (
         <a
@@ -47,11 +47,11 @@ const STATUS_STYLES: Record<string, string> = {
   EN_REVISION: "bg-violet-50 text-violet-600",
   EN_ATTENTE: "bg-amber-50 text-amber-600",
   LIVRE: "bg-emerald-50 text-emerald-600",
-  CLOTURE: "bg-slate-100 text-slate-500",
+  CLOTURE: "bg-slate-100 text-ink/72",
   PAYEE: "bg-emerald-50 text-emerald-600",
   EN_RETARD: "bg-red-50 text-red-600",
-  BROUILLON: "bg-slate-100 text-slate-500",
-  ANNULEE: "bg-slate-100 text-slate-400",
+  BROUILLON: "bg-slate-100 text-ink/72",
+  ANNULEE: "bg-slate-100 text-ink/60",
   ACTIF: "bg-emerald-50 text-emerald-600",
   NOUVELLE: "bg-brand-50 text-brand-600",
 };
@@ -73,7 +73,7 @@ const STATUS_DOTS: Record<string, string> = {
 export function StatusBadge({ status, label }: { status: string; label: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium whitespace-nowrap ${STATUS_STYLES[status] ?? "bg-slate-100 text-slate-500"}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium whitespace-nowrap ${STATUS_STYLES[status] ?? "bg-slate-100 text-ink/72"}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOTS[status] ?? "bg-slate-400"}`} />
       {label}
@@ -121,5 +121,5 @@ export function ProgressBar({ percent }: { percent: number }) {
 /* ------------------------------------------------------------ EmptyState */
 
 export function EmptyState({ message }: { message: string }) {
-  return <p className="px-6 py-10 text-center text-sm text-slate-400">{message}</p>;
+  return <p className="px-6 py-10 text-center text-sm text-ink/60">{message}</p>;
 }

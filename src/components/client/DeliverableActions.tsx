@@ -59,7 +59,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
 
   return (
     <div className="border-t border-ink/5 px-5 py-4 sm:px-6">
-      <p className="text-[12.5px] text-slate-500">
+      <p className="text-[12.5px] text-ink/72">
         Vous avez reçu la version {version}. Approuvez-la pour lancer la livraison finale, ou demandez une révision en
         expliquant ce qui doit changer.
       </p>
@@ -84,7 +84,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
             <button
               onClick={() => setMode("idle")}
               disabled={busy}
-              className="rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13px] font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13px] font-medium text-ink/82 hover:bg-slate-50"
             >
               Annuler
             </button>
@@ -95,7 +95,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
           <button
             onClick={() => setMode("revision")}
             disabled={busy}
-            className="rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            className="rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13px] font-medium text-ink/90 hover:bg-slate-50 disabled:opacity-60"
           >
             Demander une révision
           </button>

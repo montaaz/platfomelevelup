@@ -114,7 +114,7 @@ export function UploadForm({ projectId }: { projectId: string }) {
         type="file"
         required
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        className="block w-full text-[13px] text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-[13px] file:font-medium file:text-brand-600 hover:file:bg-brand-100"
+        className="block w-full text-[13px] text-ink/72 file:mr-3 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-[13px] file:font-medium file:text-brand-600 hover:file:bg-brand-100"
       />
       <div className="flex flex-wrap items-center gap-4">
         <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)} className={`${inputCls} !w-auto`}>
@@ -122,7 +122,7 @@ export function UploadForm({ projectId }: { projectId: string }) {
           <option value="ELEMENT_CLIENT">Élément interne</option>
         </select>
         {kind === "LIVRABLE" && (
-          <label className="flex items-center gap-2 text-[13px] text-slate-600">
+          <label className="flex items-center gap-2 text-[13px] text-ink/82">
             <input
               type="checkbox"
               checked={askValidation}

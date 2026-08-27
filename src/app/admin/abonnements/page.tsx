@@ -23,15 +23,15 @@ export default async function AdminSubscriptionsPage() {
         <h2 className="text-[15px] font-semibold">Abonnements mensuels</h2>
         <div className="mt-5 grid grid-cols-3 gap-6">
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Abonnements actifs</p>
+            <p className="text-[12px] text-white/80">Abonnements actifs</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{active.length}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Revenu mensuel récurrent</p>
+            <p className="text-[12px] text-white/80">Revenu mensuel récurrent</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{formatDT(active.reduce((s, x) => s + x.monthlyAmount, 0))}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Échéances sous 14 jours</p>
+            <p className="text-[12px] text-white/80">Échéances sous 14 jours</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{subs.filter((s) => s.renewalSoon).length}</p>
           </div>
         </div>
@@ -42,7 +42,7 @@ export default async function AdminSubscriptionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-150 text-left">
             <thead>
-              <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+              <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Client</th>
                 <th className="px-4 py-2.5">Formule</th>
                 <th className="px-4 py-2.5">Statut</th>
@@ -67,7 +67,7 @@ export default async function AdminSubscriptionsPage() {
                   <td className="px-4 py-3.5">
                     <StatusBadge status={sub.status} label={SUB_LABEL[sub.status] ?? sub.status} />
                   </td>
-                  <td className={`px-4 py-3.5 text-[13px] ${sub.renewalSoon ? "font-semibold text-amber-600" : "text-slate-500"}`}>
+                  <td className={`px-4 py-3.5 text-[13px] ${sub.renewalSoon ? "font-semibold text-amber-600" : "text-ink/72"}`}>
                     {formatDateFull(sub.renewalDate)}
                     {sub.renewalSoon && " ⚠"}
                   </td>

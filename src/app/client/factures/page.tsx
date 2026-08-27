@@ -16,16 +16,16 @@ export default async function ClientInvoicesPage() {
         <h2 className="text-[15px] font-semibold">Vos factures</h2>
         <div className="mt-5 grid grid-cols-3 gap-6">
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">À régler</p>
+            <p className="text-[12px] text-white/80">À régler</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{formatDT(unpaid.reduce((s, i) => s + i.total, 0))}</p>
-            <p className="mt-1.5 text-[11.5px] text-white/50">{unpaid.length} facture{unpaid.length > 1 ? "s" : ""}</p>
+            <p className="mt-1.5 text-[11.5px] text-white/78">{unpaid.length} facture{unpaid.length > 1 ? "s" : ""}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Factures reçues</p>
+            <p className="text-[12px] text-white/80">Factures reçues</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{invoices.length}</p>
           </div>
           <div className="glass-dark rounded-2xl p-4">
-            <p className="text-[12px] text-white/55">Réglées</p>
+            <p className="text-[12px] text-white/80">Réglées</p>
             <p className="mt-1 text-[28px] leading-none font-bold">{invoices.filter((i) => i.status === "PAYEE").length}</p>
           </div>
         </div>
