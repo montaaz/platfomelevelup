@@ -40,7 +40,7 @@ export default async function AdminSubscriptionsPage() {
       <Card>
         <CardHeader title="Tous les abonnements" subtitle="Une alerte est déclenchée avant chaque fin de période" />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-150 text-left">
+          <table className="rt w-full min-w-150 text-left">
             <thead>
               <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Client</th>
@@ -56,7 +56,7 @@ export default async function AdminSubscriptionsPage() {
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-3">
                       <Avatar name={sub.clientCompany} size={36} />
-                      <p className="truncate text-[13.5px] font-semibold text-ink">{sub.clientCompany}</p>
+                      <p className="sm:truncate text-[13.5px] font-semibold text-ink">{sub.clientCompany}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3.5">

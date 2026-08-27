@@ -19,11 +19,11 @@ export default async function ClientLayout({ children }: { children: React.React
   ]);
 
   const nav = [
-    { href: "/client", label: "Mes projets", icon: "folder", count: projectCount },
+    { href: "/client", label: "Mes projets", short: "Projets", icon: "folder", count: projectCount },
     { href: "/client/messages", label: "Messages", icon: "chat", count: unread },
-    { href: "/client/factures", label: "Mes factures", icon: "invoice" },
+    { href: "/client/factures", label: "Mes factures", short: "Factures", icon: "invoice" },
     { href: "/client/historique", label: "Historique", icon: "history" },
-    { href: "/client/nouveau-projet", label: "Nouveau projet", icon: "plus" },
+    { href: "/client/nouveau-projet", label: "Nouveau projet", short: "Nouveau", icon: "plus" },
     { href: "/client/profil", label: "Mon profil", icon: "user" },
   ];
 

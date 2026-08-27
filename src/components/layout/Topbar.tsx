@@ -39,7 +39,7 @@ export function Topbar({
     { title: "" };
 
   return (
-    <header className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
+    <header className="flex flex-wrap items-center gap-x-4 gap-y-3 px-3 py-3 sm:gap-x-6 sm:px-6 sm:py-4 lg:px-8">
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-[19px] font-bold text-ink">{match.title}</h1>
         {match.subtitle && (

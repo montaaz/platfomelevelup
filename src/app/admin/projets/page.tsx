@@ -54,7 +54,7 @@ export default async function AdminProjectsPage() {
       <Card>
         <CardHeader title="Tous les projets" subtitle="Triés par échéance la plus proche — cliquez pour ouvrir la fiche" />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-175 text-left">
+          <table className="rt w-full min-w-175 text-left">
             <thead>
               <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Client et projet</th>
@@ -72,7 +72,7 @@ export default async function AdminProjectsPage() {
                     <Link href={`/admin/projets/${project.id}`} className="flex items-center gap-3">
                       <Avatar name={project.clientCompany} size={36} />
                       <div className="min-w-0">
-                        <p className="truncate text-[13.5px] font-semibold text-ink hover:text-brand-600">{project.clientCompany}</p>
+                        <p className="sm:truncate text-[13.5px] font-semibold text-ink hover:text-brand-600">{project.clientCompany}</p>
                         <p className="truncate text-[12px] text-ink/60">{project.title}</p>
                       </div>
                     </Link>

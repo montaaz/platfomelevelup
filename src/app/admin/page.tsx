@@ -135,7 +135,7 @@ export default async function AdminDashboardPage({
             action={{ label: "Tous les projets", href: "/admin/projets" }}
           />
           <div className="overflow-x-auto">
-            <table className="w-full min-w-130 text-left">
+            <table className="rt w-full min-w-130 text-left">
               <thead>
                 <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                   <th className="px-6 py-2.5">Client et service</th>
@@ -151,7 +151,7 @@ export default async function AdminDashboardPage({
                       <div className="flex items-center gap-3">
                         <Avatar name={project.clientCompany} size={36} />
                         <div className="min-w-0">
-                          <p className="truncate text-[13.5px] font-semibold text-ink">{project.clientCompany}</p>
+                          <p className="sm:truncate text-[13.5px] font-semibold text-ink">{project.clientCompany}</p>
                           <p className="truncate text-[12px] text-ink/60">{project.serviceName}</p>
                         </div>
                       </div>

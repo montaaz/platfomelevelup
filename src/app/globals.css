@@ -369,6 +369,54 @@ body::before {
   }
 }
 
+
+/* ===================================================== mobile (< lg) */
+/* Phones: solid, crisp cards — no 3D tilt, no stacked backdrop blur (mobile
+   Chrome renders blur under transforms with artifacts), no shine layers. */
+@media (max-width: 1023px) {
+  body { background-attachment: scroll; }
+  body::before { animation: none; filter: blur(22px); }
+  [data-tilt] { transform: none !important; will-change: auto; transition: none; }
+  .glass {
+    background: rgb(255 255 255 / 0.84);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 1px solid rgb(255 255 255 / 0.95);
+    box-shadow: 0 1px 0 #fff inset, 0 8px 24px -10px rgb(7 17 46 / 0.22);
+  }
+  .glass::before, .glass::after { display: none; }
+  .glass-strong { -webkit-backdrop-filter: none; backdrop-filter: none; background: #fff; }
+  .hero-gradient { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .hero-gradient::before { display: none; }
+  .glass-dark { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(255 255 255 / 0.12); }
+  .glass tbody tr:hover { transform: none; }
+  main > * > * { animation: none; }
+  /* floating dock */
+  .dock {
+    background: rgb(255 255 255 / 0.92);
+    border: 1px solid rgb(255 255 255 / 1);
+    box-shadow: 0 -1px 0 rgb(255 255 255 / 0.9) inset, 0 12px 32px -8px rgb(7 17 46 / 0.35), 0 2px 0 rgb(7 17 46 / 0.06);
+  }
+  .dock-item { transition: transform 0.15s; }
+  .dock-item:active { transform: scale(0.94); }
+  .dock-active {
+    background: linear-gradient(120deg, #1687ff, #8527ff);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.4) inset, 0 -2px 0 rgb(0 0 0 / 0.2) inset, 0 3px 0 #4c12b8, 0 10px 20px -6px rgb(133 39 255 / 0.6);
+  }
+}
+
+/* responsive tables: rows become stacked cards on phones */
+@media (max-width: 639px) {
+  .rt { min-width: 0 !important; }
+  .rt thead { display: none; }
+  .rt, .rt tbody, .rt tr { display: block; width: 100%; }
+  .rt tr { padding: 12px 16px 12px; border-bottom: 1px solid rgb(7 17 46 / 0.07); }
+  .rt tr:last-child { border-bottom: 0; }
+  .rt td { display: inline-block; width: auto; padding: 4px 12px 2px 0 !important; text-align: left !important; vertical-align: middle; }
+  .rt td:first-child { display: block; width: 100%; padding: 0 0 6px !important; }
+  .rt td:empty { display: none; }
+}
+
 .brand-text-gradient {
   background: linear-gradient(90deg, #1687ff, #8527ff);
   -webkit-background-clip: text;

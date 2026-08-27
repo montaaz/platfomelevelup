@@ -66,7 +66,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
                     <IconFile width={18} height={18} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13.5px] font-semibold text-ink">{f.name}</p>
+                    <p className="sm:truncate text-[13.5px] font-semibold text-ink">{f.name}</p>
                     <p className="text-[11.5px] text-ink/60">
                       v{f.version} · {formatBytes(f.sizeBytes)} · {f.uploadedByName} · {formatDateFull(f.createdAt)}
                       {f.kind === "ELEMENT_CLIENT" && " · interne"}

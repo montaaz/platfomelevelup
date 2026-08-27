@@ -82,7 +82,7 @@ export default async function ClientHomePage() {
                       <IconFile width={18} height={18} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13.5px] font-semibold text-ink">{file.name}</p>
+                      <p className="sm:truncate text-[13.5px] font-semibold text-ink">{file.name}</p>
                       <p className="text-[11.5px] text-ink/60">
                         {file.mime.split("/")[1]?.toUpperCase()}, {formatBytes(file.sizeBytes)} · Version {file.version} · déposée
                         le {formatDateShort(file.createdAt)}
@@ -171,7 +171,7 @@ export default async function ClientHomePage() {
                 <div className="flex items-center gap-3">
                   <Avatar name={project.title} size={36} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13.5px] font-semibold text-ink">{project.title}</p>
+                    <p className="sm:truncate text-[13.5px] font-semibold text-ink">{project.title}</p>
                     <p className="text-[11.5px] text-ink/60">{project.serviceName}</p>
                   </div>
                   <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />

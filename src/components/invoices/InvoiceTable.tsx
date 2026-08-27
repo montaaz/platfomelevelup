@@ -33,7 +33,7 @@ export function InvoiceTable({
         subtitle="Numérotation séquentielle — chaque facture garde son détail"
       />
       <div className="overflow-x-auto">
-        <table className="w-full min-w-150 text-left">
+        <table className="rt w-full min-w-150 text-left">
           <thead>
             <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
               <th className="px-6 py-2.5">{showClient ? "Client" : "Facture"}</th>
@@ -51,7 +51,7 @@ export function InvoiceTable({
                   <Link href={`${basePath}/${invoice.id}`} className="flex items-center gap-3">
                     <Avatar name={invoice.clientCompany} size={36} />
                     <div className="min-w-0">
-                      <p className="truncate text-[13.5px] font-semibold text-ink hover:text-brand-600">
+                      <p className="sm:truncate text-[13.5px] font-semibold text-ink hover:text-brand-600">
                         {showClient ? invoice.clientCompany : invoice.projectTitle ?? invoice.clientCompany}
                       </p>
                       <p className="truncate text-[12px] text-ink/60">

@@ -9,7 +9,7 @@ import {
 } from "@/components/icons";
 import { Avatar } from "@/components/ui";
 
-export type NavItem = { href: string; label: string; icon: string; count?: number };
+export type NavItem = { href: string; label: string; short?: string; icon: string; count?: number };
 
 const ICONS: Record<string, (p: { width?: number; height?: number }) => ReactNode> = {
   grid: IconGrid, user: IconUser, users: IconUsers, folder: IconFolder, chat: IconChat,
@@ -108,7 +108,7 @@ export function Sidebar({
       </aside>
 
       {/* ===================== Mobile: floating bottom dock */}
-      <nav className="glass fixed inset-x-3 bottom-3 z-30 flex items-stretch justify-around rounded-3xl px-1 py-1.5 lg:hidden print:hidden">
+      <nav className="dock fixed inset-x-2 bottom-2 z-30 flex items-stretch justify-around rounded-[22px] px-1 py-1.5 lg:hidden print:hidden">
         {items.slice(0, 5).map((item) => {
           const Icon = ICONS[item.icon]!;
           const active = isActive(item.href);
@@ -116,14 +116,14 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[10px] font-medium ${
-                active ? "nav-tile-active text-white" : "text-ink/65"
+              className={`dock-item relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 text-[10.5px] font-semibold ${
+                active ? "dock-active text-white" : "text-ink/65"
               }`}
             >
-              <Icon width={19} height={19} />
-              <span className="truncate">{item.label}</span>
+              <Icon width={20} height={20} />
+              <span className="max-w-full truncate px-1">{item.short ?? item.label}</span>
               {item.count != null && item.count > 0 && (
-                <span className="absolute top-0.5 right-1/2 -mr-5 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-500 px-1 text-[9px] font-bold text-white">
+                <span className={`absolute top-1 right-[18%] flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold ${active ? "bg-white text-violet-600" : "bg-violet-500 text-white"}`}>
                   {item.count}
                 </span>
               )}

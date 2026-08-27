@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ]);
 
   const nav = [
-    { href: "/admin", label: "Tableau de bord", icon: "grid" },
+    { href: "/admin", label: "Tableau de bord", short: "Accueil", icon: "grid" },
     { href: "/admin/clients", label: "Clients", icon: "user" },
     { href: "/admin/projets", label: "Projets", icon: "folder", count: projectCount },
     { href: "/admin/messagerie", label: "Messagerie", icon: "chat", count: unread },

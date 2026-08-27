@@ -22,7 +22,7 @@ export function CardHeader({
   action?: { label: string; href: string };
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-3 sm:px-6">
+    <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
       <div>
         <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
         {subtitle && <p className="mt-0.5 text-[12.5px] text-ink/72">{subtitle}</p>}

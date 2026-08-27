@@ -39,7 +39,7 @@ export function ThreadList({
             <Avatar name={showClient ? thread.clientCompany : thread.projectTitle} size={42} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="truncate text-[14px] font-semibold text-ink">
+                <p className="sm:truncate text-[14px] font-semibold text-ink">
                   {showClient ? thread.clientCompany : thread.projectTitle}
                 </p>
                 {thread.unread > 0 && (
