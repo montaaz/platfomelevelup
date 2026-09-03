@@ -17,7 +17,8 @@ import {
   createClient, updateClient, getClient, createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
   listProjectRequests, acceptProjectRequest, refuseProjectRequest,
-  type ClientInput, type ProjectInput, type InvoiceInput,
+  listUserAccounts, createUserAccount, resetUserPassword, setUserActive,
+  type ClientInput, type ProjectInput, type InvoiceInput, type UserAccountInput,
 } from "@/server/services/adminActions";
 
 export type GqlContext = { ctx: Ctx | null };
@@ -61,6 +62,7 @@ const typeDefs = /* GraphQL */ `
     projectRequests: [RequestRow!]!
     notifications: [NotificationRow!]!
     search(q: String!): [SearchHit!]!
+    userAccounts: [UserAccountRow!]!
   }
 
   type Mutation {
@@ -80,6 +82,17 @@ const typeDefs = /* GraphQL */ `
     refuseProjectRequest(requestId: ID!, note: String): Boolean!
     markNotificationsRead: Boolean!
     changeMyPassword(current: String!, next: String!): Boolean!
+    createUserAccount(input: UserAccountInput!): Created!
+    resetUserPassword(userId: ID!, newPassword: String!): Boolean!
+    setUserActive(userId: ID!, active: Boolean!): Boolean!
+  }
+
+  type UserAccountRow {
+    id: ID!, fullName: String!, email: String!, role: String!, clientCompany: String,
+    isActive: Boolean!, lastLoginAt: String, isSelf: Boolean!
+  }
+  input UserAccountInput {
+    role: String!, fullName: String!, email: String!, password: String!, clientId: ID
   }
 
   type SearchHit { type: String!, title: String!, subtitle: String, badge: String, href: String! }
@@ -234,6 +247,7 @@ export const schema = createSchema<GqlContext>({
       projectRequests: (_p, _a, c) => wrap(() => listProjectRequests(auth(c))),
       notifications: (_p, _a, c) => wrap(() => listNotifications(auth(c))),
       search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
+      userAccounts: (_p, _a, c) => wrap(() => listUserAccounts(auth(c))),
     },
     Mutation: {
       sendMessage: (_p, a: { projectId: string; body: string }, c) =>
@@ -273,6 +287,11 @@ export const schema = createSchema<GqlContext>({
       markNotificationsRead: (_p, _a, c) => wrap(() => markAllNotificationsRead(auth(c))),
       changeMyPassword: (_p, a: { current: string; next: string }, c) =>
         wrap(() => changeMyPassword(auth(c), a.current, a.next)),
+      createUserAccount: (_p, a: { input: UserAccountInput }, c) => wrap(() => createUserAccount(auth(c), a.input)),
+      resetUserPassword: (_p, a: { userId: string; newPassword: string }, c) =>
+        wrap(() => resetUserPassword(auth(c), BigInt(a.userId), a.newPassword)),
+      setUserActive: (_p, a: { userId: string; active: boolean }, c) =>
+        wrap(() => setUserActive(auth(c), BigInt(a.userId), a.active)),
     },
   },
 });

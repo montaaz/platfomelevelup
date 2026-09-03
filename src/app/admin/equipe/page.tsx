@@ -1,12 +1,14 @@
 import { requireCtx } from "@/server/context";
-import { listTeam } from "@/server/services/directory";
+import { listTeam, listClients } from "@/server/services/directory";
+import { listUserAccounts } from "@/server/services/adminActions";
+import { UserAccountsCard } from "@/components/admin/UserAccountsCard";
 import { Card, CardHeader, Avatar, EmptyState } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminTeamPage() {
   const ctx = await requireCtx("ADMIN");
-  const team = await listTeam(ctx);
+  const [team, accounts, clients] = await Promise.all([listTeam(ctx), listUserAccounts(ctx), listClients(ctx)]);
   const totalActive = team.reduce((s, m) => s + m.activeProjects, 0);
 
   return (
@@ -27,6 +29,8 @@ export default async function AdminTeamPage() {
           </div>
         </div>
       </section>
+
+      <UserAccountsCard accounts={accounts} clients={clients.map((c) => ({ id: c.id, name: c.companyName }))} />
 
       <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {team.length === 0 && (

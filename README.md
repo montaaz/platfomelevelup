@@ -31,14 +31,14 @@ npm run build && npm start   # production
 | Rôle | E-mail | Mot de passe |
 |---|---|---|
 | Admin | `sarra@levelupia.tn` | `Admin2026!` |
-| Admin | `wassim@levelupia.tn` | `Wassim2026!` |
-| Admin | `chacha@levelupia.tn` | `Chacha2026!` |
 | Client (Résidence Carthage) | `amine@carthage.tn` | `Client2026!` |
 | Client (Boutique Nour) | `nour@boutiquenour.tn` | `Client2026!` |
 
-Chaque utilisateur peut changer son mot de passe depuis le bouton « Mot de passe » (carte
-utilisateur de la barre latérale, menu mobile, ou page Mon profil). Pour (re)créer les comptes
-admin supplémentaires : `npx tsx prisma/add-admins.ts`.
+Les comptes de connexion sont stockés en base de données et se gèrent dans l'application :
+**Équipe → Comptes de connexion** (créer un compte admin ou client, réinitialiser un mot de
+passe, désactiver). Chaque utilisateur change son propre mot de passe via le bouton
+« Mot de passe » (barre latérale, menu mobile, ou Mon profil). Pour amorcer un tout premier
+compte sur une base vide : `npx tsx prisma/create-user.ts <email> <nom> <mot de passe>`.
 
 ## Architecture
 

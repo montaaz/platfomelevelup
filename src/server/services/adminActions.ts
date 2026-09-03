@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { mirrorNotificationEmails } from "@/lib/mail";
 import { assertAdmin, ForbiddenError, ValidationError, type Ctx } from "@/server/context";
@@ -452,6 +453,95 @@ export async function refuseProjectRequest(ctx: Ctx, requestId: bigint, note?: s
   await prisma.projectRequest.update({
     where: { id: requestId },
     data: { status: "REFUSEE", adminNote: note?.trim() || null },
+  });
+  return true;
+}
+
+/* ========================================================== user accounts */
+/* Login accounts live in the database (users table) and are managed here. */
+
+export async function listUserAccounts(ctx: Ctx) {
+  assertAdmin(ctx);
+  const users = await prisma.user.findMany({
+    orderBy: [{ role: "asc" }, { fullName: "asc" }],
+    include: { client: { select: { companyName: true } } },
+  });
+  return users.map((u) => ({
+    id: u.id.toString(),
+    fullName: u.fullName,
+    email: u.email,
+    role: u.role,
+    clientCompany: u.client?.companyName ?? null,
+    isActive: u.isActive,
+    lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
+    isSelf: u.id === ctx.userId,
+  }));
+}
+
+export type UserAccountInput = {
+  role: "ADMIN" | "CLIENT";
+  fullName: string;
+  email: string;
+  password: string;
+  clientId?: string | null;
+};
+
+export async function createUserAccount(ctx: Ctx, input: UserAccountInput) {
+  assertAdmin(ctx);
+  const fullName = requireText(input.fullName, "Nom complet", 160);
+  const email = input.email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError("Adresse e-mail invalide.");
+  if (input.password.length < 8) throw new ValidationError("Le mot de passe doit contenir au moins 8 caractères.");
+  if (input.role !== "ADMIN" && input.role !== "CLIENT") throw new ValidationError("Rôle inconnu.");
+  if (input.role === "CLIENT" && !input.clientId) throw new ValidationError("Un compte client doit être rattaché à un client.");
+
+  try {
+    const user = await prisma.user.create({
+      data: {
+        role: input.role,
+        clientId: input.role === "CLIENT" ? BigInt(input.clientId!) : null,
+        fullName,
+        email,
+        passwordHash: await bcrypt.hash(input.password, 12),
+      },
+    });
+    await prisma.auditLog.create({
+      data: { userId: ctx.userId, action: "USER_CREATE", entityType: "user", entityId: user.id },
+    });
+    return { id: user.id.toString() };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      throw new ValidationError("Cette adresse e-mail est déjà utilisée.");
+    }
+    throw e;
+  }
+}
+
+/** Admin sets a new password for a user (e.g. forgotten password). */
+export async function resetUserPassword(ctx: Ctx, userId: bigint, newPassword: string) {
+  assertAdmin(ctx);
+  if (newPassword.length < 8) throw new ValidationError("Le mot de passe doit contenir au moins 8 caractères.");
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ForbiddenError();
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: await bcrypt.hash(newPassword, 12), failedLoginAttempts: 0, lockedUntil: null },
+  });
+  await prisma.auditLog.create({
+    data: { userId: ctx.userId, action: "USER_PASSWORD_RESET", entityType: "user", entityId: userId },
+  });
+  return true;
+}
+
+/** Enable / disable a login account (never your own). */
+export async function setUserActive(ctx: Ctx, userId: bigint, active: boolean) {
+  assertAdmin(ctx);
+  if (userId === ctx.userId) throw new ValidationError("Vous ne pouvez pas désactiver votre propre compte.");
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ForbiddenError();
+  await prisma.user.update({ where: { id: userId }, data: { isActive: active } });
+  await prisma.auditLog.create({
+    data: { userId: ctx.userId, action: active ? "USER_ENABLE" : "USER_DISABLE", entityType: "user", entityId: userId },
   });
   return true;
 }
