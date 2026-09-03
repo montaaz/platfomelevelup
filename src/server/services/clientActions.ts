@@ -1,5 +1,6 @@
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { ForbiddenError, clientScope, type Ctx } from "@/server/context";
+import { ForbiddenError, ValidationError, clientScope, type Ctx } from "@/server/context";
 
 /** Client approves the latest deliverable → project moves to LIVRE. */
 export async function approveDeliverable(ctx: Ctx, fileId: bigint) {
@@ -48,7 +49,7 @@ export async function approveDeliverable(ctx: Ctx, fileId: bigint) {
 export async function requestRevision(ctx: Ctx, fileId: bigint, comment: string) {
   const clientId = clientScope(ctx);
   const trimmed = comment.trim();
-  if (!trimmed || trimmed.length > 2000) throw new Error("Merci d'expliquer ce qui doit changer.");
+  if (!trimmed || trimmed.length > 2000) throw new ValidationError("Merci d'expliquer ce qui doit changer.");
 
   const file = await prisma.file.findFirst({
     where: { id: fileId, kind: "LIVRABLE", deletedAt: null, project: { clientId, deletedAt: null } },
@@ -97,7 +98,7 @@ export async function createProjectRequest(
 ) {
   const clientId = clientScope(ctx);
   const title = input.title.trim();
-  if (!title || title.length > 200) throw new Error("Titre invalide.");
+  if (!title || title.length > 200) throw new ValidationError("Titre invalide.");
 
   const request = await prisma.projectRequest.create({
     data: {
@@ -159,7 +160,7 @@ export async function updateMyProfile(
   const clientId = clientScope(ctx);
   if (input.fullName !== undefined) {
     const name = input.fullName.trim();
-    if (!name || name.length > 160) throw new Error("Nom invalide.");
+    if (!name || name.length > 160) throw new ValidationError("Nom invalide.");
     await prisma.user.update({ where: { id: ctx.userId }, data: { fullName: name } });
   }
   await prisma.client.update({
@@ -178,4 +179,23 @@ export async function updateMyProfile(
 export async function listServicesPublic() {
   const services = await prisma.service.findMany({ where: { isActive: true }, orderBy: { name: "asc" } });
   return services.map((s) => ({ id: s.id.toString(), name: s.name, description: s.description }));
+}
+
+/** Any logged-in user (admin or client) changes their own password. */
+export async function changeMyPassword(ctx: Ctx, current: string, next: string) {
+  if (next.length < 8 || next.length > 200) {
+    throw new ValidationError("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+  }
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: ctx.userId } });
+  const ok = await bcrypt.compare(current, user.passwordHash);
+  if (!ok) throw new ValidationError("Mot de passe actuel incorrect.");
+
+  await prisma.user.update({
+    where: { id: ctx.userId },
+    data: { passwordHash: await bcrypt.hash(next, 12) },
+  });
+  await prisma.auditLog.create({
+    data: { userId: ctx.userId, action: "PASSWORD_CHANGE", entityType: "user", entityId: ctx.userId },
+  });
+  return true;
 }

@@ -1,7 +1,7 @@
 import { createSchema } from "graphql-yoga";
 import { GraphQLError } from "graphql";
 import type { Ctx } from "@/server/context";
-import { ForbiddenError } from "@/server/context";
+import { ForbiddenError, ValidationError } from "@/server/context";
 import { adminDashboard, clientHome } from "@/server/services/dashboard";
 import {
   listClients, listProjects, listTeam, listInvoices, listSubscriptions, clientHistory,
@@ -9,7 +9,7 @@ import {
 import { listThreads, getThread, sendMessage, unreadTotal } from "@/server/services/messaging";
 import {
   approveDeliverable, requestRevision, createProjectRequest,
-  getMyProfile, updateMyProfile, listServicesPublic,
+  getMyProfile, updateMyProfile, listServicesPublic, changeMyPassword,
 } from "@/server/services/clientActions";
 import { listNotifications, markAllNotificationsRead } from "@/server/services/notifications";
 import { globalSearch } from "@/server/services/search";
@@ -33,6 +33,10 @@ function auth(context: GqlContext): Ctx {
 function forbidden(e: unknown): never {
   if (e instanceof ForbiddenError) {
     throw new GraphQLError("Accès refusé.", { extensions: { code: "FORBIDDEN" } });
+  }
+  if (e instanceof ValidationError) {
+    // user-facing message, safe to expose (internal errors stay masked)
+    throw new GraphQLError(e.message, { extensions: { code: "BAD_USER_INPUT" } });
   }
   throw e;
 }
@@ -75,6 +79,7 @@ const typeDefs = /* GraphQL */ `
     acceptProjectRequest(requestId: ID!, price: Float!, dueDate: String): AcceptedRequest!
     refuseProjectRequest(requestId: ID!, note: String): Boolean!
     markNotificationsRead: Boolean!
+    changeMyPassword(current: String!, next: String!): Boolean!
   }
 
   type SearchHit { type: String!, title: String!, subtitle: String, badge: String, href: String! }
@@ -266,6 +271,8 @@ export const schema = createSchema<GqlContext>({
       refuseProjectRequest: (_p, a: { requestId: string; note?: string }, c) =>
         wrap(() => refuseProjectRequest(auth(c), BigInt(a.requestId), a.note)),
       markNotificationsRead: (_p, _a, c) => wrap(() => markAllNotificationsRead(auth(c))),
+      changeMyPassword: (_p, a: { current: string; next: string }, c) =>
+        wrap(() => changeMyPassword(auth(c), a.current, a.next)),
     },
   },
 });

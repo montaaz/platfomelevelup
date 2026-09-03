@@ -8,6 +8,14 @@ export type Ctx = {
   fullName: string;
 };
 
+/** User-facing validation message — shown as-is by the API (never masked). */
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
 export class ForbiddenError extends Error {
   constructor(message = "Accès refusé.") {
     super(message);

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { mirrorNotificationEmails } from "@/lib/mail";
-import { ForbiddenError, type Ctx } from "@/server/context";
+import { ForbiddenError, ValidationError, type Ctx } from "@/server/context";
 
 /** Throws unless the user may access this project (admin: all; client: own only). */
 export async function assertProjectAccess(ctx: Ctx, projectId: bigint) {
@@ -95,7 +95,7 @@ export async function getThread(ctx: Ctx, projectId: bigint) {
 /** Sends a message and notifies the other side (dashboard bell; e-mail later). */
 export async function sendMessage(ctx: Ctx, projectId: bigint, body: string) {
   const trimmed = body.trim();
-  if (!trimmed || trimmed.length > 5000) throw new Error("Message invalide.");
+  if (!trimmed || trimmed.length > 5000) throw new ValidationError("Message invalide.");
   const project = await assertProjectAccess(ctx, projectId);
 
   const message = await prisma.message.create({

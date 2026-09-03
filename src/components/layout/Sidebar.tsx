@@ -8,6 +8,7 @@ import {
   IconRepeat, IconTeam, IconLogout, IconHistory, IconPlus,
 } from "@/components/icons";
 import { Avatar } from "@/components/ui";
+import { PasswordButton } from "@/components/layout/PasswordButton";
 
 export type NavItem = { href: string; label: string; short?: string; icon: string; count?: number };
 
@@ -108,15 +109,18 @@ export function Sidebar({
               <p className="truncate text-[11px] leading-tight text-ink/60">{roleLabel}</p>
             </div>
           </div>
-          <form action="/api/auth/logout" method="POST" className="mt-2.5">
-            <button
-              type="submit"
-              className="btn-glass flex w-full items-center justify-center gap-2 rounded-xl border border-white/80 bg-white/60 py-2 text-[12.5px] font-semibold text-ink/80 hover:text-red-600"
-            >
-              <IconLogout width={15} height={15} />
-              Déconnexion
-            </button>
-          </form>
+          <div className="mt-2.5 space-y-2">
+            <PasswordButton />
+            <form action="/api/auth/logout" method="POST">
+              <button
+                type="submit"
+                className="btn-glass flex w-full items-center justify-center gap-2 rounded-xl border border-white/80 bg-white/60 py-2 text-[12.5px] font-semibold text-ink/80 hover:text-red-600"
+              >
+                <IconLogout width={15} height={15} />
+                Déconnexion
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
 
@@ -203,12 +207,15 @@ export function Sidebar({
                   <p className="truncate text-[11.5px] text-ink/60">{roleLabel}</p>
                 </div>
               </div>
-              <form action="/api/auth/logout" method="POST" className="mt-3">
-                <button type="submit" className="btn-glass flex w-full items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white py-2.5 text-[13px] font-semibold text-ink/80 hover:text-red-600">
-                  <IconLogout width={15} height={15} />
-                  Déconnexion
-                </button>
-              </form>
+              <div className="mt-3 space-y-2">
+                <PasswordButton className="btn-glass flex w-full items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white py-2.5 text-[13px] font-semibold text-ink/80 hover:text-brand-600" />
+                <form action="/api/auth/logout" method="POST">
+                  <button type="submit" className="btn-glass flex w-full items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white py-2.5 text-[13px] font-semibold text-ink/80 hover:text-red-600">
+                    <IconLogout width={15} height={15} />
+                    Déconnexion
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>

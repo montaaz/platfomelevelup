@@ -1,21 +1,21 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { mirrorNotificationEmails } from "@/lib/mail";
-import { assertAdmin, ForbiddenError, type Ctx } from "@/server/context";
+import { assertAdmin, ForbiddenError, ValidationError, type Ctx } from "@/server/context";
 
 const DEFAULT_STEPS = ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"];
 
 function parseDate(value: string | null | undefined): Date | null {
   if (!value) return null;
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) throw new Error("Date invalide.");
+  if (Number.isNaN(d.getTime())) throw new ValidationError("Date invalide.");
   return d;
 }
 
 function requireText(value: string | undefined, label: string, max: number): string {
   const v = value?.trim();
-  if (!v) throw new Error(`${label} obligatoire.`);
-  if (v.length > max) throw new Error(`${label} trop long.`);
+  if (!v) throw new ValidationError(`${label} obligatoire.`);
+  if (v.length > max) throw new ValidationError(`${label} trop long.`);
   return v;
 }
 
@@ -111,7 +111,7 @@ export type ProjectInput = {
 
 export async function createProject(ctx: Ctx, input: ProjectInput) {
   assertAdmin(ctx);
-  if (!(input.price >= 0)) throw new Error("Prix invalide.");
+  if (!(input.price >= 0)) throw new ValidationError("Prix invalide.");
 
   const project = await prisma.$transaction(async (tx) => {
     const created = await tx.project.create({
@@ -169,7 +169,7 @@ type ProjectStatusValue = (typeof STATUS_FLOW)[number];
 
 export async function updateProjectStatus(ctx: Ctx, projectId: bigint, status: string, comment?: string) {
   assertAdmin(ctx);
-  if (!STATUS_FLOW.includes(status as ProjectStatusValue)) throw new Error("Statut inconnu.");
+  if (!STATUS_FLOW.includes(status as ProjectStatusValue)) throw new ValidationError("Statut inconnu.");
   const newStatus = status as ProjectStatusValue;
 
   const project = await prisma.project.findFirst({ where: { id: projectId, deletedAt: null } });
@@ -295,13 +295,13 @@ export type InvoiceInput = {
 
 export async function createInvoice(ctx: Ctx, input: InvoiceInput) {
   assertAdmin(ctx);
-  if (!input.lines?.length) throw new Error("Au moins une ligne est requise.");
-  if (input.lines.length > 50) throw new Error("Trop de lignes.");
-  if (!(input.vatRate >= 0 && input.vatRate <= 100)) throw new Error("Taux de TVA invalide.");
+  if (!input.lines?.length) throw new ValidationError("Au moins une ligne est requise.");
+  if (input.lines.length > 50) throw new ValidationError("Trop de lignes.");
+  if (!(input.vatRate >= 0 && input.vatRate <= 100)) throw new ValidationError("Taux de TVA invalide.");
 
   const lines = input.lines.map((l, i) => {
     const description = requireText(l.description, `Ligne ${i + 1}`, 300);
-    if (!(l.quantity > 0) || !(l.unitPrice >= 0)) throw new Error(`Montants invalides ligne ${i + 1}.`);
+    if (!(l.quantity > 0) || !(l.unitPrice >= 0)) throw new ValidationError(`Montants invalides ligne ${i + 1}.`);
     const lineTotal = Math.round(l.quantity * l.unitPrice * 1000) / 1000;
     return { description, quantity: l.quantity, unitPrice: l.unitPrice, lineTotal, position: i + 1 };
   });
@@ -364,7 +364,7 @@ export async function createInvoice(ctx: Ctx, input: InvoiceInput) {
 export async function markInvoicePaid(ctx: Ctx, invoiceId: bigint, method: string, reference?: string) {
   assertAdmin(ctx);
   const METHODS = ["VIREMENT", "CARTE", "ESPECES", "CHEQUE", "EN_LIGNE"] as const;
-  if (!METHODS.includes(method as (typeof METHODS)[number])) throw new Error("Moyen de paiement inconnu.");
+  if (!METHODS.includes(method as (typeof METHODS)[number])) throw new ValidationError("Moyen de paiement inconnu.");
 
   const invoice = await prisma.invoice.findFirst({
     where: { id: invoiceId, status: { in: ["EN_ATTENTE", "EN_RETARD"] } },
@@ -423,7 +423,7 @@ export async function acceptProjectRequest(ctx: Ctx, requestId: bigint, price: n
   let serviceId = request.serviceId;
   if (!serviceId) {
     const first = await prisma.service.findFirst({ where: { isActive: true }, orderBy: { id: "asc" } });
-    if (!first) throw new Error("Aucun service défini.");
+    if (!first) throw new ValidationError("Aucun service défini.");
     serviceId = first.id;
   }
 

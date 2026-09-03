@@ -31,8 +31,14 @@ npm run build && npm start   # production
 | Rôle | E-mail | Mot de passe |
 |---|---|---|
 | Admin | `sarra@levelupia.tn` | `Admin2026!` |
+| Admin | `wassim@levelupia.tn` | `Wassim2026!` |
+| Admin | `chacha@levelupia.tn` | `Chacha2026!` |
 | Client (Résidence Carthage) | `amine@carthage.tn` | `Client2026!` |
 | Client (Boutique Nour) | `nour@boutiquenour.tn` | `Client2026!` |
+
+Chaque utilisateur peut changer son mot de passe depuis le bouton « Mot de passe » (carte
+utilisateur de la barre latérale, menu mobile, ou page Mon profil). Pour (re)créer les comptes
+admin supplémentaires : `npx tsx prisma/add-admins.ts`.
 
 ## Architecture
 
