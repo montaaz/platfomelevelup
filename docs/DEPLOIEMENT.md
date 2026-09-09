@@ -169,54 +169,53 @@ sur le serveur, sinon **Full**.
 > le cookie de session (`secure`) serait rejeté par le navigateur et **personne ne
 > pourrait se connecter**, avec une boucle de redirection vers `/login`.
 
-### Certificat sur le serveur (pour Full strict)
+### Certificat HTTPS avec Certbot (Let's Encrypt)
 
-Option A — **Origin Certificate Cloudflare** (le plus simple, valable 15 ans) :
-SSL/TLS → Origin Server → Create Certificate, puis coller les deux fichiers :
+Certbot valide le domaine en HTTP. Le proxy Cloudflare intercepte cette
+validation : il faut donc le désactiver le temps de l'émission.
 
-```bash
-mkdir -p /etc/ssl/cloudflare
-nano /etc/ssl/cloudflare/levelupia.app.pem   # certificat
-nano /etc/ssl/cloudflare/levelupia.app.key   # clé privée
-chmod 600 /etc/ssl/cloudflare/levelupia.app.key
-```
+**Étape 1 — désactiver temporairement le proxy Cloudflare**
 
-Ajouter le bloc HTTPS dans `/etc/nginx/sites-available/levelupia.app` :
+DNS → Records → sur `levelupia.app` **et** `www` : Edit → Proxy status →
+basculer sur **DNS only** (nuage gris) → Save. Attendre ~1 minute.
 
-```nginx
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    server_name levelupia.app www.levelupia.app;
-
-    ssl_certificate     /etc/ssl/cloudflare/levelupia.app.pem;
-    ssl_certificate_key /etc/ssl/cloudflare/levelupia.app.key;
-
-    client_max_body_size 110M;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host              $host;
-        proxy_set_header X-Real-IP         $remote_addr;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host  $host;
-        proxy_set_header Upgrade           $http_upgrade;
-        proxy_set_header Connection        "upgrade";
-        proxy_read_timeout 300s;
-    }
-}
-```
-
-Option B — **Let's Encrypt** (nécessite de désactiver temporairement le proxy Cloudflare) :
+**Étape 2 — installer le certificat**
 
 ```bash
 apt install -y certbot python3-certbot-nginx
-certbot --nginx -d levelupia.app -d www.levelupia.app
+certbot --nginx -d levelupia.app -d www.levelupia.app \
+        --agree-tos -m contact@levelupia.tn --redirect
 ```
 
-Puis activer **Always Use HTTPS** dans SSL/TLS → Edge Certificates.
+Certbot modifie tout seul `/etc/nginx/sites-available/levelupia.app` :
+il ajoute le bloc `listen 443 ssl`, les chemins des certificats et la
+redirection HTTP → HTTPS.
+
+Vérifier :
+
+```bash
+nginx -t
+ss -ltnp | grep 443            # nginx doit apparaître
+curl -I https://levelupia.app/login
+```
+
+**Étape 3 — réactiver le proxy Cloudflare**
+
+Remettre les deux enregistrements DNS en **Proxied** (nuage orange), puis dans
+**SSL/TLS → Overview** choisir **Full (strict)** — le certificat Let's Encrypt
+est valide, Cloudflare peut donc le vérifier.
+
+**Renouvellement automatique** — certbot installe un timer systemd :
+
+```bash
+systemctl list-timers | grep certbot
+certbot renew --dry-run          # tester le renouvellement
+```
+
+> Le renouvellement échouera si le proxy Cloudflare est actif au moment du
+> renouvellement. Pour éviter cela durablement, utiliser la validation DNS :
+> `apt install -y python3-certbot-dns-cloudflare` (nécessite un jeton API
+> Cloudflare), ou repasser en DNS only pendant le renouvellement.
 
 ---
 
@@ -273,5 +272,7 @@ pm2 restart levelup
 | `password authentication failed` | Mot de passe mal encodé | `@` → `%40`, `%` → `%25` (donc `%40` littéral → `%2540`) |
 | 502 Bad Gateway | Application arrêtée | `pm2 logs levelup`, puis `pm2 restart levelup` |
 | Upload de gros fichier en échec | Limite Nginx | `client_max_body_size 110M;` |
-| Erreur **521** (Web server is down) | Rien n'écoute sur le port 443 alors que Cloudflare est en mode Full | Ajouter le bloc `server { listen 443 ssl; ... }` avec le certificat d'origine, puis `nginx -t && systemctl reload nginx`. Vérifier : `ss -ltnp | grep 443` |
+| Erreur **521** (Web server is down) | Rien n'écoute sur le port 443 alors que Cloudflare est en mode Full | Lancer certbot (section 6) ou, en dépannage immédiat, passer Cloudflare en **Flexible**. Vérifier : `ss -ltnp | grep 443` |
+| `unknown directive "http2"` | nginx < 1.25 | Retirer la ligne `http2 on;` (ou écrire `listen 443 ssl http2;`) |
+| certbot : `Timeout during connect` | Proxy Cloudflare actif pendant la validation | Passer les enregistrements DNS en **DNS only**, relancer certbot, puis remettre **Proxied** |
 | `conflicting server name` au reload | Deux fichiers dans `sites-enabled` déclarent le même `server_name` | Supprimer le doublon : `rm /etc/nginx/sites-enabled/autre-domaine.tn` |
