@@ -26,20 +26,33 @@ export async function middleware(req: NextRequest) {
   const isClientPath = pathname.startsWith("/client");
   const isLogin = pathname === "/login";
 
+  /**
+   * Middleware requires an absolute Location, so rebuild it from the host the
+   * browser actually used (x-forwarded-* when behind a proxy, else Host).
+   * Using req.url directly would send everyone to the address the server
+   * believes it has — typically localhost behind a proxy.
+   */
+  const redirectTo = (path: string) => {
+    const url = new URL(path, req.url);
+    const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+    if (host) {
+      url.host = host;
+      url.protocol = req.headers.get("x-forwarded-proto") ?? url.protocol;
+    }
+    return NextResponse.redirect(url, 307);
+  };
+
   if ((isAdminPath || isClientPath) && !session) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    return redirectTo(`/login?next=${encodeURIComponent(pathname)}`);
   }
   if (isAdminPath && session?.role !== "ADMIN") {
-    return session ? NextResponse.redirect(new URL("/client", req.url)) : NextResponse.next();
+    return session ? redirectTo("/client") : NextResponse.next();
   }
   if (isClientPath && session?.role !== "CLIENT") {
-    return session ? NextResponse.redirect(new URL("/admin", req.url)) : NextResponse.next();
+    return session ? redirectTo("/admin") : NextResponse.next();
   }
   if (isLogin && session) {
-    return NextResponse.redirect(new URL(session.role === "ADMIN" ? "/admin" : "/client", req.url));
+    return redirectTo(session.role === "ADMIN" ? "/admin" : "/client");
   }
 
   return NextResponse.next();
