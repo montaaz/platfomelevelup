@@ -273,3 +273,5 @@ pm2 restart levelup
 | `password authentication failed` | Mot de passe mal encodé | `@` → `%40`, `%` → `%25` (donc `%40` littéral → `%2540`) |
 | 502 Bad Gateway | Application arrêtée | `pm2 logs levelup`, puis `pm2 restart levelup` |
 | Upload de gros fichier en échec | Limite Nginx | `client_max_body_size 110M;` |
+| Erreur **521** (Web server is down) | Rien n'écoute sur le port 443 alors que Cloudflare est en mode Full | Ajouter le bloc `server { listen 443 ssl; ... }` avec le certificat d'origine, puis `nginx -t && systemctl reload nginx`. Vérifier : `ss -ltnp | grep 443` |
+| `conflicting server name` au reload | Deux fichiers dans `sites-enabled` déclarent le même `server_name` | Supprimer le doublon : `rm /etc/nginx/sites-enabled/autre-domaine.tn` |
