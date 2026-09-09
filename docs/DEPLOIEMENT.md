@@ -1,86 +1,274 @@
-# Déploiement sur le serveur (Ubuntu)
+# Déploiement — levelupia.app
 
-## 1. Node.js 20+ obligatoire
+Serveur : `31.70.137.202` · Projet : `/root/app/platfomelevelup` · Port interne : **3000**
 
-Tailwind v4 (`@tailwindcss/oxide`) exige **Node ≥ 20**. Avec Node 18, `npm install`
-affiche `EBADENGINE` puis **n'installe pas le binaire natif**, et `next dev` échoue avec :
+Architecture visée (plusieurs applications sur la même machine) :
 
 ```
-Error: Cannot find native binding.
+Navigateur → Cloudflare (HTTPS) → Nginx :80/:443 → PM2 → Next.js :3000
+                                        ↘ autre-app :3001, :3002 …
 ```
 
-Vérifier la version installée :
+Nginx est indispensable ici : un seul service peut écouter sur le port 443, il
+distribue ensuite vers chaque application selon le nom de domaine.
+
+---
+
+## 0. Débloquer `git pull`
+
+Les fichiers modifiés localement sur le serveur (`next.config.ts`, `package.json`)
+sont déjà corrigés dans le dépôt. On écrase la version locale :
 
 ```bash
-node -v      # doit afficher v20.x ou plus
+cd /root/app/platfomelevelup
+git checkout -- next.config.ts package.json
+git pull
 ```
 
-### Installer Node 20 LTS (au choix)
+> Si d'autres fichiers bloquent : `git stash` (les met de côté) puis `git pull`.
 
-**Option A — NodeSource (recommandé sur un serveur) :**
+---
+
+## 1. Nettoyer PM2
+
+Trois processus `levelup` existent (deux arrêtés). On repart proprement :
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-node -v && npm -v
+pm2 delete all
+pm2 save --force
 ```
 
-**Option B — nvm (si plusieurs projets cohabitent) :**
+---
+
+## 2. Variables d'environnement
+
+`/root/app/platfomelevelup/.env` (jamais versionné) :
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-source ~/.bashrc
-nvm install 20        # lit aussi le fichier .nvmrc du projet
-nvm use
+DATABASE_URL="postgresql://levelup:CSScss110595%2540123do@localhost:5433/levelup?schema=public"
+AUTH_SECRET="<32+ caractères aléatoires>"
+APP_URL="https://levelupia.app"
+NODE_ENV="production"
 ```
 
-## 2. Réinstaller les dépendances proprement
+Générer le secret : `openssl rand -base64 32`
 
-Le `node_modules` créé sous Node 18 est incomplet : il faut le supprimer.
+> **Encodage :** un caractère spécial du mot de passe s'encode une fois — `@` → `%40`,
+> `%` → `%25`. Le mot de passe contenant littéralement `%40` s'écrit donc `%2540`.
+
+---
+
+## 3. Build de production
+
+`npm run dev` n'est pas fait pour la production (lent, non optimisé, expose le débogage).
 
 ```bash
-cd ~/app/platfomelevelup
-rm -rf node_modules package-lock.json
+cd /root/app/platfomelevelup
 npm install
 npx prisma generate
-```
-
-## 3. Variables d'environnement
-
-Créer `.env` à la racine (jamais versionné) :
-
-```bash
-DATABASE_URL="postgresql://levelup:<mot-de-passe-encodé>@localhost:5433/levelup?schema=public"
-AUTH_SECRET="<32 caractères aléatoires minimum>"
-APP_URL="https://votre-domaine.tn"
-```
-
-> **Encodage du mot de passe :** les caractères spéciaux doivent être encodés une fois.
-> `@` → `%40`, `%` → `%25`. Un mot de passe contenant littéralement `%40` s'écrit donc `%2540`.
-> Générer un secret : `openssl rand -base64 32`
-
-## 4. Lancer en production
-
-`npm run dev` n'est pas fait pour la production (lent, non optimisé) :
-
-```bash
 npm run build
-npm run start          # écoute sur le port 3000
 ```
 
-Garder le service en vie avec PM2 :
+---
+
+## 4. Lancer avec PM2
 
 ```bash
-sudo npm install -g pm2
+cd /root/app/platfomelevelup
 pm2 start npm --name levelup -- run start
 pm2 save
-pm2 startup            # exécuter la commande affichée
-pm2 logs levelup
+pm2 startup        # exécuter la ligne affichée pour le démarrage automatique
+pm2 logs levelup   # vérifier
 ```
 
-## 5. Vérifications
+Vérification locale :
 
 ```bash
-node -v                                   # >= 20
-curl -I http://localhost:3000/login       # HTTP 200
+curl -I http://localhost:3000/login    # doit répondre HTTP/1.1 200
 ```
+
+---
+
+## 5. Nginx — domaine + plusieurs applications
+
+```bash
+apt update && apt install -y nginx
+```
+
+Créer `/etc/nginx/sites-available/levelupia.app` :
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name levelupia.app www.levelupia.app;
+
+    # taille des livrables uploadés (doit couvrir la limite applicative de 100 Mo)
+    client_max_body_size 110M;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+
+        # en-têtes indispensables : sans eux les redirections repartent vers localhost
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+
+        # websocket / HMR
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 300s;
+    }
+}
+```
+
+Activer et recharger :
+
+```bash
+ln -s /etc/nginx/sites-available/levelupia.app /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl reload nginx
+```
+
+### Ajouter une autre application plus tard
+
+Chaque application écoute un port différent et reçoit son propre fichier :
+
+```bash
+# app 2 sur le port 3001
+pm2 start npm --name autre-app -- run start   # avec PORT=3001 dans son .env
+cp /etc/nginx/sites-available/levelupia.app /etc/nginx/sites-available/autre-domaine.tn
+# éditer : server_name autre-domaine.tn;  proxy_pass http://127.0.0.1:3001;
+ln -s /etc/nginx/sites-available/autre-domaine.tn /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+```
+
+---
+
+## 6. Cloudflare
+
+### DNS
+
+Dans **DNS → Records**, un enregistrement A :
+
+| Type | Name | Content | Proxy |
+|---|---|---|---|
+| A | `levelupia.app` | `31.70.137.202` | Proxied (nuage orange) |
+| A | `www` | `31.70.137.202` | Proxied |
+
+### SSL/TLS — le point critique
+
+Dans **SSL/TLS → Overview**, choisir **Full (strict)** si un certificat est installé
+sur le serveur, sinon **Full**.
+
+> ⚠️ **Ne jamais laisser « Flexible ».** Cloudflare parlerait alors au serveur en HTTP :
+> le cookie de session (`secure`) serait rejeté par le navigateur et **personne ne
+> pourrait se connecter**, avec une boucle de redirection vers `/login`.
+
+### Certificat sur le serveur (pour Full strict)
+
+Option A — **Origin Certificate Cloudflare** (le plus simple, valable 15 ans) :
+SSL/TLS → Origin Server → Create Certificate, puis coller les deux fichiers :
+
+```bash
+mkdir -p /etc/ssl/cloudflare
+nano /etc/ssl/cloudflare/levelupia.app.pem   # certificat
+nano /etc/ssl/cloudflare/levelupia.app.key   # clé privée
+chmod 600 /etc/ssl/cloudflare/levelupia.app.key
+```
+
+Ajouter le bloc HTTPS dans `/etc/nginx/sites-available/levelupia.app` :
+
+```nginx
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name levelupia.app www.levelupia.app;
+
+    ssl_certificate     /etc/ssl/cloudflare/levelupia.app.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/levelupia.app.key;
+
+    client_max_body_size 110M;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_read_timeout 300s;
+    }
+}
+```
+
+Option B — **Let's Encrypt** (nécessite de désactiver temporairement le proxy Cloudflare) :
+
+```bash
+apt install -y certbot python3-certbot-nginx
+certbot --nginx -d levelupia.app -d www.levelupia.app
+```
+
+Puis activer **Always Use HTTPS** dans SSL/TLS → Edge Certificates.
+
+---
+
+## 7. Pare-feu
+
+```bash
+ufw allow 22/tcp      # SSH — à ne jamais oublier
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+ufw status
+```
+
+Le port 3000 ne doit **pas** être ouvert publiquement : Nginx y accède en local.
+
+---
+
+## 8. Vérifications finales
+
+```bash
+node -v                              # >= 20
+pm2 list                             # levelup : online, 1 seule ligne
+curl -I http://localhost:3000/login  # 200
+nginx -t                             # syntax ok
+curl -I https://levelupia.app/login  # 200
+```
+
+Puis dans le navigateur : `https://levelupia.app` → connexion → déconnexion.
+La déconnexion doit revenir sur `https://levelupia.app/login` (et non `localhost`).
+
+---
+
+## 9. Mettre à jour l'application
+
+```bash
+cd /root/app/platfomelevelup
+git pull
+npm install
+npx prisma generate
+npm run build
+pm2 restart levelup
+```
+
+---
+
+## Dépannage
+
+| Symptôme | Cause | Solution |
+|---|---|---|
+| `Cannot find native binding` | Node < 20 | Installer Node 20+, `rm -rf node_modules package-lock.json && npm install` |
+| Déconnexion renvoie vers `localhost:3000` | En-têtes proxy absents | Ajouter `X-Forwarded-Host` / `X-Forwarded-Proto` dans Nginx |
+| Connexion impossible, boucle vers `/login` | Cloudflare en mode Flexible | Passer en **Full** ou **Full (strict)** |
+| `password authentication failed` | Mot de passe mal encodé | `@` → `%40`, `%` → `%25` (donc `%40` littéral → `%2540`) |
+| 502 Bad Gateway | Application arrêtée | `pm2 logs levelup`, puis `pm2 restart levelup` |
+| Upload de gros fichier en échec | Limite Nginx | `client_max_body_size 110M;` |
