@@ -268,7 +268,8 @@ pm2 restart levelup
 |---|---|---|
 | `Cannot find native binding` | Node < 20 | Installer Node 20+, `rm -rf node_modules package-lock.json && npm install` |
 | Déconnexion renvoie vers `localhost:3000` | En-têtes proxy absents | Ajouter `X-Forwarded-Host` / `X-Forwarded-Proto` dans Nginx |
-| Connexion impossible, boucle vers `/login` | Cloudflare en mode Flexible | Passer en **Full** ou **Full (strict)** |
+| Connexion impossible, boucle vers `/login` | Cookie `Secure` refusé en HTTP | Normal en HTTPS ; en HTTP le cookie s'adapte automatiquement. Forcer si besoin : `COOKIE_SECURE=false` |
+| Connexion impossible derrière Cloudflare | Mode SSL Flexible | Passer en **Full** ou **Full (strict)** |
 | `password authentication failed` | Mot de passe mal encodé | `@` → `%40`, `%` → `%25` (donc `%40` littéral → `%2540`) |
 | 502 Bad Gateway | Application arrêtée | `pm2 logs levelup`, puis `pm2 restart levelup` |
 | Upload de gros fichier en échec | Limite Nginx | `client_max_body_size 110M;` |
