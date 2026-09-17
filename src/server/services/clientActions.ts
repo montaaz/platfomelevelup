@@ -187,12 +187,18 @@ export async function changeMyPassword(ctx: Ctx, current: string, next: string) 
     throw new ValidationError("Le nouveau mot de passe doit contenir au moins 8 caractères.");
   }
   const user = await prisma.user.findUniqueOrThrow({ where: { id: ctx.userId } });
-  const ok = await bcrypt.compare(current, user.passwordHash);
-  if (!ok) throw new ValidationError("Mot de passe actuel incorrect.");
+
+  // Compte Google : il n'y a pas de mot de passe actuel à vérifier. On laisse
+  // définir un mot de passe local, le compte devient alors utilisable des deux
+  // façons (l'identité Google reste rattachée).
+  if (user.passwordHash) {
+    const ok = await bcrypt.compare(current, user.passwordHash);
+    if (!ok) throw new ValidationError("Mot de passe actuel incorrect.");
+  }
 
   await prisma.user.update({
     where: { id: ctx.userId },
-    data: { passwordHash: await bcrypt.hash(next, 12) },
+    data: { passwordHash: await bcrypt.hash(next, 12), authProvider: "LOCAL" },
   });
   await prisma.auditLog.create({
     data: { userId: ctx.userId, action: "PASSWORD_CHANGE", entityType: "user", entityId: ctx.userId },

@@ -24,6 +24,13 @@ export async function verifyLogin(email: string, password: string, ip?: string):
   if (!user.isActive) return { ok: false, reason: "INACTIVE" };
   if (user.lockedUntil && user.lockedUntil > new Date()) return { ok: false, reason: "LOCKED" };
 
+  // Compte Google : aucun mot de passe local. On refuse sans révéler que
+  // l'adresse existe, et sans jamais traiter un hash absent comme valide.
+  if (!user.passwordHash) {
+    await bcrypt.compare(password, "$2a$12$C6UzMDM.H6dfI/f/IKcEeO7ZBpDLhEjkX0VwFOG8HcMYJHhcQfz2u");
+    return { ok: false, reason: "INVALID" };
+  }
+
   const valid = await bcrypt.compare(password, user.passwordHash);
 
   if (!valid) {

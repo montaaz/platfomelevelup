@@ -4,6 +4,7 @@ import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "@/styles/neu.module.css";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 
 /** Œil plein : l'iris s'éclaire quand le mot de passe est visible. */
 function EyeIcon({ open }: { open: boolean }) {
@@ -31,6 +32,17 @@ function LoginForm() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // message renvoyé par le retour Google (?error=...)
+  const oauthError = params.get("error");
+  const GOOGLE_ERRORS: Record<string, string> = {
+    google_indisponible: "La connexion Google n'est pas encore configurée.",
+    google_annule: "Connexion Google annulée.",
+    google_incomplet: "Réponse Google incomplète. Réessayez.",
+    google_state: "Session expirée. Relancez la connexion Google.",
+    google_erreur: "Connexion Google impossible. Réessayez.",
+  };
+  const shownError = error ?? (oauthError ? (GOOGLE_ERRORS[oauthError] ?? oauthError) : null);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -123,11 +135,13 @@ function LoginForm() {
         </label>
       </div>
 
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {shownError && <p className={styles.error} role="alert">{shownError}</p>}
 
       <button type="submit" className={styles.submit} disabled={loading}>
         {loading ? "CONNEXION…" : "LOGIN"}
       </button>
+
+      <GoogleButton label="Continuer avec Google" />
 
       <div className={styles.footer}>
         <span>Pas encore de compte ?</span>

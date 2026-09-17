@@ -129,7 +129,10 @@ model User {
   clientId            BigInt?   @map("client_id")
   fullName            String    @map("full_name") @db.VarChar(160)
   email               String    @unique @db.Citext
-  passwordHash        String    @map("password_hash")
+  passwordHash        String?   @map("password_hash")
+  authProvider        String    @default("LOCAL") @map("auth_provider") @db.VarChar(20)
+  googleSub           String?   @unique @map("google_sub") @db.VarChar(64)
+  avatarUrl           String?   @map("avatar_url")
   isActive            Boolean   @default(true) @map("is_active")
   lastLoginAt         DateTime? @map("last_login_at") @db.Timestamptz(6)
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts") @db.SmallInt

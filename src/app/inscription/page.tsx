@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/neu.module.css";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 
 /** Œil plein, comme la référence : l'iris se remplit quand le mot de passe est visible. */
 function EyeIcon({ open }: { open: boolean }) {
@@ -164,6 +165,8 @@ export default function InscriptionPage() {
         <button type="submit" className={styles.submit} disabled={loading}>
           {loading ? "CRÉATION…" : "CREATE ACCOUNT"}
         </button>
+
+        <GoogleButton label="S'inscrire avec Google" />
 
         <div className={styles.footer}>
           <span>Already have an account?</span>

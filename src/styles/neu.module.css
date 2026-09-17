@@ -343,3 +343,54 @@
   text-decoration: none;
 }
 .link:hover { text-decoration: underline; }
+
+/* ------------------------------------------------- séparateur "ou" */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 2px 16px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--neu-muted);
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--neu-bg);
+  box-shadow:
+    inset 1px 1px 2px var(--neu-dark),
+    inset -1px -1px 2px var(--neu-light);
+}
+
+/* ------------------------------------------- bouton Google (en relief) */
+.googleBtn {
+  width: 100%;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3c4043;
+  background: var(--neu-bg);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow:
+    -6px -6px 14px var(--neu-light),
+    7px 7px 16px var(--neu-dark);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.googleBtn:hover { transform: translateY(-2px); }
+.googleBtn:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 5px 5px 11px var(--neu-dark),
+    inset -5px -5px 11px var(--neu-light);
+}

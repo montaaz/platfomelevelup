@@ -80,7 +80,10 @@ CREATE TABLE users (
   client_id             BIGINT REFERENCES clients(id) ON DELETE RESTRICT,
   full_name             VARCHAR(160) NOT NULL,
   email                 CITEXT NOT NULL UNIQUE,
-  password_hash         TEXT NOT NULL,               -- argon2id
+  password_hash         TEXT,                        -- bcrypt ; NULL si compte Google
+  auth_provider         VARCHAR(20) NOT NULL DEFAULT 'LOCAL',  -- LOCAL | GOOGLE
+  google_sub            VARCHAR(64),                 -- identifiant Google stable
+  avatar_url            TEXT,
   is_active             BOOLEAN NOT NULL DEFAULT TRUE,
   last_login_at         TIMESTAMPTZ,
   failed_login_attempts SMALLINT NOT NULL DEFAULT 0, -- brute-force lockout
@@ -91,9 +94,15 @@ CREATE TABLE users (
   CONSTRAINT chk_role_client CHECK (
     (role = 'CLIENT' AND client_id IS NOT NULL) OR
     (role = 'ADMIN'  AND client_id IS NULL)
+  ),
+  -- un compte local a un mot de passe ; un compte Google a son identifiant
+  CONSTRAINT chk_auth_provider CHECK (
+    (auth_provider = 'LOCAL'  AND password_hash IS NOT NULL) OR
+    (auth_provider = 'GOOGLE' AND google_sub IS NOT NULL)
   )
 );
 CREATE INDEX idx_users_client ON users (client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_users_google_sub ON users (google_sub) WHERE google_sub IS NOT NULL;
 CREATE TRIGGER trg_users_updated BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
