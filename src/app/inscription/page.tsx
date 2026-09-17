@@ -3,14 +3,21 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import "./neu.css";
+import styles from "./neu.module.css";
 
+/** Œil plein, comme la référence : l'iris se remplit quand le mot de passe est visible. */
 function EyeIcon({ open }: { open: boolean }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-      {!open && <path d="M3 3l18 18" />}
+    <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 5c-6.4 0-10 7-10 7s3.6 7 10 7 10-7 10-7-3.6-7-10-7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3.5" fill="currentColor" opacity={open ? 1 : 0.85} />
+      {open && <circle cx="13.1" cy="10.9" r="1.15" fill="#fff" opacity="0.9" />}
     </svg>
   );
 }
@@ -61,18 +68,18 @@ export default function InscriptionPage() {
   }
 
   return (
-    <main className="neu-page">
-      <form className="neu-card" onSubmit={onSubmit} noValidate>
-        <div className="neu-badge" aria-hidden="true">✨</div>
+    <main className={styles.page}>
+      <form className={styles.card} onSubmit={onSubmit} noValidate>
+        <div className={styles.badge} aria-hidden="true">✨</div>
 
-        <h1 className="neu-title">Create Account</h1>
-        <p className="neu-subtitle">Start your journey with us</p>
+        <h1 className={styles.title}>Create Account</h1>
+        <p className={styles.subtitle}>Start your journey with us</p>
 
         {/* Full Name */}
-        <div className="neu-field">
+        <div className={styles.field}>
           <input
             id="fullName"
-            className="neu-input"
+            className={styles.input}
             type="text"
             placeholder=" "
             autoComplete="name"
@@ -81,15 +88,15 @@ export default function InscriptionPage() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
-          <label className="neu-label" htmlFor="fullName">Full Name</label>
-          <span className="neu-underline" />
+          <label className={styles.label} htmlFor="fullName">Full Name</label>
+          <span className={styles.underline} />
         </div>
 
         {/* Email Address */}
-        <div className="neu-field">
+        <div className={styles.field}>
           <input
             id="email"
-            className="neu-input"
+            className={styles.input}
             type="email"
             placeholder=" "
             autoComplete="email"
@@ -98,15 +105,15 @@ export default function InscriptionPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <label className="neu-label" htmlFor="email">Email Address</label>
-          <span className="neu-underline" />
+          <label className={styles.label} htmlFor="email">Email Address</label>
+          <span className={styles.underline} />
         </div>
 
         {/* Password */}
-        <div className="neu-field">
+        <div className={styles.field}>
           <input
             id="password"
-            className="neu-input"
+            className={styles.input}
             type={showPassword ? "text" : "password"}
             placeholder=" "
             autoComplete="new-password"
@@ -115,23 +122,23 @@ export default function InscriptionPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <label className="neu-label" htmlFor="password">Password</label>
+          <label className={styles.label} htmlFor="password">Password</label>
           <button
             type="button"
-            className="neu-eye"
+            className={styles.eye}
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
           >
             <EyeIcon open={showPassword} />
           </button>
-          <span className="neu-underline" />
+          <span className={styles.underline} />
         </div>
 
         {/* Confirm Password */}
-        <div className="neu-field">
+        <div className={styles.field}>
           <input
             id="confirmPassword"
-            className="neu-input"
+            className={styles.input}
             type={showConfirm ? "text" : "password"}
             placeholder=" "
             autoComplete="new-password"
@@ -140,27 +147,27 @@ export default function InscriptionPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
-          <label className="neu-label" htmlFor="confirmPassword">Confirm Password</label>
+          <label className={styles.label} htmlFor="confirmPassword">Confirm Password</label>
           <button
             type="button"
-            className="neu-eye"
+            className={styles.eye}
             onClick={() => setShowConfirm((v) => !v)}
             aria-label={showConfirm ? "Masquer le mot de passe" : "Afficher le mot de passe"}
           >
             <EyeIcon open={showConfirm} />
           </button>
-          <span className="neu-underline" />
+          <span className={styles.underline} />
         </div>
 
-        {error && <p className="neu-error" role="alert">{error}</p>}
+        {error && <p className={styles.error} role="alert">{error}</p>}
 
-        <button type="submit" className="neu-submit" disabled={loading}>
+        <button type="submit" className={styles.submit} disabled={loading}>
           {loading ? "CRÉATION…" : "CREATE ACCOUNT"}
         </button>
 
-        <div className="neu-footer">
+        <div className={styles.footer}>
           <span>Already have an account?</span>
-          <Link href="/login" className="neu-round-link" aria-label="Se connecter">
+          <Link href="/login" className={styles.roundLink} aria-label="Se connecter">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5m0 0 6-6m-6 6 6 6" />
             </svg>
