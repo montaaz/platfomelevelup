@@ -13,3 +13,6 @@ storage/uploads/
 # confidential client documents (public repo) — keep locally only
 data/
 .next-verify/
+# fichiers de secrets OAuth téléchargés depuis la console Google
+client_secret_*.json
+**/client_secret_*.json

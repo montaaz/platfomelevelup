@@ -9,6 +9,11 @@ export const STATE_COOKIE = "google_oauth_state";
  * localhost derrière Nginx.
  */
 export function buildRedirectUri(req: NextRequest, path: string): string {
+  // GOOGLE_REDIRECT_BASE force l'URL déclarée chez Google, utile en local :
+  // Google n'accepte que les URI exactement enregistrées.
+  const forced = process.env.GOOGLE_REDIRECT_BASE?.replace(/\/+$/, "");
+  if (forced && path.startsWith("/api/auth/google")) return `${forced}${path}`;
+
   const configured = process.env.APP_URL?.replace(/\/+$/, "");
   if (configured) return `${configured}${path}`;
 
