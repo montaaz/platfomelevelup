@@ -1,0 +1,285 @@
+/* ============================================================================
+   Thème neumorphique (embossed) — page Créer un compte
+   Surfaces claires, ombres doubles : une claire en haut-gauche, une sombre en
+   bas-droite. Les champs sont "creusés" (inset), les boutons "sortis".
+   ========================================================================== */
+
+.neu-page {
+  --neu-bg: #e8ecf3;
+  --neu-light: #ffffff;
+  --neu-dark: #c3ccda;
+  --neu-text: #2d3748;
+  --neu-muted: #8996a8;
+  --neu-accent: #1687ff;
+  --neu-accent-2: #0b63d6;
+
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  background: var(--neu-bg);
+  color: var(--neu-text);
+  overflow: hidden;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* pastilles décoratives en relief, comme dans la référence */
+.neu-page::before,
+.neu-page::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: var(--neu-bg);
+  box-shadow:
+    -10px -10px 24px var(--neu-light),
+    12px 12px 28px var(--neu-dark);
+  pointer-events: none;
+}
+.neu-page::before {
+  width: 240px;
+  height: 240px;
+  top: -70px;
+  left: -90px;
+}
+.neu-page::after {
+  width: 300px;
+  height: 300px;
+  right: -120px;
+  bottom: -110px;
+}
+
+/* ------------------------------------------------------------------ carte */
+.neu-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: 34px 30px 30px;
+  border-radius: 34px;
+  background: var(--neu-bg);
+  box-shadow:
+    -14px -14px 34px var(--neu-light),
+    16px 16px 38px var(--neu-dark);
+  animation: neuIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes neuIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* médaillon rond en haut */
+.neu-badge {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  background: var(--neu-bg);
+  box-shadow:
+    -7px -7px 16px var(--neu-light),
+    8px 8px 18px var(--neu-dark);
+}
+
+.neu-title {
+  text-align: center;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #26303f;
+}
+
+.neu-subtitle {
+  margin-top: 5px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--neu-muted);
+}
+
+/* ----------------------------------------------------------------- champs */
+.neu-field {
+  position: relative;
+  margin-top: 20px;
+}
+
+/* le champ creusé */
+.neu-input {
+  width: 100%;
+  height: 58px;
+  padding: 20px 18px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--neu-bg);
+  color: var(--neu-text);
+  font-size: 15px;
+  outline: none;
+  box-shadow:
+    inset 5px 5px 10px var(--neu-dark),
+    inset -5px -5px 10px var(--neu-light);
+  transition: box-shadow 0.25s ease;
+}
+.neu-input::placeholder { color: transparent; }
+.neu-input[type="password"] { letter-spacing: 0.14em; }
+.neu-field:has(.neu-eye) .neu-input { padding-right: 52px; }
+
+/* étiquette flottante : placeholder au repos, mini-label une fois rempli */
+.neu-label {
+  position: absolute;
+  left: 18px;
+  top: 19px;
+  font-size: 15px;
+  color: var(--neu-muted);
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              font-size 0.22s, color 0.22s, font-weight 0.22s;
+  transform-origin: left top;
+}
+.neu-input:focus + .neu-label,
+.neu-input:not(:placeholder-shown) + .neu-label {
+  transform: translateY(-12px);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--neu-accent);
+}
+
+/* trait animé sous le champ au focus */
+.neu-underline {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  height: 3px;
+  width: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--neu-accent), #66c2ff);
+  transform: translateX(-50%);
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.neu-input:focus ~ .neu-underline { width: 56%; }
+
+/* bouton œil */
+.neu-eye {
+  position: absolute;
+  right: 12px;
+  top: 11px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--neu-bg);
+  color: #7b8798;
+  cursor: pointer;
+  box-shadow:
+    -3px -3px 7px var(--neu-light),
+    3px 3px 7px var(--neu-dark);
+  transition: box-shadow 0.18s ease, color 0.18s ease;
+}
+.neu-eye:hover { color: var(--neu-accent); }
+.neu-eye:active {
+  box-shadow:
+    inset 3px 3px 6px var(--neu-dark),
+    inset -3px -3px 6px var(--neu-light);
+}
+
+/* --------------------------------------------------------------- messages */
+.neu-error {
+  margin-top: 16px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  color: #c0392b;
+  background: var(--neu-bg);
+  box-shadow:
+    inset 3px 3px 7px var(--neu-dark),
+    inset -3px -3px 7px var(--neu-light);
+  animation: neuShake 0.4s ease;
+}
+
+@keyframes neuShake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-5px); }
+  75%      { transform: translateX(5px); }
+}
+
+/* --------------------------------------------------------------- bouton */
+.neu-submit {
+  width: 100%;
+  height: 58px;
+  margin-top: 26px;
+  border: 0;
+  border-radius: 16px;
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--neu-accent-2);
+  background: var(--neu-bg);
+  cursor: pointer;
+  box-shadow:
+    -6px -6px 14px var(--neu-light),
+    7px 7px 16px var(--neu-dark);
+  transition: box-shadow 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.neu-submit:hover:not(:disabled) { transform: translateY(-1px); }
+/* à l'appui : le bouton s'enfonce et se remplit de bleu, comme la vidéo */
+.neu-submit:active:not(:disabled) {
+  transform: translateY(1px);
+  color: #fff;
+  background: linear-gradient(135deg, var(--neu-accent), var(--neu-accent-2));
+  box-shadow:
+    inset 5px 5px 11px rgba(0, 0, 0, 0.22),
+    inset -4px -4px 10px rgba(255, 255, 255, 0.25);
+}
+.neu-submit:disabled { color: var(--neu-muted); cursor: not-allowed; }
+
+/* ----------------------------------------------------------------- footer */
+.neu-footer {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--neu-muted);
+}
+
+.neu-round-link {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--neu-accent);
+  background: var(--neu-bg);
+  box-shadow:
+    -5px -5px 11px var(--neu-light),
+    5px 5px 11px var(--neu-dark);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.neu-round-link:hover { transform: translateY(-2px); }
+.neu-round-link:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 4px 4px 8px var(--neu-dark),
+    inset -4px -4px 8px var(--neu-light);
+}
+
+/* ------------------------------------------------------- petits écrans */
+@media (max-width: 400px) {
+  .neu-card { padding: 28px 20px 24px; border-radius: 28px; }
+  .neu-title { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neu-card, .neu-error { animation: none; }
+  .neu-input, .neu-label, .neu-underline, .neu-submit, .neu-eye, .neu-round-link {
+    transition: none;
+  }
+}

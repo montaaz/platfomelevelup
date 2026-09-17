@@ -24,7 +24,8 @@ export async function middleware(req: NextRequest) {
 
   const isAdminPath = pathname.startsWith("/admin");
   const isClientPath = pathname.startsWith("/client");
-  const isLogin = pathname === "/login";
+  // pages publiques d'authentification : connexion et inscription
+  const isLogin = pathname === "/login" || pathname === "/inscription";
 
   /**
    * Middleware requires an absolute Location, so rebuild it from the host the
@@ -59,5 +60,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/client/:path*", "/login"],
+  matcher: ["/admin/:path*", "/client/:path*", "/login", "/inscription"],
 };

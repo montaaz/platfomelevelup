@@ -108,6 +108,13 @@ export default function LoginPage() {
           <Suspense>
             <LoginForm />
           </Suspense>
+
+          <p className="mt-5 border-t border-ink/8 pt-4 text-center text-[13px] text-ink/72">
+            Pas encore de compte ?{" "}
+            <a href="/inscription" className="font-semibold text-brand-500 hover:text-brand-600">
+              Créer un compte
+            </a>
+          </p>
         </div>
 
         <p className="mt-6 text-center text-[12px] text-white/70">
