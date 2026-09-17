@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import styles from "./neu.module.css";
+import styles from "@/styles/neu.module.css";
 
 /** Œil plein, comme la référence : l'iris se remplit quand le mot de passe est visible. */
 function EyeIcon({ open }: { open: boolean }) {
