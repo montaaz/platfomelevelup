@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireCtx } from "@/server/context";
 import { listClients } from "@/server/services/directory";
 import { Card, CardHeader, Avatar, EmptyState } from "@/components/ui";
@@ -36,7 +37,7 @@ export default async function AdminClientsPage() {
       </div>
 
       <Card>
-        <CardHeader title="Tous les clients" subtitle={`${clients.length} fiche${clients.length > 1 ? "s" : ""}`} />
+        <CardHeader title="Tous les clients" subtitle={`${clients.length} fiche${clients.length > 1 ? "s" : ""} — cliquez pour ouvrir la fiche`} />
         <div className="overflow-x-auto">
           <table className="rt w-full min-w-175 text-left">
             <thead>
@@ -54,13 +55,15 @@ export default async function AdminClientsPage() {
               {clients.map((client) => (
                 <tr key={client.id} className="border-b border-ink/4 last:border-0 hover:bg-white/40">
                   <td className="px-6 py-3.5">
-                    <div className="flex items-center gap-3">
+                    <Link href={`/admin/clients/${client.id}`} className="flex items-center gap-3">
                       <Avatar name={client.companyName} size={38} />
                       <div className="min-w-0">
-                        <p className="sm:truncate text-[13.5px] font-semibold text-ink">{client.companyName}</p>
+                        <p className="text-[13.5px] font-semibold text-ink hover:text-brand-600 sm:truncate">
+                          {client.companyName}
+                        </p>
                         <p className="truncate text-[12px] text-ink/60">{client.city ?? client.email ?? "—"}</p>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-3.5">
                     <p className="text-[13px] text-ink">{client.contactName}</p>

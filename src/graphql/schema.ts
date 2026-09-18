@@ -13,6 +13,7 @@ import {
 } from "@/server/services/clientActions";
 import { listNotifications, markAllNotificationsRead } from "@/server/services/notifications";
 import { globalSearch } from "@/server/services/search";
+import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server/services/onboarding";
 import {
   createClient, updateClient, getClient, createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
@@ -63,6 +64,7 @@ const typeDefs = /* GraphQL */ `
     notifications: [NotificationRow!]!
     search(q: String!): [SearchHit!]!
     userAccounts: [UserAccountRow!]!
+    onboardingStatus: OnboardingStatus!
   }
 
   type Mutation {
@@ -81,10 +83,19 @@ const typeDefs = /* GraphQL */ `
     acceptProjectRequest(requestId: ID!, price: Float!, dueDate: String): AcceptedRequest!
     refuseProjectRequest(requestId: ID!, note: String): Boolean!
     markNotificationsRead: Boolean!
+    saveOnboarding(input: OnboardingInput!): Boolean!
     changeMyPassword(current: String!, next: String!): Boolean!
     createUserAccount(input: UserAccountInput!): Created!
     resetUserPassword(userId: ID!, newPassword: String!): Boolean!
     setUserActive(userId: ID!, active: Boolean!): Boolean!
+  }
+
+  type OnboardingStatus { completed: Boolean!, companyName: String!, contactName: String!, phone: String }
+  input OnboardingInput {
+    contactName: String!, phoneCountry: String!, phone: String!, companyName: String!,
+    industry: String!, industryOther: String, contactRole: String!, contactRoleOther: String,
+    companySize: String!, mainMarket: String!, mainNeed: String!,
+    heardFrom: String, heardFromOther: String
   }
 
   type UserAccountRow {
@@ -248,6 +259,7 @@ export const schema = createSchema<GqlContext>({
       notifications: (_p, _a, c) => wrap(() => listNotifications(auth(c))),
       search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
       userAccounts: (_p, _a, c) => wrap(() => listUserAccounts(auth(c))),
+      onboardingStatus: (_p, _a, c) => wrap(() => onboardingStatus(auth(c))),
     },
     Mutation: {
       sendMessage: (_p, a: { projectId: string; body: string }, c) =>
@@ -285,6 +297,7 @@ export const schema = createSchema<GqlContext>({
       refuseProjectRequest: (_p, a: { requestId: string; note?: string }, c) =>
         wrap(() => refuseProjectRequest(auth(c), BigInt(a.requestId), a.note)),
       markNotificationsRead: (_p, _a, c) => wrap(() => markAllNotificationsRead(auth(c))),
+      saveOnboarding: (_p, a: { input: OnboardingInput }, c) => wrap(() => saveOnboarding(auth(c), a.input)),
       changeMyPassword: (_p, a: { current: string; next: string }, c) =>
         wrap(() => changeMyPassword(auth(c), a.current, a.next)),
       createUserAccount: (_p, a: { input: UserAccountInput }, c) => wrap(() => createUserAccount(auth(c), a.input)),

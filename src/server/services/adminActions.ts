@@ -94,6 +94,91 @@ export async function getClient(ctx: Ctx, clientId: bigint) {
     taxId: c.taxId,
     billingAddress: c.billingAddress,
     notes: c.notes,
+    // questionnaire d'accueil
+    industry: c.industry,
+    industryOther: c.industryOther,
+    contactRole: c.contactRole,
+    contactRoleOther: c.contactRoleOther,
+    companySize: c.companySize,
+    mainMarket: c.mainMarket,
+    mainNeed: c.mainNeed,
+    heardFrom: c.heardFrom,
+    heardFromOther: c.heardFromOther,
+    onboardingCompletedAt: c.onboardingCompletedAt?.toISOString() ?? null,
+  };
+}
+
+/** Fiche client complète pour l'admin : profil + projets + factures. */
+export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
+  assertAdmin(ctx);
+  const c = await prisma.client.findFirst({
+    where: { id: clientId, deletedAt: null },
+    include: {
+      users: { select: { email: true, role: true, lastLoginAt: true, isActive: true } },
+      projects: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        include: { service: true },
+      },
+      invoices: { orderBy: { issueDate: "desc" } },
+      subscriptions: { orderBy: { renewalDate: "asc" } },
+    },
+  });
+  if (!c) throw new ForbiddenError();
+
+  return {
+    id: c.id.toString(),
+    companyName: c.companyName,
+    contactName: c.contactName,
+    email: c.email,
+    phone: c.phone,
+    address: c.address,
+    city: c.city,
+    country: c.country,
+    taxId: c.taxId,
+    notes: c.notes,
+    createdAt: c.createdAt.toISOString(),
+    onboarding: {
+      completedAt: c.onboardingCompletedAt?.toISOString() ?? null,
+      industry: c.industry,
+      industryOther: c.industryOther,
+      contactRole: c.contactRole,
+      contactRoleOther: c.contactRoleOther,
+      companySize: c.companySize,
+      mainMarket: c.mainMarket,
+      mainNeed: c.mainNeed,
+      heardFrom: c.heardFrom,
+      heardFromOther: c.heardFromOther,
+    },
+    accounts: c.users.map((u) => ({
+      email: u.email,
+      role: u.role,
+      isActive: u.isActive,
+      lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
+    })),
+    projects: c.projects.map((p) => ({
+      id: p.id.toString(),
+      title: p.title,
+      serviceName: p.service.name,
+      status: p.status,
+      price: Number(p.price),
+      dueDate: p.dueDate?.toISOString() ?? null,
+    })),
+    invoices: c.invoices
+      .filter((i) => i.status !== "BROUILLON")
+      .map((i) => ({
+        id: i.id.toString(),
+        number: i.invoiceNumber,
+        status: i.status,
+        total: Number(i.total),
+        issueDate: i.issueDate.toISOString(),
+      })),
+    subscriptions: c.subscriptions.map((sub) => ({
+      planName: sub.planName,
+      monthlyAmount: Number(sub.monthlyAmount),
+      status: sub.status,
+      renewalDate: sub.renewalDate.toISOString(),
+    })),
   };
 }
 

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { requireCtx } from "@/server/context";
 import { unreadTotal } from "@/server/services/messaging";
 import { listNotifications } from "@/server/services/notifications";
@@ -8,6 +9,13 @@ import { TiltEffects } from "@/components/layout/TiltEffects";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireCtx("CLIENT");
+
+  // tant que le questionnaire d'accueil n'est pas rempli, on y renvoie le client
+  const onboarded = await prisma.client.findUnique({
+    where: { id: ctx.clientId! },
+    select: { onboardingCompletedAt: true },
+  });
+  if (!onboarded?.onboardingCompletedAt) redirect("/bienvenue");
 
   const [client, projectCount, unread, notifications] = await Promise.all([
     prisma.client.findUnique({ where: { id: ctx.clientId! }, select: { companyName: true } }),

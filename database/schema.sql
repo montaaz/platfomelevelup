@@ -62,6 +62,18 @@ CREATE TABLE clients (
   tax_id           VARCHAR(60),                 -- matricule fiscal, printed on invoices
   billing_address  TEXT,                        -- falls back to address when NULL
   notes            TEXT,
+  -- questionnaire d'accueil rempli par le client après sa première connexion
+  phone_country_code      VARCHAR(8),
+  industry                VARCHAR(60),
+  industry_other          VARCHAR(160),
+  contact_role            VARCHAR(60),
+  contact_role_other      VARCHAR(160),
+  company_size            VARCHAR(40),
+  main_market             VARCHAR(80),
+  main_need               VARCHAR(60),
+  heard_from              VARCHAR(60),
+  heard_from_other        VARCHAR(160),
+  onboarding_completed_at TIMESTAMPTZ,
   is_active        BOOLEAN NOT NULL DEFAULT TRUE,
   deleted_at       TIMESTAMPTZ,                 -- soft delete: history stays intact
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
