@@ -10,14 +10,13 @@ import { TiltEffects } from "@/components/layout/TiltEffects";
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireCtx("CLIENT");
 
+  // Le paiement ne bloque plus l'entrée : le client consulte l'état de sa
+  // commande depuis son espace. Seul le questionnaire d'accueil est requis.
   const gate = await prisma.client.findUnique({
     where: { id: ctx.clientId! },
-    select: { onboardingCompletedAt: true, accessGranted: true },
+    select: { onboardingCompletedAt: true },
   });
-  // 1) paiement non confirmé → aucun accès à l'espace client
-  if (!gate?.accessGranted) redirect("/paiement");
-  // 2) questionnaire d'accueil non rempli → on y renvoie
-  if (!gate.onboardingCompletedAt) redirect("/bienvenue");
+  if (!gate?.onboardingCompletedAt) redirect("/bienvenue");
 
   const [client, projectCount, unread, notifications] = await Promise.all([
     prisma.client.findUnique({ where: { id: ctx.clientId! }, select: { companyName: true } }),

@@ -51,6 +51,13 @@ export async function readCartToken(token: string) {
   return pack;
 }
 
+/** Retrouve une offre par son code (paramètre ?pack= du site vitrine). */
+export async function findPackByCode(code: string) {
+  const pack = await prisma.pack.findFirst({ where: { code, isActive: true } });
+  if (!pack) throw new ValidationError("Cette offre n'est plus disponible.");
+  return pack;
+}
+
 export async function listPacks() {
   const packs = await prisma.pack.findMany({ where: { isActive: true }, orderBy: { position: "asc" } });
   return packs.map((p) => ({
@@ -81,11 +88,9 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
         status: "EN_ATTENTE_PAIEMENT",
       },
     });
-    // accès fermé jusqu'à confirmation du paiement
-    await tx.client.update({
-      where: { id: clientId },
-      data: { accessGranted: false, accessGrantedAt: null },
-    });
+    // L'accès reste ouvert : le client entre tout de suite et suit l'état de
+    // son paiement depuis son espace. Le paiement se confirme ensuite (admin
+    // aujourd'hui, passerelle bancaire demain).
     return created;
   });
 

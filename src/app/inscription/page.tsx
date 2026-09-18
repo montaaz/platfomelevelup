@@ -27,6 +27,7 @@ function InscriptionForm() {
   const router = useRouter();
   const params = useSearchParams();
   const cartToken = params.get("cart");
+  const packCode = params.get("pack");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,7 +55,7 @@ function InscriptionForm() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password, confirmPassword, cartToken }),
+        body: JSON.stringify({ fullName, email, password, confirmPassword, cartToken, packCode }),
       });
       const data = await res.json();
       if (!res.ok) {

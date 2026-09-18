@@ -3,7 +3,7 @@ import { z } from "zod";
 import { signupClient } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
 import { ValidationError } from "@/server/context";
-import { readCartToken, createOrderForClient } from "@/server/services/orders";
+import { readCartToken, findPackByCode, createOrderForClient } from "@/server/services/orders";
 
 const SignupInput = z.object({
   fullName: z.string().min(1).max(160),
@@ -12,6 +12,8 @@ const SignupInput = z.object({
   confirmPassword: z.string().min(1).max(200),
   // jeton signé émis par le site vitrine (facultatif : inscription directe possible)
   cartToken: z.string().max(2000).optional(),
+  // code d'offre transmis par le site vitrine (?pack=)
+  packCode: z.string().max(40).optional(),
 });
 
 /** Anti-abus : au plus 5 inscriptions par IP et par heure (mémoire du process). */
@@ -54,8 +56,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // le pack est validé AVANT de créer le compte : pas de compte orphelin
-    const pack = parsed.data.cartToken ? await readCartToken(parsed.data.cartToken) : null;
+    // l'offre est validée AVANT de créer le compte : pas de compte orphelin.
+    // Jeton signé (?cart=) ou simple code (?pack=) : dans les deux cas le prix
+    // est relu en base, jamais transmis par le navigateur.
+    const pack = parsed.data.cartToken
+      ? await readCartToken(parsed.data.cartToken)
+      : parsed.data.packCode
+        ? await findPackByCode(parsed.data.packCode)
+        : null;
 
     const user = await signupClient(parsed.data);
 
@@ -71,7 +79,7 @@ export async function POST(req: NextRequest) {
       fullName: user.fullName,
       email: user.email,
     });
-    return NextResponse.json({ redirect: pack ? "/paiement" : "/client" });
+    return NextResponse.json({ redirect: "/client" });
   } catch (e) {
     if (e instanceof ValidationError) {
       return NextResponse.json({ error: e.message }, { status: 400 });

@@ -44,6 +44,10 @@ function LoginForm() {
   };
   const shownError = error ?? (oauthError ? (GOOGLE_ERRORS[oauthError] ?? oauthError) : null);
 
+  // offre choisie sur le site vitrine : on la transporte jusqu'à l'inscription
+  const pack = params.get("pack");
+  const signupHref = pack ? `/inscription?pack=${encodeURIComponent(pack)}` : "/inscription";
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -145,7 +149,7 @@ function LoginForm() {
 
       <div className={styles.footer}>
         <span>Pas encore de compte ?</span>
-        <Link href="/inscription" className={styles.roundLink} aria-label="Créer un compte">
+        <Link href={signupHref} className={styles.roundLink} aria-label="Créer un compte">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
           </svg>

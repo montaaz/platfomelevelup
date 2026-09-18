@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { requireCtx } from "@/server/context";
 import { clientHome } from "@/server/services/dashboard";
+import { myAccessState } from "@/server/services/orders";
 import { Card, CardHeader, StatusBadge, Avatar, ProgressBar, EmptyState } from "@/components/ui";
 import { DeliverableActions } from "@/components/client/DeliverableActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
-import { formatDateShort, formatBytes, relativeTime, PROJECT_STATUS_LABEL } from "@/lib/format";
+import { formatDT, formatDateShort, formatBytes, relativeTime, PROJECT_STATUS_LABEL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,8 @@ function daysUntil(iso: string | null) {
 
 export default async function ClientHomePage() {
   const ctx = await requireCtx("CLIENT");
-  const data = await clientHome(ctx);
+  const [data, access] = await Promise.all([clientHome(ctx), myAccessState(ctx)]);
+  const pending = access.pendingOrder;
   const featured = data.featured;
   const days = featured ? daysUntil(featured.dueDate) : null;
   const latestDeliverable = featured?.deliverables[0];
@@ -23,6 +25,28 @@ export default async function ClientHomePage() {
 
   return (
     <div className="space-y-5 pb-8">
+      {pending && (
+        <Card>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-5">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-[20px]">
+              ⏳
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-ink">
+                {pending.packName}
+                <span className="ml-2 text-[12px] font-medium text-amber-600">paiement en attente</span>
+              </p>
+              <p className="mt-0.5 text-[12.5px] text-ink/72">
+                Commande enregistrée. Votre prestation démarre dès la confirmation du règlement.
+              </p>
+            </div>
+            <p className="text-[16px] font-bold whitespace-nowrap text-ink">
+              {formatDT(pending.amount)}
+              {pending.isMonthly ? "/mois" : ""}
+            </p>
+          </div>
+        </Card>
+      )}
       {featured ? (
         <>
           {/* ============================== Hero: the project awaiting action */}
