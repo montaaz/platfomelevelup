@@ -11,10 +11,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const ctx = await requireCtx("ADMIN");
   await runMaintenanceSweep(); // overdue invoices + subscription alerts (throttled)
 
-  const [projectCount, unread, unpaidCount, notifications] = await Promise.all([
+  const [projectCount, unread, unpaidCount, pendingOrders, notifications] = await Promise.all([
     prisma.project.count({ where: { deletedAt: null, status: { notIn: ["CLOTURE"] } } }),
     unreadTotal(ctx),
     prisma.invoice.count({ where: { status: { in: ["EN_ATTENTE", "EN_RETARD"] } } }),
+    prisma.order.count({ where: { status: "EN_ATTENTE_PAIEMENT" } }),
     listNotifications(ctx),
   ]);
 
@@ -24,6 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/projets", label: "Projets", icon: "folder", count: projectCount },
     { href: "/admin/messagerie", label: "Messagerie", short: "Messages", icon: "chat", count: unread },
     { href: "/admin/factures", label: "Factures", icon: "invoice", count: unpaidCount },
+    { href: "/admin/commandes", label: "Commandes", short: "Commandes", icon: "repeat", count: pendingOrders },
     { href: "/admin/abonnements", label: "Abonnements", icon: "repeat" },
     { href: "/admin/equipe", label: "Équipe", icon: "team" },
   ];

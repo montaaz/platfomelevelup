@@ -23,7 +23,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const isAdminPath = pathname.startsWith("/admin");
-  const isClientPath = pathname.startsWith("/client") || pathname === "/bienvenue";
+  const isClientPath = pathname.startsWith("/client") || pathname === "/bienvenue" || pathname === "/paiement";
   // pages publiques d'authentification : connexion et inscription
   const isLogin = pathname === "/login" || pathname === "/inscription";
 
@@ -60,5 +60,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/client/:path*", "/bienvenue", "/login", "/inscription"],
+  matcher: ["/admin/:path*", "/client/:path*", "/bienvenue", "/paiement", "/login", "/inscription"],
 };

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "@/styles/neu.module.css";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 
@@ -23,8 +23,10 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function InscriptionPage() {
+function InscriptionForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const cartToken = params.get("cart");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,7 +54,7 @@ export default function InscriptionPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password, confirmPassword }),
+        body: JSON.stringify({ fullName, email, password, confirmPassword, cartToken }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -178,5 +180,13 @@ export default function InscriptionPage() {
         </div>
       </form>
     </main>
+  );
+}
+
+export default function InscriptionPage() {
+  return (
+    <Suspense>
+      <InscriptionForm />
+    </Suspense>
   );
 }

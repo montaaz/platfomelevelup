@@ -3,12 +3,15 @@ import { z } from "zod";
 import { signupClient } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
 import { ValidationError } from "@/server/context";
+import { readCartToken, createOrderForClient } from "@/server/services/orders";
 
 const SignupInput = z.object({
   fullName: z.string().min(1).max(160),
   email: z.string().email().max(254),
   password: z.string().min(1).max(200),
   confirmPassword: z.string().min(1).max(200),
+  // jeton signé émis par le site vitrine (facultatif : inscription directe possible)
+  cartToken: z.string().max(2000).optional(),
 });
 
 /** Anti-abus : au plus 5 inscriptions par IP et par heure (mémoire du process). */
@@ -51,7 +54,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // le pack est validé AVANT de créer le compte : pas de compte orphelin
+    const pack = parsed.data.cartToken ? await readCartToken(parsed.data.cartToken) : null;
+
     const user = await signupClient(parsed.data);
+
+    // commande créée : l'accès reste fermé jusqu'à confirmation du paiement
+    if (pack && user.clientId) {
+      await createOrderForClient(BigInt(user.clientId), pack.code);
+    }
     // connexion immédiate après inscription
     await createSession({
       userId: user.id,
@@ -60,7 +71,7 @@ export async function POST(req: NextRequest) {
       fullName: user.fullName,
       email: user.email,
     });
-    return NextResponse.json({ redirect: "/client" });
+    return NextResponse.json({ redirect: pack ? "/paiement" : "/client" });
   } catch (e) {
     if (e instanceof ValidationError) {
       return NextResponse.json({ error: e.message }, { status: 400 });

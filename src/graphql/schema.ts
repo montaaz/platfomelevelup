@@ -14,6 +14,7 @@ import {
 import { listNotifications, markAllNotificationsRead } from "@/server/services/notifications";
 import { globalSearch } from "@/server/services/search";
 import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server/services/onboarding";
+import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
 import {
   createClient, updateClient, getClient, createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
@@ -65,6 +66,9 @@ const typeDefs = /* GraphQL */ `
     search(q: String!): [SearchHit!]!
     userAccounts: [UserAccountRow!]!
     onboardingStatus: OnboardingStatus!
+    packs: [PackRow!]!
+    orders: [OrderRow!]!
+    myAccess: AccessState!
   }
 
   type Mutation {
@@ -84,11 +88,20 @@ const typeDefs = /* GraphQL */ `
     refuseProjectRequest(requestId: ID!, note: String): Boolean!
     markNotificationsRead: Boolean!
     saveOnboarding(input: OnboardingInput!): Boolean!
+    confirmOrderPayment(orderId: ID!, method: String!, reference: String): Boolean!
     changeMyPassword(current: String!, next: String!): Boolean!
     createUserAccount(input: UserAccountInput!): Created!
     resetUserPassword(userId: ID!, newPassword: String!): Boolean!
     setUserActive(userId: ID!, active: Boolean!): Boolean!
   }
+
+  type PackRow { id: ID!, code: String!, name: String!, description: String, price: Float!, isMonthly: Boolean! }
+  type OrderRow {
+    id: ID!, clientId: ID!, clientCompany: String!, packName: String!, isMonthly: Boolean!,
+    amount: Float!, status: String!, paidAt: String, createdAt: String!
+  }
+  type PendingOrder { id: ID!, packName: String!, amount: Float!, isMonthly: Boolean!, createdAt: String! }
+  type AccessState { accessGranted: Boolean!, companyName: String!, pendingOrder: PendingOrder }
 
   type OnboardingStatus { completed: Boolean!, companyName: String!, contactName: String!, phone: String }
   input OnboardingInput {
@@ -260,6 +273,9 @@ export const schema = createSchema<GqlContext>({
       search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
       userAccounts: (_p, _a, c) => wrap(() => listUserAccounts(auth(c))),
       onboardingStatus: (_p, _a, c) => wrap(() => onboardingStatus(auth(c))),
+      packs: () => listPacks(),
+      orders: (_p, _a, c) => wrap(() => listOrders(auth(c))),
+      myAccess: (_p, _a, c) => wrap(() => myAccessState(auth(c))),
     },
     Mutation: {
       sendMessage: (_p, a: { projectId: string; body: string }, c) =>
@@ -298,6 +314,8 @@ export const schema = createSchema<GqlContext>({
         wrap(() => refuseProjectRequest(auth(c), BigInt(a.requestId), a.note)),
       markNotificationsRead: (_p, _a, c) => wrap(() => markAllNotificationsRead(auth(c))),
       saveOnboarding: (_p, a: { input: OnboardingInput }, c) => wrap(() => saveOnboarding(auth(c), a.input)),
+      confirmOrderPayment: (_p, a: { orderId: string; method: string; reference?: string }, c) =>
+        wrap(() => confirmOrderPayment(auth(c), BigInt(a.orderId), a.method, a.reference)),
       changeMyPassword: (_p, a: { current: string; next: string }, c) =>
         wrap(() => changeMyPassword(auth(c), a.current, a.next)),
       createUserAccount: (_p, a: { input: UserAccountInput }, c) => wrap(() => createUserAccount(auth(c), a.input)),
