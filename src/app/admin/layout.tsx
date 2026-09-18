@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireCtx } from "@/server/context";
 import { unreadTotal } from "@/server/services/messaging";
@@ -9,7 +10,13 @@ import { Topbar } from "@/components/layout/Topbar";
 import { TiltEffects } from "@/components/layout/TiltEffects";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const ctx = await requireCtx("ADMIN");
+  // Même règle que pour les clients : un compte désactivé est déconnecté.
+  let ctx;
+  try {
+    ctx = await requireCtx("ADMIN");
+  } catch {
+    redirect("/api/auth/logout?motif=compte_bloque");
+  }
   await runMaintenanceSweep(); // overdue invoices + subscription alerts (throttled)
 
   const [projectCount, unread, unpaidCount, pendingOrders, notifications, countries] = await Promise.all([

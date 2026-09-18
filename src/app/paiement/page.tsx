@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import styles from "@/styles/neu.module.css";
-import { requireCtx } from "@/server/context";
+import { ctxOrNull } from "@/server/context";
 import { myAccessState } from "@/server/services/orders";
 import { formatDT } from "@/lib/format";
 
@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
  * pas confirmé l'encaissement, le client ne peut pas entrer dans la plateforme.
  */
 export default async function PaiementPage() {
-  const ctx = await requireCtx("CLIENT");
+  const ctx = await ctxOrNull("CLIENT");
+  if (!ctx) redirect("/api/auth/logout?motif=compte_bloque");
   const access = await myAccessState(ctx);
   if (access.accessGranted) redirect("/client");
 

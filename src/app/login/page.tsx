@@ -33,9 +33,10 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // message renvoyé par le retour Google (?error=...)
+  // message renvoyé par le retour Google, ou par une session close d'office
   const oauthError = params.get("error");
   const GOOGLE_ERRORS: Record<string, string> = {
+    compte_bloque: "Votre accès a été suspendu. Contactez l'agence pour le rétablir.",
     google_indisponible: "La connexion Google n'est pas encore configurée.",
     google_annule: "Connexion Google annulée.",
     google_incomplet: "Réponse Google incomplète. Réessayez.",

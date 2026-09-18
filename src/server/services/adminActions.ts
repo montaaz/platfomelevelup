@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { mirrorNotificationEmails } from "@/lib/mail";
-import { assertAdmin, ForbiddenError, ValidationError, type Ctx } from "@/server/context";
+import { assertAdmin, forgetAccountState, ForbiddenError, ValidationError, type Ctx } from "@/server/context";
 
 const DEFAULT_STEPS = ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"];
 
@@ -114,7 +114,13 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
   const c = await prisma.client.findFirst({
     where: { id: clientId, deletedAt: null },
     include: {
-      users: { select: { email: true, role: true, lastLoginAt: true, isActive: true } },
+      users: {
+        select: {
+          id: true, fullName: true, email: true, role: true, lastLoginAt: true,
+          isActive: true, authProvider: true, lockedUntil: true,
+        },
+        orderBy: { id: "asc" },
+      },
       projects: {
         where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
@@ -158,10 +164,16 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
       heardFromOther: c.heardFromOther,
     },
     accounts: c.users.map((u) => ({
+      id: u.id.toString(),
+      fullName: u.fullName,
       email: u.email,
       role: u.role,
       isActive: u.isActive,
       lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
+      // Un compte Google n'a pas de mot de passe à réinitialiser ici.
+      authProvider: u.authProvider,
+      // Verrouillage temporaire après trop d'échecs : distinct d'un blocage admin.
+      lockedUntil: u.lockedUntil && u.lockedUntil > new Date() ? u.lockedUntil.toISOString() : null,
     })),
     projects: c.projects.map((p) => ({
       id: p.id.toString(),
@@ -625,6 +637,53 @@ export async function resetUserPassword(ctx: Ctx, userId: bigint, newPassword: s
   return true;
 }
 
+/**
+ * Crée l'accès d'un client qui n'en a pas encore.
+ *
+ * Distinct de `createUserAccount` : ici le rôle est forcément CLIENT et le
+ * rattachement est imposé par la fiche ouverte, jamais choisi dans le
+ * formulaire — un compte ne peut donc pas être créé chez un autre client, ni
+ * se voir attribuer le rôle ADMIN.
+ */
+export async function createClientLogin(
+  ctx: Ctx,
+  clientId: bigint,
+  input: { fullName: string; email: string; password: string },
+) {
+  assertAdmin(ctx);
+  const client = await prisma.client.findFirst({
+    where: { id: clientId, deletedAt: null },
+    select: { id: true, contactName: true },
+  });
+  if (!client) throw new ForbiddenError();
+
+  const fullName = requireText(input.fullName || client.contactName, "Nom complet", 160);
+  const email = input.email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError("Adresse e-mail invalide.");
+  if (input.password.length < 8) throw new ValidationError("Le mot de passe doit contenir au moins 8 caractères.");
+
+  try {
+    const user = await prisma.user.create({
+      data: {
+        role: "CLIENT",
+        clientId,
+        fullName,
+        email,
+        passwordHash: await bcrypt.hash(input.password, 12),
+      },
+    });
+    await prisma.auditLog.create({
+      data: { userId: ctx.userId, action: "USER_CREATE", entityType: "user", entityId: user.id },
+    });
+    return { id: user.id.toString() };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      throw new ValidationError("Cette adresse e-mail est déjà utilisée.");
+    }
+    throw e;
+  }
+}
+
 /** Enable / disable a login account (never your own). */
 export async function setUserActive(ctx: Ctx, userId: bigint, active: boolean) {
   assertAdmin(ctx);
@@ -632,6 +691,7 @@ export async function setUserActive(ctx: Ctx, userId: bigint, active: boolean) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new ForbiddenError();
   await prisma.user.update({ where: { id: userId }, data: { isActive: active } });
+  forgetAccountState(userId); // prise d'effet immédiate, sans attendre le cache
   await prisma.auditLog.create({
     data: { userId: ctx.userId, action: active ? "USER_ENABLE" : "USER_DISABLE", entityType: "user", entityId: userId },
   });

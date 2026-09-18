@@ -19,7 +19,7 @@ import {
   createClient, updateClient, getClient, createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
   listProjectRequests, acceptProjectRequest, refuseProjectRequest,
-  listUserAccounts, createUserAccount, resetUserPassword, setUserActive,
+  listUserAccounts, createUserAccount, createClientLogin, resetUserPassword, setUserActive,
   type ClientInput, type ProjectInput, type InvoiceInput, type UserAccountInput,
 } from "@/server/services/adminActions";
 
@@ -91,6 +91,7 @@ const typeDefs = /* GraphQL */ `
     confirmOrderPayment(orderId: ID!, method: String!, reference: String): Boolean!
     changeMyPassword(current: String!, next: String!): Boolean!
     createUserAccount(input: UserAccountInput!): Created!
+    createClientLogin(clientId: ID!, fullName: String!, email: String!, password: String!): Created!
     resetUserPassword(userId: ID!, newPassword: String!): Boolean!
     setUserActive(userId: ID!, active: Boolean!): Boolean!
   }
@@ -319,6 +320,18 @@ export const schema = createSchema<GqlContext>({
       changeMyPassword: (_p, a: { current: string; next: string }, c) =>
         wrap(() => changeMyPassword(auth(c), a.current, a.next)),
       createUserAccount: (_p, a: { input: UserAccountInput }, c) => wrap(() => createUserAccount(auth(c), a.input)),
+      createClientLogin: (
+        _p,
+        a: { clientId: string; fullName: string; email: string; password: string },
+        c,
+      ) =>
+        wrap(() =>
+          createClientLogin(auth(c), BigInt(a.clientId), {
+            fullName: a.fullName,
+            email: a.email,
+            password: a.password,
+          }),
+        ),
       resetUserPassword: (_p, a: { userId: string; newPassword: string }, c) =>
         wrap(() => resetUserPassword(auth(c), BigInt(a.userId), a.newPassword)),
       setUserActive: (_p, a: { userId: string; active: boolean }, c) =>

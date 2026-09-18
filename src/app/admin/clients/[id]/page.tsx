@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireCtx, ForbiddenError } from "@/server/context";
 import { adminClientDetail } from "@/server/services/adminActions";
 import { Card, CardHeader, StatusBadge, Avatar, EmptyState } from "@/components/ui";
+import { ClientLoginCard } from "@/components/admin/ClientLoginCard";
 import {
   formatDT, formatDateFull, formatDateShort,
   PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL,
@@ -184,22 +185,13 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
             )}
           </Card>
 
-          {/* Comptes de connexion */}
-          <Card>
-            <CardHeader title="Comptes de connexion" />
-            <div className="divide-y divide-ink/4 pb-2">
-              {c.accounts.length === 0 && <EmptyState message="Aucun compte." />}
-              {c.accounts.map((u) => (
-                <div key={u.email} className="px-4 py-3 sm:px-6">
-                  <p className="truncate text-[13px] font-medium text-ink">{u.email}</p>
-                  <p className="text-[11.5px] text-ink/60">
-                    {u.isActive ? "Actif" : "Désactivé"} ·{" "}
-                    {u.lastLoginAt ? `vu le ${formatDateFull(u.lastLoginAt)}` : "jamais connecté"}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
+          {/* Accès du client : mot de passe et blocage */}
+          <ClientLoginCard
+            clientId={c.id}
+            contactName={c.contactName}
+            clientEmail={c.email}
+            accounts={c.accounts}
+          />
 
           {/* Abonnements */}
           {c.subscriptions.length > 0 && (

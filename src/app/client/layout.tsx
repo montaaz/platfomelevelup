@@ -8,7 +8,14 @@ import { Topbar } from "@/components/layout/Topbar";
 import { TiltEffects } from "@/components/layout/TiltEffects";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
-  const ctx = await requireCtx("CLIENT");
+  // Compte bloqué par un administrateur : la session est close sur-le-champ,
+  // sans attendre l'expiration du jeton.
+  let ctx;
+  try {
+    ctx = await requireCtx("CLIENT");
+  } catch {
+    redirect("/api/auth/logout?motif=compte_bloque");
+  }
 
   // Le paiement ne bloque plus l'entrée : le client consulte l'état de sa
   // commande depuis son espace. Seul le questionnaire d'accueil est requis.

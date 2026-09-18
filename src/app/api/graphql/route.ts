@@ -7,7 +7,7 @@ import {
 } from "graphql";
 import { schema, type GqlContext } from "@/graphql/schema";
 import { getSession } from "@/lib/session";
-import { toCtx } from "@/server/context";
+import { toCtx, isAccountActive } from "@/server/context";
 
 const isProd = process.env.NODE_ENV === "production";
 const MAX_DEPTH = 8;
@@ -66,7 +66,12 @@ const yoga = createYoga<object, GqlContext>({
   ],
   context: async () => {
     const session = await getSession();
-    return { ctx: session ? toCtx(session) : null };
+    if (!session) return { ctx: null };
+    const ctx = toCtx(session);
+    // Un compte bloqué entre-temps perd la main immédiatement, même si sa
+    // session reste valide côté jeton.
+    if (!(await isAccountActive(ctx.userId))) return { ctx: null };
+    return { ctx };
   },
   fetchAPI: { Response },
 });
