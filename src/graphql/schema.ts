@@ -16,7 +16,8 @@ import { globalSearch } from "@/server/services/search";
 import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server/services/onboarding";
 import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
 import {
-  createClient, updateClient, getClient, createProject, updateProjectStatus,
+  createClient, updateClient, getClient, archiveClient, clientDeletionImpact,
+  createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
   listProjectRequests, acceptProjectRequest, refuseProjectRequest,
   listUserAccounts, createUserAccount, createClientLogin, resetUserPassword, setUserActive,
@@ -61,6 +62,7 @@ const typeDefs = /* GraphQL */ `
     services: [ServiceRow!]!
     myProfile: Profile!
     clientDetail(id: ID!): ClientDetail!
+    clientDeletionImpact(id: ID!): DeletionImpact!
     projectRequests: [RequestRow!]!
     notifications: [NotificationRow!]!
     search(q: String!): [SearchHit!]!
@@ -79,6 +81,7 @@ const typeDefs = /* GraphQL */ `
     updateMyProfile(input: ProfileInput!): Boolean!
     createClient(input: ClientInput!): Created!
     updateClient(id: ID!, input: ClientInput!): Boolean!
+    archiveClient(id: ID!): ArchivedClient!
     createProject(input: ProjectInput!): Created!
     updateProjectStatus(projectId: ID!, status: String!, comment: String): Boolean!
     reachProjectStep(projectId: ID!, position: Int!): Boolean!
@@ -95,6 +98,9 @@ const typeDefs = /* GraphQL */ `
     resetUserPassword(userId: ID!, newPassword: String!): Boolean!
     setUserActive(userId: ID!, active: Boolean!): Boolean!
   }
+
+  type ArchivedClient { companyName: String!, projects: Int!, invoices: Int! }
+  type DeletionImpact { companyName: String!, projects: Int!, invoices: Int!, accounts: Int! }
 
   type PackRow { id: ID!, code: String!, name: String!, description: String, price: Float!, isMonthly: Boolean! }
   type OrderRow {
@@ -269,6 +275,8 @@ export const schema = createSchema<GqlContext>({
       services: () => listServicesPublic(),
       myProfile: (_p, _a, c) => wrap(() => getMyProfile(auth(c))),
       clientDetail: (_p, a: { id: string }, c) => wrap(() => getClient(auth(c), BigInt(a.id))),
+      clientDeletionImpact: (_p, a: { id: string }, c) =>
+        wrap(() => clientDeletionImpact(auth(c), BigInt(a.id))),
       projectRequests: (_p, _a, c) => wrap(() => listProjectRequests(auth(c))),
       notifications: (_p, _a, c) => wrap(() => listNotifications(auth(c))),
       search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
@@ -301,6 +309,7 @@ export const schema = createSchema<GqlContext>({
       createClient: (_p, a: { input: ClientInput }, c) => wrap(() => createClient(auth(c), a.input)),
       updateClient: (_p, a: { id: string; input: ClientInput }, c) =>
         wrap(() => updateClient(auth(c), BigInt(a.id), a.input)),
+      archiveClient: (_p, a: { id: string }, c) => wrap(() => archiveClient(auth(c), BigInt(a.id))),
       createProject: (_p, a: { input: ProjectInput }, c) => wrap(() => createProject(auth(c), a.input)),
       updateProjectStatus: (_p, a: { projectId: string; status: string; comment?: string }, c) =>
         wrap(() => updateProjectStatus(auth(c), BigInt(a.projectId), a.status, a.comment)),

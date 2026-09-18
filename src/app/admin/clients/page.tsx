@@ -3,6 +3,7 @@ import { requireCtx } from "@/server/context";
 import { listClients } from "@/server/services/directory";
 import { Card, CardHeader, Avatar, EmptyState } from "@/components/ui";
 import { ClientFormButton } from "@/components/admin/ClientFormModal";
+import { DeleteClientButton } from "@/components/admin/DeleteClientButton";
 import { formatDT } from "@/lib/format";
 import { countryFlag } from "@/lib/countries";
 
@@ -48,7 +49,7 @@ export default async function AdminClientsPage({
       <Card>
         <CardHeader title="Tous les clients" subtitle={`${clients.length} fiche${clients.length > 1 ? "s" : ""} — cliquez pour ouvrir la fiche`} />
         <div className="overflow-x-auto">
-          <table className="rt w-full min-w-200 text-left">
+          <table className="rt w-full min-w-225 text-left">
             <thead>
               <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Entreprise</th>
@@ -111,7 +112,8 @@ export default async function AdminClientsPage({
                   <td className={`px-4 py-3.5 text-right text-[13px] font-semibold ${client.unpaidTotal > 0 ? "text-red-500" : "text-ink/60"}`}>
                     {client.unpaidTotal > 0 ? formatDT(client.unpaidTotal) : "—"}
                   </td>
-                  <td className="px-6 py-3.5 text-right">
+                  <td className="px-6 py-3.5 text-right whitespace-nowrap">
+                    <span className="inline-flex items-center gap-3">
                     <ClientFormButton
                       editId={client.id}
                       initial={{
@@ -126,6 +128,8 @@ export default async function AdminClientsPage({
                         notes: client.notes ?? "",
                       }}
                     />
+                    <DeleteClientButton clientId={client.id} companyName={client.companyName} />
+                    </span>
                   </td>
                 </tr>
               ))}

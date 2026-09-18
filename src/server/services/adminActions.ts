@@ -79,6 +79,78 @@ export async function updateClient(ctx: Ctx, clientId: bigint, input: ClientInpu
   return true;
 }
 
+/**
+ * Archive un client : il disparaît de l'interface, ses données restent en base.
+ *
+ * Les factures ne peuvent pas être détruites — les pièces comptables se
+ * conservent dix ans. Toutes les requêtes de l'application filtrant déjà sur
+ * `deletedAt: null`, dater ce champ suffit à retirer le client de partout :
+ * listes, tableau de bord, recherche, messagerie.
+ *
+ * Ses comptes de connexion sont désactivés dans le même mouvement, sans quoi
+ * il continuerait d'accéder à son espace.
+ */
+export async function archiveClient(ctx: Ctx, clientId: bigint) {
+  assertAdmin(ctx);
+  const client = await prisma.client.findFirst({
+    where: { id: clientId, deletedAt: null },
+    select: { id: true, companyName: true },
+  });
+  if (!client) throw new ForbiddenError();
+
+  const [projects, invoices] = await Promise.all([
+    prisma.project.count({ where: { clientId, deletedAt: null } }),
+    prisma.invoice.count({ where: { clientId } }),
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    const now = new Date();
+    await tx.client.update({
+      where: { id: clientId },
+      data: { deletedAt: now, isActive: false },
+    });
+    // Les projets suivent la fiche : sans cela ils resteraient comptés parmi
+    // les projets en cours du tableau de bord, pour un client qui n'existe
+    // plus à l'écran.
+    await tx.project.updateMany({
+      where: { clientId, deletedAt: null },
+      data: { deletedAt: now },
+    });
+    await tx.user.updateMany({ where: { clientId }, data: { isActive: false } });
+    await tx.auditLog.create({
+      data: {
+        userId: ctx.userId,
+        action: "CLIENT_ARCHIVE",
+        entityType: "client",
+        entityId: clientId,
+      },
+    });
+  });
+
+  // Les sessions ouvertes de ce client tombent à la requête suivante.
+  const users = await prisma.user.findMany({ where: { clientId }, select: { id: true } });
+  for (const u of users) forgetAccountState(u.id);
+
+  return { companyName: client.companyName, projects, invoices };
+}
+
+/** Ce qu'une suppression emporterait — pour l'annoncer avant de la faire. */
+export async function clientDeletionImpact(ctx: Ctx, clientId: bigint) {
+  assertAdmin(ctx);
+  const client = await prisma.client.findFirst({
+    where: { id: clientId, deletedAt: null },
+    select: { id: true, companyName: true },
+  });
+  if (!client) throw new ForbiddenError();
+
+  const [projects, invoices, accounts] = await Promise.all([
+    prisma.project.count({ where: { clientId, deletedAt: null } }),
+    prisma.invoice.count({ where: { clientId } }),
+    prisma.user.count({ where: { clientId, isActive: true } }),
+  ]);
+  return { companyName: client.companyName, projects, invoices, accounts };
+}
+
 export async function getClient(ctx: Ctx, clientId: bigint) {
   assertAdmin(ctx);
   const c = await prisma.client.findFirst({ where: { id: clientId, deletedAt: null } });

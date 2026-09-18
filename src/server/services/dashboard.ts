@@ -17,7 +17,9 @@ export async function adminDashboard(
   // Filtre pays : appliqué à chaque requête par la relation `client`, pour que
   // tout le tableau de bord parle du même périmètre.
   const scope = clientCountryFilter(country);
-  const onClient = country ? { client: scope } : {};
+  // Un client archivé sort de tous les chiffres : sa fiche n'est plus à
+  // l'écran, ses impayés n'ont plus à être relancés.
+  const onClient = { client: { deletedAt: null, ...(country ? scope : {}) } };
   // Les deux requêtes SQL brutes reçoivent le pays en paramètre lié — jamais
   // interpolé — et retombent sur TRUE quand aucun pays n'est choisi.
   // « À détecter » ne se compare pas : il désigne l'absence de pays, d'où le
