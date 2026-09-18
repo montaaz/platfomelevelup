@@ -54,6 +54,7 @@ export function formatBytes(bytes: number) {
 }
 
 export const PROJECT_STATUS_LABEL: Record<string, string> = {
+  EN_ATTENTE_PAIEMENT: "En attente de paiement",
   EN_ATTENTE: "En attente",
   EN_COURS: "En cours",
   EN_REVISION: "En révision",

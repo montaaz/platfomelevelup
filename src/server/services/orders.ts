@@ -79,6 +79,61 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
   if (!pack) throw new ValidationError("Cette offre n'est plus disponible.");
 
   const order = await prisma.$transaction(async (tx) => {
+    // Le projet existe dès la commande : le client le voit dans « Mes projets »
+    // et peut échanger avec l'équipe sans attendre le règlement. Un abonnement
+    // mensuel n'a pas de projet : il devient un abonnement une fois payé.
+    let projectId: bigint | null = null;
+    if (!pack.isMonthly) {
+      const serviceId =
+        pack.serviceId ??
+        (await tx.service.findFirstOrThrow({ where: { isActive: true }, orderBy: { id: "asc" } })).id;
+      const project = await tx.project.create({
+        data: {
+          clientId,
+          serviceId,
+          title: pack.name,
+          description: pack.description,
+          price: pack.price,
+          status: "EN_ATTENTE_PAIEMENT",
+          startDate: new Date(),
+        },
+      });
+      await tx.projectStep.createMany({
+        data: ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"].map(
+          (label, i) => ({ projectId: project.id, label, position: i + 1 }),
+        ),
+      });
+      await tx.projectStatusHistory.create({
+        data: {
+          projectId: project.id,
+          newStatus: "EN_ATTENTE_PAIEMENT",
+          comment: `Commande du ${pack.name} depuis le site vitrine.`,
+        },
+      });
+
+      // Message d'accueil de l'équipe : le fil existe dès maintenant, donc le
+      // client peut répondre tout de suite (la liste des conversations
+      // n'affiche que les projets ayant au moins un message).
+      const teamUser = await tx.user.findFirst({
+        where: { role: "ADMIN", isActive: true },
+        orderBy: { id: "asc" },
+        select: { id: true },
+      });
+      if (teamUser) {
+        await tx.message.create({
+          data: {
+            projectId: project.id,
+            senderUserId: teamUser.id,
+            body:
+              `Bonjour et bienvenue ! Nous avons bien reçu votre commande du ${pack.name}. ` +
+              `Votre projet est ouvert : dès que le règlement est confirmé, nous démarrons la production. ` +
+              `En attendant, décrivez-nous votre besoin ici — nous vous répondons rapidement.`,
+          },
+        });
+      }
+      projectId = project.id;
+    }
+
     const created = await tx.order.create({
       data: {
         clientId,
@@ -86,11 +141,11 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
         amount: pack.price,           // prix serveur, jamais celui du navigateur
         currency: pack.currency,
         status: "EN_ATTENTE_PAIEMENT",
+        projectId,
       },
     });
     // L'accès reste ouvert : le client entre tout de suite et suit l'état de
-    // son paiement depuis son espace. Le paiement se confirme ensuite (admin
-    // aujourd'hui, passerelle bancaire demain).
+    // son paiement depuis son espace.
     return created;
   });
 
@@ -213,7 +268,28 @@ export async function confirmOrderPayment(
         },
       });
       subscriptionId = sub.id;
+    } else if (order.projectId) {
+      // Le projet a été créé à la commande : le paiement l'active simplement.
+      await tx.project.update({
+        where: { id: order.projectId },
+        data: { status: "EN_ATTENTE" },
+      });
+      await tx.projectStep.updateMany({
+        where: { projectId: order.projectId, position: 1, reachedAt: null },
+        data: { reachedAt: new Date() },
+      });
+      await tx.projectStatusHistory.create({
+        data: {
+          projectId: order.projectId,
+          oldStatus: "EN_ATTENTE_PAIEMENT",
+          newStatus: "EN_ATTENTE",
+          changedByUserId: ctx.userId,
+          comment: `Paiement confirmé : la prestation démarre.`,
+        },
+      });
+      projectId = order.projectId;
     } else {
+      // Sécurité : commande ancienne sans projet rattaché — on le crée.
       const serviceId =
         order.pack.serviceId ??
         (await tx.service.findFirstOrThrow({ where: { isActive: true }, orderBy: { id: "asc" } })).id;
@@ -233,14 +309,6 @@ export async function confirmOrderPayment(
         data: ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"].map(
           (label, i) => ({ projectId: project.id, label, position: i + 1, reachedAt: i === 0 ? new Date() : null }),
         ),
-      });
-      await tx.projectStatusHistory.create({
-        data: {
-          projectId: project.id,
-          newStatus: "EN_ATTENTE",
-          changedByUserId: ctx.userId,
-          comment: `Créé automatiquement après paiement du ${order.pack.name}.`,
-        },
       });
       projectId = project.id;
     }

@@ -73,6 +73,7 @@ export function CardHeader({
 const STATUS_STYLES: Record<string, string> = {
   EN_COURS: "bg-brand-50 text-brand-600",
   EN_REVISION: "bg-violet-50 text-violet-600",
+  EN_ATTENTE_PAIEMENT: "bg-amber-50 text-amber-600",
   EN_ATTENTE: "bg-amber-50 text-amber-600",
   LIVRE: "bg-emerald-50 text-emerald-600",
   CLOTURE: "bg-slate-100 text-ink/72",
@@ -87,6 +88,7 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_DOTS: Record<string, string> = {
   EN_COURS: "bg-brand-500",
   EN_REVISION: "bg-violet-500",
+  EN_ATTENTE_PAIEMENT: "bg-amber-500",
   EN_ATTENTE: "bg-amber-500",
   LIVRE: "bg-emerald-500",
   CLOTURE: "bg-slate-400",

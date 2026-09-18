@@ -22,6 +22,7 @@ enum UserRole {
 }
 
 enum ProjectStatus {
+  EN_ATTENTE_PAIEMENT
   EN_ATTENTE
   EN_COURS
   EN_REVISION
