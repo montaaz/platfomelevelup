@@ -16,11 +16,19 @@ function GoogleLogo() {
  * Lien (pas un bouton de formulaire) : une navigation classique vers la route
  * qui démarre OAuth, pour ne jamais soumettre le formulaire de connexion.
  */
-export function GoogleButton({ label = "Continuer avec Google" }: { label?: string }) {
+export function GoogleButton({
+  label = "Continuer avec Google",
+  packCode,
+}: {
+  label?: string;
+  /** Offre choisie sur le site vitrine : suivie jusqu'à la création du compte. */
+  packCode?: string | null;
+}) {
+  const href = packCode ? `/api/auth/google?pack=${encodeURIComponent(packCode)}` : "/api/auth/google";
   return (
     <>
       <div className={styles.divider}>ou</div>
-      <a href="/api/auth/google" className={styles.googleBtn}>
+      <a href={href} className={styles.googleBtn}>
         <GoogleLogo />
         {label}
       </a>

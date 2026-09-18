@@ -169,7 +169,7 @@ function InscriptionForm() {
           {loading ? "CRÉATION…" : "CREATE ACCOUNT"}
         </button>
 
-        <GoogleButton label="S'inscrire avec Google" />
+        <GoogleButton label="S'inscrire avec Google" packCode={packCode} />
 
         <div className={styles.footer}>
           <span>Already have an account?</span>

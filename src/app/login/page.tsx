@@ -145,7 +145,7 @@ function LoginForm() {
         {loading ? "CONNEXION…" : "LOGIN"}
       </button>
 
-      <GoogleButton label="Continuer avec Google" />
+      <GoogleButton label="Continuer avec Google" packCode={pack} />
 
       <div className={styles.footer}>
         <span>Pas encore de compte ?</span>

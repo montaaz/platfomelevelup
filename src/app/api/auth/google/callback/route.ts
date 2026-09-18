@@ -6,8 +6,9 @@ import {
   findOrCreateGoogleUser,
   googleConfigured,
 } from "@/server/services/googleAuth";
-import { buildRedirectUri, STATE_COOKIE } from "@/server/services/googleUrls";
+import { buildRedirectUri, STATE_COOKIE, PACK_COOKIE } from "@/server/services/googleUrls";
 import { createSession } from "@/lib/session";
+import { findPackByCode, createOrderForClient } from "@/server/services/orders";
 import { ValidationError } from "@/server/context";
 
 function backToLogin(req: NextRequest, code: string) {
@@ -30,6 +31,9 @@ export async function GET(req: NextRequest) {
   const store = await cookies();
   const expected = store.get(STATE_COOKIE)?.value;
   store.delete(STATE_COOKIE);
+  // offre choisie sur le vitrine, mise de côté avant l'aller-retour Google
+  const packCode = store.get(PACK_COOKIE)?.value ?? null;
+  store.delete(PACK_COOKIE);
   if (!expected || expected !== state) return backToLogin(req, "google_state");
 
   try {
@@ -41,6 +45,17 @@ export async function GET(req: NextRequest) {
 
     const profile = await verifyGoogleIdToken(tokens.id_token);
     const user = await findOrCreateGoogleUser(profile);
+
+    // Enregistre la commande si une offre a été choisie sur le vitrine.
+    // Le prix est relu en base ; une offre inconnue n'empêche pas la connexion.
+    if (packCode && user.clientId) {
+      try {
+        const pack = await findPackByCode(packCode);
+        await createOrderForClient(user.clientId, pack.code);
+      } catch (e) {
+        console.error("[google callback] commande non créée:", e);
+      }
+    }
 
     await createSession({
       userId: user.id.toString(),

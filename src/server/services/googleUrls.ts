@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 
 export const STATE_COOKIE = "google_oauth_state";
+/** Offre choisie sur le vitrine, conservée pendant l'aller-retour Google. */
+export const PACK_COOKIE = "google_oauth_pack";
 
 /**
  * Construit une URL absolue à partir de l'hôte réellement utilisé par le
