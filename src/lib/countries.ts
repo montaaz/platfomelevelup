@@ -172,3 +172,6 @@ export function detectCountryFromRequest(
   if (!/^[A-Z]{2}$/.test(code) || code === "XX" || code === "T1") return null;
   return { code, name: countryName(code) ?? code, source: "cloudflare" };
 }
+
+/** Libellé des clients dont le pays n'est pas encore connu (ni saisi, ni détecté). */
+export const PENDING_COUNTRY = "À détecter";

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { assertAdmin, clientScope, type Ctx } from "@/server/context";
-import { clientCountryFilter } from "@/server/services/geo";
+import { clientCountryFilter, PENDING_COUNTRY } from "@/server/services/geo";
 
 const ACTIVE_STATUSES = ["EN_ATTENTE", "EN_COURS", "EN_REVISION"] as const;
 
@@ -20,7 +20,11 @@ export async function adminDashboard(
   const onClient = country ? { client: scope } : {};
   // Les deux requêtes SQL brutes reçoivent le pays en paramètre lié — jamais
   // interpolé — et retombent sur TRUE quand aucun pays n'est choisi.
-  const sqlCountry = country ?? null;
+  // « À détecter » ne se compare pas : il désigne l'absence de pays, d'où le
+  // drapeau séparé ci-dessous.
+  const pendingOnly = country === PENDING_COUNTRY;
+  const sqlCountry = pendingOnly ? null : (country ?? null);
+  const sqlPending = pendingOnly;
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000);
@@ -63,6 +67,7 @@ export async function adminDashboard(
       WHERE i.status = 'PAYEE'
         AND i.issue_date >= date_trunc('month', now()) - interval '11 months'
         AND (${sqlCountry}::text IS NULL OR ${sqlCountry} = COALESCE(NULLIF(btrim(c.country), ''), c.detected_country))
+        AND (${sqlPending} = false OR COALESCE(NULLIF(btrim(c.country), ''), c.detected_country) IS NULL)
       GROUP BY 1
       ORDER BY 1`,
     prisma.$queryRaw<{ name: string; color: string | null; project_count: bigint; total: unknown }[]>`
@@ -77,6 +82,7 @@ export async function adminDashboard(
         AND i.issue_date >= ${periodStart}
       WHERE (p.created_at >= ${periodStart} OR i.id IS NOT NULL)
         AND (${sqlCountry}::text IS NULL OR ${sqlCountry} = COALESCE(NULLIF(btrim(c.country), ''), c.detected_country))
+        AND (${sqlPending} = false OR COALESCE(NULLIF(btrim(c.country), ''), c.detected_country) IS NULL)
       GROUP BY s.id, s.name, s.color
       HAVING COALESCE(SUM(i.total), 0) > 0 OR COUNT(DISTINCT p.id) > 0
       ORDER BY total DESC

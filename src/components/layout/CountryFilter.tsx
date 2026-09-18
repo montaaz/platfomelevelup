@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { countryFlag } from "@/lib/countries";
+import { countryFlag, PENDING_COUNTRY } from "@/lib/countries";
 
 export type CountryOption = {
   code: string | null;
@@ -16,11 +16,8 @@ export type CountryOption = {
  *
  * Le pays choisi vit dans l'URL (`?pays=`) et non dans un état local : le
  * filtre survit au rechargement, se partage par lien et reste lisible dans
- * l'historique du navigateur.
- */
-/**
- * `useSearchParams` impose une frontière Suspense : sans elle, toute la page
- * qui contient la barre serait rendue à la demande.
+ * l'historique du navigateur. `useSearchParams` impose la frontière Suspense
+ * ci-dessous, sans quoi toute la page serait rendue à la demande.
  */
 export function CountryFilter({ countries }: { countries: CountryOption[] }) {
   return (
@@ -106,10 +103,12 @@ function CountryFilterInner({ countries }: { countries: CountryOption[] }) {
                 selected === c.name ? "bg-brand-500/10 font-semibold text-brand-600" : "text-ink/80"
               }`}
             >
-              <span className="text-[16px] leading-none">{countryFlag(c.code)}</span>
+              <span className="text-[16px] leading-none">
+                {c.name === PENDING_COUNTRY ? "❔" : countryFlag(c.code)}
+              </span>
               <span className="min-w-0 flex-1 truncate">
                 {c.name}
-                {c.confirmed === 0 && (
+                {c.confirmed === 0 && c.name !== PENDING_COUNTRY && (
                   <span className="ml-1 text-[10.5px] font-normal text-ink/45">détecté</span>
                 )}
               </span>

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { assertAdmin, type Ctx } from "@/server/context";
-import { countryCodeFromName, countryName, detectCountryFromRequest } from "@/lib/countries";
+import { countryCodeFromName, countryName, detectCountryFromRequest, PENDING_COUNTRY } from "@/lib/countries";
 
 /**
  * Provenance géographique des clients.
@@ -105,6 +105,8 @@ export async function notifyIncompleteProfile(clientId: bigint, userId: bigint) 
   });
 }
 
+export { PENDING_COUNTRY };
+
 export type CountryRow = {
   code: string | null;
   name: string;
@@ -141,7 +143,10 @@ export async function countriesOverview(ctx: Ctx): Promise<CountryRow[]> {
   // réunit sous le nom français.
   const merged = new Map<string, CountryRow>();
   for (const r of rows) {
-    const name = r.label?.trim() || countryName(r.code) || "Pays inconnu";
+    // Ni saisie ni détection : le pays sera connu à la prochaine connexion du
+    // client. On le dit plutôt que d'afficher « inconnu », qui ferait croire
+    // à une anomalie.
+    const name = r.label?.trim() || countryName(r.code) || PENDING_COUNTRY;
     const key = name.toLowerCase();
     const code = r.code ?? countryCodeFromName(name);
     const existing = merged.get(key);
@@ -172,6 +177,15 @@ export async function countriesOverview(ctx: Ctx): Promise<CountryRow[]> {
 export function clientCountryFilter(country: string | null) {
   if (!country?.trim()) return {};
   const name = country.trim();
+  // Cas particulier : les clients sans pays connu, ni saisi ni détecté.
+  if (name === PENDING_COUNTRY) {
+    return {
+      AND: [
+        { OR: [{ country: null }, { country: "" }] },
+        { OR: [{ detectedCountry: null }, { detectedCountry: "" }] },
+      ],
+    };
+  }
   return {
     OR: [
       { country: { equals: name, mode: "insensitive" as const } },
