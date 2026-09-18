@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireCtx } from "@/server/context";
-import { listOrders } from "@/server/services/orders";
+import { listOrders, type OrderRow } from "@/server/services/orders";
 import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/ui";
 import { ConfirmPaymentButton } from "@/components/admin/ConfirmPaymentButton";
 import { formatDT, formatDateFull } from "@/lib/format";
@@ -20,9 +20,9 @@ const STATUS_TONE: Record<string, string> = {
 
 export default async function AdminCommandesPage() {
   const ctx = await requireCtx("ADMIN");
-  const orders = await listOrders(ctx);
-  const pending = orders.filter((o) => o.status === "EN_ATTENTE_PAIEMENT");
-  const paid = orders.filter((o) => o.status === "PAYEE");
+  const orders: OrderRow[] = await listOrders(ctx);
+  const pending = orders.filter((o: OrderRow) => o.status === "EN_ATTENTE_PAIEMENT");
+  const paid = orders.filter((o: OrderRow) => o.status === "PAYEE");
 
   return (
     <div className="space-y-5 pb-8">
@@ -39,7 +39,7 @@ export default async function AdminCommandesPage() {
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Montant en attente</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">
-              {formatDT(pending.reduce((s, o) => s + o.amount, 0))}
+              {formatDT(pending.reduce((sum: number, o: OrderRow) => sum + o.amount, 0))}
             </p>
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
@@ -53,7 +53,7 @@ export default async function AdminCommandesPage() {
         <CardHeader title="Toutes les commandes" subtitle={`${orders.length} au total`} />
         <div className="divide-y divide-ink/4 pb-2">
           {orders.length === 0 && <EmptyState message="Aucune commande pour le moment." />}
-          {orders.map((o) => (
+          {orders.map((o: OrderRow) => (
             <div key={o.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5 sm:px-6">
               <Avatar name={o.clientCompany} size={38} />
               <div className="min-w-0 flex-1">

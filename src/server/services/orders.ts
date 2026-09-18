@@ -136,7 +136,19 @@ export async function myAccessState(ctx: Ctx) {
 
 /* ------------------------------------------------------------------ admin */
 
-export async function listOrders(ctx: Ctx) {
+export type OrderRow = {
+  id: string;
+  clientId: string;
+  clientCompany: string;
+  packName: string;
+  isMonthly: boolean;
+  amount: number;
+  status: string;
+  paidAt: string | null;
+  createdAt: string;
+};
+
+export async function listOrders(ctx: Ctx): Promise<OrderRow[]> {
   assertAdmin(ctx);
   const orders = await prisma.order.findMany({
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
