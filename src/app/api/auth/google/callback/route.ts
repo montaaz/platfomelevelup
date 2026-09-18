@@ -9,6 +9,7 @@ import {
 import { buildRedirectUri, STATE_COOKIE, PACK_COOKIE } from "@/server/services/googleUrls";
 import { createSession } from "@/lib/session";
 import { findPackByCode, createOrderForClient } from "@/server/services/orders";
+import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
 
 function backToLogin(req: NextRequest, code: string) {
@@ -64,6 +65,8 @@ export async function GET(req: NextRequest) {
       fullName: user.fullName,
       email: user.email,
     });
+
+    if (user.clientId) await recordDetectedCountry(user.clientId, req.headers, user.id);
 
     const target = user.role === "ADMIN" ? "/admin" : "/client";
     return NextResponse.redirect(buildRedirectUri(req, target), 307);

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui";
 import { GlobalSearch } from "@/components/layout/GlobalSearch";
 import { NotificationsBell, type NotificationData } from "@/components/layout/NotificationsBell";
+import { CountryFilter, type CountryOption } from "@/components/layout/CountryFilter";
 
 const TITLES: Record<string, { title: string; subtitle?: (name: string) => string }> = {
   "/admin": { title: "Tableau de bord", subtitle: (n) => `Bonjour ${n.split(" ")[0]}, voici où en est l'agence aujourd'hui.` },
@@ -26,11 +27,14 @@ export function Topbar({
   roleLabel,
   searchPlaceholder,
   notifications = [],
+  countries,
 }: {
   userName: string;
   roleLabel: string;
   searchPlaceholder: string;
   notifications?: NotificationData[];
+  /** Admin uniquement : répartition des clients par pays. */
+  countries?: CountryOption[];
 }) {
   const pathname = usePathname();
   const match =
@@ -49,6 +53,7 @@ export function Topbar({
 
       <div className="order-3 flex w-full items-center gap-3 sm:order-2 sm:w-auto">
         <GlobalSearch placeholder={searchPlaceholder} />
+        {countries && <CountryFilter countries={countries} />}
         <NotificationsBell notifications={notifications} />
       </div>
 

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyLogin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
+import { recordDetectedCountry } from "@/server/services/geo";
 
 const LoginInput = z.object({
   email: z.string().email().max(254),
@@ -39,6 +40,11 @@ export async function POST(req: NextRequest) {
     fullName: result.user.fullName,
     email: result.user.email,
   });
+
+  // Provenance relevée à chaque connexion : le client qui déménage est suivi.
+  if (result.user.clientId) {
+    await recordDetectedCountry(result.user.clientId, req.headers, result.user.id);
+  }
 
   return NextResponse.json({ redirect: result.user.role === "ADMIN" ? "/admin" : "/client" });
 }

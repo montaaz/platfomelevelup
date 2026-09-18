@@ -4,18 +4,27 @@ import { listClients } from "@/server/services/directory";
 import { Card, CardHeader, Avatar, EmptyState } from "@/components/ui";
 import { ClientFormButton } from "@/components/admin/ClientFormModal";
 import { formatDT } from "@/lib/format";
+import { countryFlag } from "@/lib/countries";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminClientsPage() {
+export default async function AdminClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pays?: string }>;
+}) {
   const ctx = await requireCtx("ADMIN");
-  const clients = await listClients(ctx);
+  const { pays } = await searchParams;
+  const country = pays?.trim() || null;
+  const clients = await listClients(ctx, country);
   const totalUnpaid = clients.reduce((s, c) => s + c.unpaidTotal, 0);
 
   return (
     <div className="space-y-5 pb-8">
       <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
-        <h2 className="text-[15px] font-semibold">Clients de l&apos;agence</h2>
+        <h2 className="text-[15px] font-semibold">
+          Clients de l&apos;agence{country ? ` — ${country}` : ""}
+        </h2>
         <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-6 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Clients actifs</p>
@@ -39,11 +48,12 @@ export default async function AdminClientsPage() {
       <Card>
         <CardHeader title="Tous les clients" subtitle={`${clients.length} fiche${clients.length > 1 ? "s" : ""} — cliquez pour ouvrir la fiche`} />
         <div className="overflow-x-auto">
-          <table className="rt w-full min-w-175 text-left">
+          <table className="rt w-full min-w-200 text-left">
             <thead>
               <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
                 <th className="px-6 py-2.5">Entreprise</th>
                 <th className="px-4 py-2.5">Contact</th>
+                <th className="px-4 py-2.5">Pays</th>
                 <th className="px-4 py-2.5">Projets</th>
                 <th className="px-4 py-2.5">Abonnement</th>
                 <th className="px-4 py-2.5 text-right">Payé</th>
@@ -68,6 +78,19 @@ export default async function AdminClientsPage() {
                   <td className="px-4 py-3.5">
                     <p className="text-[13px] text-ink">{client.contactName}</p>
                     <p className="text-[11.5px] text-ink/60">{client.phone ?? client.email ?? "—"}</p>
+                  </td>
+                  <td className="px-4 py-3.5 whitespace-nowrap">
+                    {client.country.name ? (
+                      <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ink/82">
+                        <span className="text-[14px] leading-none">{countryFlag(client.country.code)}</span>
+                        {client.country.name}
+                        {!client.country.fromProfile && (
+                          <span className="text-[10.5px] text-ink/45">détecté</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-[12.5px] text-ink/45">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3.5 text-[13px] text-ink/82">
                     <span className="font-semibold text-ink">{client.activeProjects}</span> en cours ·{" "}

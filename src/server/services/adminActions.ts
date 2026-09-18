@@ -138,6 +138,13 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
     taxId: c.taxId,
     notes: c.notes,
     createdAt: c.createdAt.toISOString(),
+    detected: {
+      code: c.detectedCountryCode,
+      name: c.detectedCountry,
+      at: c.detectedAt?.toISOString() ?? null,
+      source: c.detectedSource,
+    },
+    profileComplete: Boolean(c.address?.trim() && c.country?.trim()),
     onboarding: {
       completedAt: c.onboardingCompletedAt?.toISOString() ?? null,
       industry: c.industry,

@@ -10,7 +10,7 @@ import {
 import {
   INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, labelOf,
 } from "@/lib/onboardingOptions";
-import { countryByCode } from "@/lib/countries";
+import { countryByCode, countryFlag } from "@/lib/countries";
 
 export const dynamic = "force-dynamic";
 
@@ -167,6 +167,21 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
               <Row label="Pays" value={c.country} />
               <Row label="Matricule fiscal" value={c.taxId} />
             </div>
+
+            {/* Provenance relevée à la connexion, utile tant que l'adresse manque. */}
+            {c.detected.name && (
+              <div className="mx-4 mb-4 rounded-2xl bg-ink/3 px-4 py-3 sm:mx-6">
+                <p className="flex items-center gap-2 text-[12.5px] font-semibold text-ink/80">
+                  <span className="text-[15px] leading-none">{countryFlag(c.detected.code)}</span>
+                  Connexion depuis : {c.detected.name}
+                </p>
+                <p className="mt-1 text-[11.5px] text-ink/55">
+                  {c.profileComplete
+                    ? "Le pays de la fiche fait foi ; cette information vient du réseau."
+                    : "Adresse non renseignée — ce pays est déduit du réseau du client."}
+                </p>
+              </div>
+            )}
           </Card>
 
           {/* Comptes de connexion */}

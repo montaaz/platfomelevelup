@@ -100,6 +100,7 @@ enum NotificationType {
   NOUVEAU_MESSAGE
   ABONNEMENT_ECHEANCE
   DEMANDE_PROJET
+  PROFIL_INCOMPLET
 
   @@map("notification_type")
 }
@@ -114,7 +115,7 @@ model Client {
   phone          String?   @db.VarChar(40)
   address        String?
   city           String?   @db.VarChar(80)
-  country        String?   @default("Tunisie") @db.VarChar(80)
+  country        String?   @db.VarChar(80)
   taxId          String?   @map("tax_id") @db.VarChar(60)
   billingAddress String?   @map("billing_address")
   notes          String?
@@ -129,6 +130,10 @@ model Client {
   heardFrom             String?   @map("heard_from") @db.VarChar(60)
   heardFromOther        String?   @map("heard_from_other") @db.VarChar(160)
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz(6)
+  detectedCountryCode   String?   @map("detected_country_code") @db.Char(2)
+  detectedCountry       String?   @map("detected_country") @db.VarChar(80)
+  detectedAt            DateTime? @map("detected_at") @db.Timestamptz(6)
+  detectedSource        String?   @map("detected_source") @db.VarChar(20)
   accessGranted         Boolean   @default(true) @map("access_granted")
   accessGrantedAt       DateTime? @map("access_granted_at") @db.Timestamptz(6)
   isActive       Boolean   @default(true) @map("is_active")

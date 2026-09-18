@@ -1,13 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { assertAdmin, clientScope, type Ctx } from "@/server/context";
+import { clientCountryFilter } from "@/server/services/geo";
 
 const ACTIVE_STATUSES = ["EN_ATTENTE", "EN_COURS", "EN_REVISION"] as const;
 
 /* ============================================================ ADMIN */
 
-export async function adminDashboard(ctx: Ctx, periodDays: 7 | 30 | 365 = 30) {
+export async function adminDashboard(
+  ctx: Ctx,
+  periodDays: 7 | 30 | 365 = 30,
+  country: string | null = null,
+) {
   assertAdmin(ctx);
   const now = new Date();
+
+  // Filtre pays : appliqué à chaque requête par la relation `client`, pour que
+  // tout le tableau de bord parle du même périmètre.
+  const scope = clientCountryFilter(country);
+  const onClient = country ? { client: scope } : {};
+  // Les deux requêtes SQL brutes reçoivent le pays en paramètre lié — jamais
+  // interpolé — et retombent sur TRUE quand aucun pays n'est choisi.
+  const sqlCountry = country ?? null;
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000);
@@ -28,45 +41,54 @@ export async function adminDashboard(ctx: Ctx, periodDays: 7 | 30 | 365 = 30) {
   ] = await Promise.all([
     prisma.invoice.aggregate({
       _sum: { total: true },
-      where: { status: "PAYEE", issueDate: { gte: monthStart } },
+      where: { status: "PAYEE", issueDate: { gte: monthStart }, ...onClient },
     }),
     prisma.invoice.aggregate({
       _sum: { total: true },
-      where: { status: "PAYEE", issueDate: { gte: prevMonthStart, lt: monthStart } },
+      where: { status: "PAYEE", issueDate: { gte: prevMonthStart, lt: monthStart }, ...onClient },
     }),
-    prisma.project.count({ where: { status: { in: [...ACTIVE_STATUSES] }, deletedAt: null } }),
-    prisma.project.count({ where: { createdAt: { gte: weekAgo }, deletedAt: null } }),
+    prisma.project.count({ where: { status: { in: [...ACTIVE_STATUSES] }, deletedAt: null, ...onClient } }),
+    prisma.project.count({ where: { createdAt: { gte: weekAgo }, deletedAt: null, ...onClient } }),
     prisma.invoice.aggregate({
       _count: true,
       _sum: { total: true },
-      where: { status: { in: ["EN_ATTENTE", "EN_RETARD"] } },
+      where: { status: { in: ["EN_ATTENTE", "EN_RETARD"] }, ...onClient },
     }),
-    prisma.project.count({ where: { status: "EN_REVISION", deletedAt: null } }),
+    prisma.project.count({ where: { status: "EN_REVISION", deletedAt: null, ...onClient } }),
     prisma.$queryRaw<{ month: Date; paid_total: unknown }[]>`
-      SELECT month, paid_total FROM v_revenue_by_month
-      WHERE month >= date_trunc('month', now()) - interval '11 months'
-      ORDER BY month`,
+      SELECT date_trunc('month', i.issue_date) AS month,
+             COALESCE(SUM(i.total), 0)         AS paid_total
+      FROM invoices i
+      JOIN clients c ON c.id = i.client_id AND c.deleted_at IS NULL
+      WHERE i.status = 'PAYEE'
+        AND i.issue_date >= date_trunc('month', now()) - interval '11 months'
+        AND (${sqlCountry}::text IS NULL OR ${sqlCountry} = COALESCE(NULLIF(btrim(c.country), ''), c.detected_country))
+      GROUP BY 1
+      ORDER BY 1`,
     prisma.$queryRaw<{ name: string; color: string | null; project_count: bigint; total: unknown }[]>`
       SELECT s.name, s.color,
              COUNT(DISTINCT p.id) AS project_count,
              COALESCE(SUM(i.total), 0) AS total
       FROM services s
       JOIN projects p ON p.service_id = s.id AND p.deleted_at IS NULL
+      JOIN clients c ON c.id = p.client_id AND c.deleted_at IS NULL
       LEFT JOIN invoices i ON i.project_id = p.id
         AND i.status NOT IN ('ANNULEE','BROUILLON')
         AND i.issue_date >= ${periodStart}
-      WHERE p.created_at >= ${periodStart} OR i.id IS NOT NULL
+      WHERE (p.created_at >= ${periodStart} OR i.id IS NOT NULL)
+        AND (${sqlCountry}::text IS NULL OR ${sqlCountry} = COALESCE(NULLIF(btrim(c.country), ''), c.detected_country))
       GROUP BY s.id, s.name, s.color
       HAVING COALESCE(SUM(i.total), 0) > 0 OR COUNT(DISTINCT p.id) > 0
       ORDER BY total DESC
       LIMIT 5`,
     prisma.project.findMany({
-      where: { deletedAt: null, status: { not: "CLOTURE" } },
+      where: { deletedAt: null, status: { not: "CLOTURE" }, ...onClient },
       orderBy: [{ dueDate: { sort: "asc", nulls: "last" } }],
       take: 5,
       include: { client: true, service: true, assignedTo: true },
     }),
     prisma.message.findMany({
+      where: country ? { project: onClient } : {},
       orderBy: { createdAt: "desc" },
       take: 8,
       include: {
@@ -76,7 +98,7 @@ export async function adminDashboard(ctx: Ctx, periodDays: 7 | 30 | 365 = 30) {
       },
     }),
     prisma.invoice.findMany({
-      where: { status: { in: ["EN_ATTENTE", "EN_RETARD", "PAYEE"] } },
+      where: { status: { in: ["EN_ATTENTE", "EN_RETARD", "PAYEE"] }, ...onClient },
       orderBy: [{ issueDate: "desc" }],
       take: 4,
       include: { client: true },

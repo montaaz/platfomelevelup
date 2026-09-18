@@ -12,6 +12,7 @@ function notificationHref(role: "ADMIN" | "CLIENT", type: string, entityType: st
     if (entityType === "subscription") return "/admin/abonnements";
     return "/admin";
   }
+  if (type === "PROFIL_INCOMPLET") return "/client/profil";
   if (type === "NOUVEAU_MESSAGE" && id) return `/client/messages/${id}`;
   if (entityType === "invoice" && id) return `/client/factures/${id}`;
   if (entityType === "project") return "/client";

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCtx } from "@/server/context";
 import { unreadTotal } from "@/server/services/messaging";
 import { listNotifications } from "@/server/services/notifications";
+import { countriesOverview } from "@/server/services/geo";
 import { runMaintenanceSweep } from "@/server/maintenance";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -11,12 +12,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const ctx = await requireCtx("ADMIN");
   await runMaintenanceSweep(); // overdue invoices + subscription alerts (throttled)
 
-  const [projectCount, unread, unpaidCount, pendingOrders, notifications] = await Promise.all([
+  const [projectCount, unread, unpaidCount, pendingOrders, notifications, countries] = await Promise.all([
     prisma.project.count({ where: { deletedAt: null, status: { notIn: ["CLOTURE"] } } }),
     unreadTotal(ctx),
     prisma.invoice.count({ where: { status: { in: ["EN_ATTENTE", "EN_RETARD"] } } }),
     prisma.order.count({ where: { status: "EN_ATTENTE_PAIEMENT" } }),
     listNotifications(ctx),
+    countriesOverview(ctx),
   ]);
 
   const nav = [
@@ -41,6 +43,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             roleLabel="Admin"
             searchPlaceholder="Rechercher un client, un projet…"
             notifications={notifications}
+            countries={countries}
           />
         </div>
         <main className="px-3 sm:px-6 lg:px-8 print:p-0">{children}</main>

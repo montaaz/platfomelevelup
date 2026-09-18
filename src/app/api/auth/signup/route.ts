@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { signupClient } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
+import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
 import { readCartToken, findPackByCode, createOrderForClient } from "@/server/services/orders";
 
@@ -79,6 +80,9 @@ export async function POST(req: NextRequest) {
       fullName: user.fullName,
       email: user.email,
     });
+    if (user.clientId) {
+      await recordDetectedCountry(BigInt(user.clientId), req.headers, BigInt(user.id));
+    }
     return NextResponse.json({ redirect: "/client" });
   } catch (e) {
     if (e instanceof ValidationError) {

@@ -4,6 +4,7 @@ import { adminDashboard } from "@/server/services/dashboard";
 import { Card, CardHeader, StatusBadge, Avatar, EmptyState } from "@/components/ui";
 import { RevenueChart } from "@/components/charts/RevenueChart";
 import { formatDT, formatDateShort, formatDateFull, relativeTime, PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL } from "@/lib/format";
+import { countryFlag, countryCodeFromName } from "@/lib/countries";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,13 @@ const PERIODS = [
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ p?: string }>;
+  searchParams: Promise<{ p?: string; pays?: string }>;
 }) {
   const ctx = await requireCtx("ADMIN");
-  const { p } = await searchParams;
+  const { p, pays } = await searchParams;
   const periodDays = p === "7" ? 7 : p === "365" ? 365 : 30;
-  const data = await adminDashboard(ctx, periodDays);
+  const country = pays?.trim() || null;
+  const data = await adminDashboard(ctx, periodDays, country);
   const { kpis } = data;
 
   return (
@@ -34,12 +36,17 @@ export default async function AdminDashboardPage({
             <p className="mt-0.5 text-[12px] text-white/78">
               {new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}, mis à jour à l&apos;instant
             </p>
+            {country && (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11.5px] font-semibold">
+                {countryFlag(countryCodeFromName(country))} Chiffres limités à : {country}
+              </p>
+            )}
           </div>
           <div className="flex w-full rounded-full bg-white/10 p-1 text-[12px] font-medium sm:w-auto">
             {PERIODS.map((period) => (
               <Link
                 key={period.key}
-                href={`/admin?p=${period.key}`}
+                href={`/admin?p=${period.key}${country ? `&pays=${encodeURIComponent(country)}` : ""}`}
                 className={`flex-1 rounded-full px-3.5 py-1.5 text-center transition sm:flex-none ${
                   String(periodDays) === period.key ? "bg-white text-ink shadow" : "text-white/82 hover:text-white"
                 }`}

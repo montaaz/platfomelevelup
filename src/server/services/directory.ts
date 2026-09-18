@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { assertAdmin, clientScope, ForbiddenError, type Ctx } from "@/server/context";
+import { clientCountryFilter, effectiveCountry } from "@/server/services/geo";
 
 /* Admin lists: clients, projets, équipe, factures, abonnements.
    Client lists: mes factures, historique. Every query is scoped by role. */
 
-export async function listClients(ctx: Ctx) {
+export async function listClients(ctx: Ctx, country: string | null = null) {
   assertAdmin(ctx);
   const clients = await prisma.client.findMany({
-    where: { deletedAt: null },
+    where: { deletedAt: null, ...clientCountryFilter(country) },
     orderBy: { companyName: "asc" },
     include: {
       projects: { where: { deletedAt: null }, select: { status: true } },
@@ -23,6 +24,7 @@ export async function listClients(ctx: Ctx) {
     phone: c.phone,
     city: c.city,
     address: c.address,
+    country: effectiveCountry(c),
     taxId: c.taxId,
     billingAddress: c.billingAddress,
     notes: c.notes,

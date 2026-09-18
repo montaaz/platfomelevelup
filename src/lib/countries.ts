@@ -127,3 +127,48 @@ export function searchCountries(query: string): Country[] {
 
 export const countryByCode = (code: string | null | undefined): Country | null =>
   code ? (COUNTRIES.find((c) => c.code === code) ?? null) : null;
+
+/* ------------------------------------------------ détection réseau (pays) */
+
+/** Nom français d'un code ISO ; le code lui-même si le pays n'est pas listé. */
+export function countryName(code: string | null | undefined): string | null {
+  if (!code) return null;
+  const upper = code.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(upper)) return null;
+  return countryByCode(upper)?.name ?? upper;
+}
+
+/** Code ISO d'après un nom saisi à la main (« France », « tunisie »…). */
+export function countryCodeFromName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const strip = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  const needle = strip(name);
+  if (!needle) return null;
+  return COUNTRIES.find((c) => strip(c.name) === needle)?.code ?? null;
+}
+
+/** Drapeau émoji dérivé du code ISO (indicateurs régionaux Unicode). */
+export function countryFlag(code: string | null | undefined): string {
+  if (!code || !/^[A-Za-z]{2}$/.test(code.trim())) return "🌍";
+  const upper = code.trim().toUpperCase();
+  return String.fromCodePoint(...[...upper].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+/**
+ * Pays de la requête, d'après l'en-tête `CF-IPCountry` posé par Cloudflare —
+ * par lequel passent déjà levelupia.app et levelupia.agency. Rien n'est envoyé
+ * à un service tiers et aucune adresse IP n'est conservée : seul le code pays.
+ *
+ * `XX` (anonymiseur) et `T1` (réseau Tor) sont écartés : ils ne désignent pas
+ * un pays. En développement local l'en-tête est absent : la détection est
+ * alors simplement remise à la prochaine connexion.
+ */
+export function detectCountryFromRequest(
+  headers: Headers | { get(name: string): string | null },
+): { code: string; name: string; source: string } | null {
+  const raw = headers.get("cf-ipcountry");
+  if (!raw) return null;
+  const code = raw.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code) || code === "XX" || code === "T1") return null;
+  return { code, name: countryName(code) ?? code, source: "cloudflare" };
+}
