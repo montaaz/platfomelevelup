@@ -259,6 +259,84 @@ npm run build
 pm2 restart levelup
 ```
 
+> `npm run build` lance déjà `prisma generate` ; la ligne séparée ne gêne pas.
+
+**Si la mise à jour apporte une migration**, l'appliquer *avant* le build —
+voir la section suivante.
+
+---
+
+## 10. Appliquer une migration
+
+Les fichiers de `database/migrations/` ne sont pas joués automatiquement :
+`database/schema.sql` fait référence, et Prisma ne sert qu'à lire la base.
+Chaque migration se lance donc à la main, une seule fois.
+
+Toutes sont écrites pour pouvoir être rejouées sans dommage (`IF NOT EXISTS`) :
+en cas de doute sur ce qui a déjà été appliqué, les relancer ne casse rien.
+
+**Sauvegarder d'abord** — quelques secondes qui évitent une soirée difficile :
+
+```bash
+mkdir -p /root/sauvegardes
+pg_dump "$(grep DATABASE_URL .env | cut -d= -f2- | tr -d '"' | sed 's/?.*//')" \
+  > /root/sauvegardes/levelup-$(date +%F-%H%M).sql
+```
+
+Puis appliquer le fichier voulu :
+
+```bash
+cd /root/app/platfomelevelup
+psql "$(grep DATABASE_URL .env | cut -d= -f2- | tr -d '"' | sed 's/?.*//')" \
+  -v ON_ERROR_STOP=1 -f database/migrations/007_pays_client.sql
+```
+
+Le `sed` retire `?schema=public`, que Prisma comprend mais pas `psql`.
+
+> Une instruction `ALTER TYPE … ADD VALUE` ne peut pas s'exécuter dans une
+> transaction. Si `psql` s'en plaint, relancer cette ligne seule, hors du
+> fichier :
+> ```bash
+> psql "…" -c "ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'PROFIL_INCOMPLET';"
+> ```
+
+### Migration 007 — pays des clients (à faire au prochain déploiement)
+
+Après l'avoir appliquée, une correction de données est nécessaire. La colonne
+`country` portait un `DEFAULT 'Tunisie'` : **tout compte créé sans adresse
+paraissait tunisien**. La migration supprime ce défaut, mais les lignes déjà
+écrites gardent la valeur. Cette requête ne vide que les fiches sans adresse
+*ni* ville — donc celles où « Tunisie » n'était qu'un reliquat, jamais une
+saisie du client :
+
+```sql
+UPDATE clients SET country = NULL
+WHERE deleted_at IS NULL AND country = 'Tunisie'
+  AND address IS NULL AND city IS NULL;
+```
+
+Ces clients apparaîtront sous « À détecter » dans le sélecteur de pays, jusqu'à
+leur prochaine connexion.
+
+### Après le déploiement, vérifier
+
+1. **Pack → projet** — commander depuis `levelupia.agency`, puis se connecter :
+   le pack doit figurer dans « Mes projets » au statut « En attente de
+   paiement », avec un message d'accueil de l'équipe dans « Messages ».
+2. **Pays** — dans l'espace admin, le sélecteur en haut à droite liste les pays
+   avec leur nombre de clients ; en choisir un restreint le tableau de bord et
+   la liste des clients.
+3. **Accès client** — sur une fiche client, la carte « Accès du client » permet
+   de créer une connexion, changer le mot de passe et bloquer l'accès. Tester
+   le blocage sur un compte de test, pas sur un vrai client.
+
+> La détection du pays lit l'en-tête `CF-IPCountry` de Cloudflare. Aucune
+> configuration Nginx supplémentaire n'est nécessaire : un client a déjà été
+> détecté correctement par ce mécanisme. Si les nouveaux clients restaient tous
+> sous « À détecter », ajouter `proxy_set_header CF-IPCountry $http_cf_ipcountry;`
+> au bloc `location`. La détection échoue toujours en silence : aucun plantage,
+> seulement un pays manquant.
+
 ---
 
 ## Dépannage
