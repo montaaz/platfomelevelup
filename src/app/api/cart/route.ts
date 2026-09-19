@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { stripPublicPort } from "@/lib/publicUrl";
 import { z } from "zod";
 import { signCartToken, listPacks } from "@/server/services/orders";
 import { ValidationError } from "@/server/context";
@@ -55,14 +56,8 @@ export async function POST(req: NextRequest) {
 
     const token = await signCartToken(pack.code);
     // APP_URL contient parfois le port interne (…:3000) : un lien vers ce port
-    // n'est pas joignable de l'extérieur. On le retire pour les URL publiques.
-    const raw = process.env.APP_URL?.replace(/\/+$/, "") ?? "https://levelupia.app";
-    let base = raw;
-    try {
-      const u = new URL(raw);
-      if (u.protocol === "https:" && u.port) u.port = "";
-      base = u.toString().replace(/\/+$/, "");
-    } catch { /* APP_URL malformée : on garde la valeur telle quelle */ }
+    // n'est pas joignable de l'extérieur.
+    const base = stripPublicPort(process.env.APP_URL ?? "https://levelupia.app");
     return NextResponse.json(
       { token, pack, signupUrl: `${base}/inscription?cart=${encodeURIComponent(token)}` },
       { headers },

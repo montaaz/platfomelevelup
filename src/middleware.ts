@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { publicOrigin } from "@/lib/publicUrl";
 
 const SESSION_COOKIE = "levelup_session";
 
@@ -31,15 +32,19 @@ export async function middleware(req: NextRequest) {
    * Middleware requires an absolute Location, so rebuild it from the host the
    * browser actually used (x-forwarded-* when behind a proxy, else Host).
    * Using req.url directly would send everyone to the address the server
-   * believes it has — typically localhost behind a proxy.
+   * believes it has — typically localhost behind a proxy. `publicOrigin`
+   * retire au passage le port interne, que Nginx recopie parfois dans
+   * X-Forwarded-Host et qui rendrait la page injoignable.
    */
   const redirectTo = (path: string) => {
     const url = new URL(path, req.url);
-    const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-    if (host) {
-      url.host = host;
-      url.protocol = req.headers.get("x-forwarded-proto") ?? url.protocol;
-    }
+    const { host, protocol } = publicOrigin(req.headers);
+    url.protocol = protocol;
+    // `url.host` n'efface pas un port déjà présent dans req.url (le port
+    // interne d'écoute) : on le vide avant, sinon la redirection emmène le
+    // visiteur sur « https://levelupia.app:3000/… », injoignable.
+    url.port = "";
+    url.host = host;
     return NextResponse.redirect(url, 307);
   };
 

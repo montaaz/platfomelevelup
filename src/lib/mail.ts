@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { stripPublicPort } from "@/lib/publicUrl";
 
 /**
  * E-mail mirror for notifications (spec: alerts by e-mail AND in the dashboard).
@@ -7,7 +8,9 @@ import { prisma } from "@/lib/prisma";
  * Sender and template text live here — editable without touching business code.
  */
 const FROM = process.env.EMAIL_FROM ?? "Level Up IA <notifications@levelupia.tn>";
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
+// Le port interne recopié dans APP_URL rendrait ces liens injoignables depuis
+// la boîte mail du destinataire.
+const APP_URL = stripPublicPort(process.env.APP_URL ?? "http://localhost:3000");
 
 function emailHtml(title: string, body: string | null): string {
   return `<!doctype html><html lang="fr"><body style="margin:0;background:#f5f6fb;font-family:Arial,Helvetica,sans-serif;padding:24px">
