@@ -22,7 +22,7 @@ export function stripInternalPort(host: string, protocol: string): string {
   const isSecure = protocol.startsWith("https");
   if (!isSecure) return host;
   // Un hôte IPv6 s'écrit entre crochets : « [::1]:3000 ».
-  const match = /^(\[[^\]]+\]|[^:]+)(?::\d+)?$/.exec(host.trim());
+  const match = /^(\[[^\]]+\]|[^:@/]+)(?::\d+)?$/.exec(host.trim());
   return match ? match[1]! : host;
 }
 
@@ -47,6 +47,21 @@ export function stripPublicPort(base: string): string {
 export function publicOrigin(headers: {
   get(name: string): string | null;
 }): { host: string; protocol: string } {
+  // APP_URL fait autorité quand elle est renseignée : l'adresse publique est
+  // une donnée de configuration, pas quelque chose à déduire d'un en-tête.
+  // Cela met aussi les redirections à l'abri d'un `X-Forwarded-Host` trompeur
+  // si le proxy venait à ne plus l'imposer.
+  const configured = process.env.APP_URL;
+  if (configured) {
+    try {
+      const u = new URL(configured);
+      const protocol = u.protocol.replace(":", "");
+      return { host: stripInternalPort(u.host, protocol), protocol };
+    } catch {
+      // APP_URL malformée : on retombe sur les en-têtes ci-dessous.
+    }
+  }
+
   const rawHost = headers.get("x-forwarded-host") ?? headers.get("host") ?? "localhost:3000";
   const host = rawHost.split(",")[0]!.trim();
   const forwardedProto = headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
