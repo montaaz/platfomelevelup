@@ -11,11 +11,21 @@ const SignupInput = z.object({
   email: z.string().email().max(254),
   password: z.string().min(1).max(200),
   confirmPassword: z.string().min(1).max(200),
-  // jeton signé émis par le site vitrine (facultatif : inscription directe possible)
-  cartToken: z.string().max(2000).optional(),
-  // code d'offre transmis par le site vitrine (?pack=)
-  packCode: z.string().max(40).optional(),
+  // Offre éventuellement choisie sur le site vitrine. Le formulaire lit ces
+  // valeurs dans l'URL avec `searchParams.get()`, qui renvoie `null` quand le
+  // paramètre est absent : il faut donc accepter `null` autant que l'absence,
+  // sans quoi toute inscription directe serait refusée.
+  cartToken: z.string().max(2000).nullish(),   // jeton signé (?cart=)
+  packCode: z.string().max(40).nullish(),      // code d'offre (?pack=)
 });
+
+/** Message précis pour le premier champ fautif, plutôt qu'une phrase passe-partout. */
+const FIELD_LABEL: Record<string, string> = {
+  fullName: "Merci d'indiquer votre nom complet.",
+  email: "Adresse e-mail invalide.",
+  password: "Merci de saisir un mot de passe.",
+  confirmPassword: "Merci de confirmer votre mot de passe.",
+};
 
 /** Anti-abus : au plus 5 inscriptions par IP et par heure (mémoire du process). */
 const WINDOW_MS = 60 * 60 * 1000;
@@ -53,7 +63,13 @@ export async function POST(req: NextRequest) {
 
   const parsed = SignupInput.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Merci de remplir tous les champs correctement." }, { status: 400 });
+    const field = parsed.error.issues[0]?.path[0];
+    const message =
+      (typeof field === "string" ? FIELD_LABEL[field] : undefined) ??
+      "Merci de remplir tous les champs correctement.";
+    // Le détail va au journal : l'écran reste sobre, le débogage reste possible.
+    console.warn("[signup] saisie refusée:", parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`));
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   try {
