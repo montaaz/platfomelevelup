@@ -14,7 +14,7 @@ type Answers = {
   phoneCountry: string;
   phone: string;
   companyName: string;
-  industry: string;
+  industries: string[];
   industryOther: string;
   contactRole: string;
   contactRoleOther: string;
@@ -55,6 +55,41 @@ function Choices({
   );
 }
 
+/**
+ * Variante à choix multiples : la case cochée se décoche, et rien n'est
+ * imposé quant à l'ordre des clics. Le carré (au lieu du rond) dit d'emblée
+ * que plusieurs réponses sont possibles.
+ */
+function MultiChoices({
+  options,
+  values,
+  onToggle,
+}: {
+  options: Option[];
+  values: string[];
+  onToggle: (v: string) => void;
+}) {
+  return (
+    <div className={styles.choices}>
+      {options.map((o) => {
+        const on = values.includes(o.value);
+        return (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onToggle(o.value)}
+            className={`${styles.choice} ${on ? styles.choiceOn : ""}`}
+            aria-pressed={on}
+          >
+            <span className={`${styles.radio} ${styles.checkbox}`} aria-hidden="true" />
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function OnboardingWizard({
   defaultName,
   defaultCompany,
@@ -73,7 +108,7 @@ export function OnboardingWizard({
     phoneCountry: "TN",
     phone: "",
     companyName: defaultCompany,
-    industry: "",
+    industries: [],
     industryOther: "",
     contactRole: "",
     contactRoleOther: "",
@@ -98,7 +133,7 @@ export function OnboardingWizard({
           a.phone.replace(/\D/g, "").length >= 6
         );
       case 1:
-        return a.industry !== "" && (a.industry !== "AUTRE" || a.industryOther.trim().length >= 2);
+        return a.industries.length > 0 && (!a.industries.includes("AUTRE") || a.industryOther.trim().length >= 2);
       case 2:
         return a.contactRole !== "" && (a.contactRole !== "AUTRE" || a.contactRoleOther.trim().length >= 2);
       case 3:
@@ -124,7 +159,7 @@ export function OnboardingWizard({
           phoneCountry: a.phoneCountry,
           phone: a.phone,
           companyName: a.companyName,
-          industry: a.industry,
+          industries: a.industries,
           industryOther: a.industryOther || null,
           contactRole: a.contactRole,
           contactRoleOther: a.contactRoleOther || null,
@@ -221,9 +256,20 @@ export function OnboardingWizard({
       {step === 1 && (
         <>
           <h2 className={styles.question}>Votre secteur d&apos;activité</h2>
-          <p className={styles.hint}>Pour adapter nos propositions à votre métier.</p>
-          <Choices options={INDUSTRIES} value={a.industry} onPick={(v) => set("industry", v)} />
-          {a.industry === "AUTRE" && (
+          <p className={styles.hint}>
+            Plusieurs réponses possibles — cochez tout ce qui vous correspond.
+          </p>
+          <MultiChoices
+            options={INDUSTRIES}
+            values={a.industries}
+            onToggle={(v) =>
+              set(
+                "industries",
+                a.industries.includes(v) ? a.industries.filter((x) => x !== v) : [...a.industries, v],
+              )
+            }
+          />
+          {a.industries.includes("AUTRE") && (
             <div className={styles.field}>
               <input
                 id="industryOther"

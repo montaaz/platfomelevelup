@@ -39,7 +39,14 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   }
 
   const ob = c.onboarding;
-  const industry = ob.industry === "AUTRE" ? ob.industryOther : labelOf(INDUSTRIES, ob.industry);
+  // Plusieurs secteurs possibles ; les fiches anciennes n'en ont qu'un, repris
+  // depuis `industry` pour que l'affichage reste identique.
+  const industryCodes = ob.industries.length > 0 ? ob.industries : ob.industry ? [ob.industry] : [];
+  const industry =
+    industryCodes
+      .map((code) => (code === "AUTRE" ? ob.industryOther : labelOf(INDUSTRIES, code)))
+      .filter(Boolean)
+      .join(" · ") || null;
   const role = ob.contactRole === "AUTRE" ? ob.contactRoleOther : labelOf(CONTACT_ROLES, ob.contactRole);
   const heard = ob.heardFrom === "AUTRE" ? ob.heardFromOther : labelOf(HEARD_FROM, ob.heardFrom);
   const market = countryByCode(ob.mainMarket)?.name ?? ob.mainMarket;

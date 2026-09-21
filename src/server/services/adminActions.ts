@@ -168,6 +168,7 @@ export async function getClient(ctx: Ctx, clientId: bigint) {
     notes: c.notes,
     // questionnaire d'accueil
     industry: c.industry,
+    industries: c.industries,
     industryOther: c.industryOther,
     contactRole: c.contactRole,
     contactRoleOther: c.contactRoleOther,
@@ -226,6 +227,7 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
     onboarding: {
       completedAt: c.onboardingCompletedAt?.toISOString() ?? null,
       industry: c.industry,
+      industries: c.industries,
       industryOther: c.industryOther,
       contactRole: c.contactRole,
       contactRoleOther: c.contactRoleOther,

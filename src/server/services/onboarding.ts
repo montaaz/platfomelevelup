@@ -10,7 +10,8 @@ export type OnboardingInput = {
   phoneCountry: string;   // code pays ISO (ex. TN)
   phone: string;
   companyName: string;
-  industry: string;
+  /** Secteurs cochés : un client peut relever de plusieurs métiers. */
+  industries: string[];
   industryOther?: string;
   contactRole: string;
   contactRoleOther?: string;
@@ -59,7 +60,20 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
     throw new ValidationError("Numéro de téléphone invalide.");
   }
 
-  if (!isValid(INDUSTRIES, input.industry)) throw new ValidationError("Secteur d'activité invalide.");
+  // Au moins un secteur, sans doublon, et chacun connu de la liste.
+  const industries = [...new Set(input.industries ?? [])];
+  if (industries.length === 0) {
+    throw new ValidationError("Merci de choisir au moins un secteur d'activité.");
+  }
+  if (industries.length > INDUSTRIES.length) {
+    throw new ValidationError("Trop de secteurs sélectionnés.");
+  }
+  if (!industries.every((v) => isValid(INDUSTRIES, v))) {
+    throw new ValidationError("Secteur d'activité invalide.");
+  }
+  // L'ordre de la liste prime sur l'ordre des clics : deux clients ayant coché
+  // les mêmes cases obtiennent la même fiche.
+  industries.sort((a, b) => INDUSTRIES.findIndex((o) => o.value === a) - INDUSTRIES.findIndex((o) => o.value === b));
   if (!isValid(CONTACT_ROLES, input.contactRole)) throw new ValidationError("Fonction invalide.");
   if (!isValid(COMPANY_SIZES, input.companySize)) throw new ValidationError("Taille d'entreprise invalide.");
   if (!isValid(MAIN_NEEDS, input.mainNeed)) throw new ValidationError("Besoin principal invalide.");
@@ -71,7 +85,7 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
   }
 
   // les champs « Autre » ne sont exigés que si l'option Autre est choisie
-  const industryOther = input.industry === "AUTRE" ? need(input.industryOther, "Précisez le secteur") : null;
+  const industryOther = industries.includes("AUTRE") ? need(input.industryOther, "Précisez le secteur") : null;
   const contactRoleOther = input.contactRole === "AUTRE" ? need(input.contactRoleOther, "Précisez la fonction") : null;
   const heardFromOther = input.heardFrom === "AUTRE" ? need(input.heardFromOther, "Précisez l'origine") : null;
 
@@ -84,7 +98,10 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
       companyName,
       phoneCountryCode: phoneCountry,
       phone: `${dial} ${phoneDigits}`,
-      industry: input.industry,
+      // `industry` garde le secteur principal : tout ce qui l'affiche déjà
+      // continue de fonctionner sans changement.
+      industry: industries[0]!,
+      industries,
       industryOther,
       contactRole: input.contactRole,
       contactRoleOther,

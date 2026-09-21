@@ -121,6 +121,8 @@ model Client {
   notes          String?
   phoneCountryCode      String?   @map("phone_country_code") @db.VarChar(8)
   industry              String?   @db.VarChar(60)
+  /// Secteurs cochés ; `industry` reprend le premier.
+  industries            String[]  @default([])
   industryOther         String?   @map("industry_other") @db.VarChar(160)
   contactRole           String?   @map("contact_role") @db.VarChar(60)
   contactRoleOther      String?   @map("contact_role_other") @db.VarChar(160)

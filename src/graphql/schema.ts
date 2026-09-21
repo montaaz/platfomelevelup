@@ -113,7 +113,7 @@ const typeDefs = /* GraphQL */ `
   type OnboardingStatus { completed: Boolean!, companyName: String!, contactName: String!, phone: String }
   input OnboardingInput {
     contactName: String!, phoneCountry: String!, phone: String!, companyName: String!,
-    industry: String!, industryOther: String, contactRole: String!, contactRoleOther: String,
+    industries: [String!]!, industryOther: String, contactRole: String!, contactRoleOther: String,
     companySize: String!, mainMarket: String!, mainNeed: String!,
     heardFrom: String, heardFromOther: String
   }
