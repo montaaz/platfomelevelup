@@ -2,7 +2,7 @@
   "name": "levelup-ai-platforme",
   "version": "1.0.0",
   "private": true,
-  "description": "Level Up IA — Dashboard (espace admin + espace client)",
+  "description": "Level Up IA \u2014 Dashboard (espace admin + espace client)",
   "engines": {
     "node": ">=20.9.0"
   },
@@ -13,7 +13,8 @@
     "lint": "next lint",
     "db:apply": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f database/schema.sql",
     "db:seed": "tsx prisma/seed.ts",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
@@ -35,6 +36,7 @@
     "prisma": "^6.14.0",
     "tailwindcss": "^4.1.12",
     "tsx": "^4.20.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^5.0.1"
   }
 }

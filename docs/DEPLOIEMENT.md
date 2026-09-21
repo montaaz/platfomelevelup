@@ -354,3 +354,25 @@ leur prochaine connexion.
 | `unknown directive "http2"` | nginx < 1.25 | Retirer la ligne `http2 on;` (ou écrire `listen 443 ssl http2;`) |
 | certbot : `Timeout during connect` | Proxy Cloudflare actif pendant la validation | Passer les enregistrements DNS en **DNS only**, relancer certbot, puis remettre **Proxied** |
 | `conflicting server name` au reload | Deux fichiers dans `sites-enabled` déclarent le même `server_name` | Supprimer le doublon : `rm /etc/nginx/sites-enabled/autre-domaine.tn` |
+
+---
+
+## 11. Chatbot (Dashboard Buddy)
+
+Assistant **sans modèle** : reconnaissance d'intention par règles, requêtes
+fixes cloisonnées par la session, réponses par gabarits. Aucun appel à un
+service d'IA, aucune clé à configurer, aucune migration.
+
+- Plateforme : route `POST /api/buddy`, widget monté dans les espaces admin et
+  client. Rien à ajouter au `.env`.
+- Vitrine : `POST /api/chat` ne passe plus par Anthropic. Sur le serveur,
+  **retirer `ANTHROPIC_API_KEY` du `.env` de la vitrine** et relancer
+  `npm ci` pour désinstaller le SDK, puis `npm run build`.
+
+Tests, dans chaque projet : `npm test` (vitest, sans base de données — les
+tests tournent sur des fixtures JSON).
+
+Pour ajouter une question : une entrée dans `src/buddy/intents.ts`, une
+méthode dans `src/buddy/data/types.ts` implémentée dans `prisma.ts` **et**
+`json.ts`, un gabarit dans `templates.ts`, un test. Jamais de requête
+composée depuis le texte de l'utilisateur.

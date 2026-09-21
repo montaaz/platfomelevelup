@@ -8,6 +8,7 @@ import { runMaintenanceSweep } from "@/server/maintenance";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { TiltEffects } from "@/components/layout/TiltEffects";
+import { BuddyWidget } from "@/components/buddy/BuddyWidget";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Même règle que pour les clients : un compte désactivé est déconnecté.
@@ -42,6 +43,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen">
       <TiltEffects />
+      <BuddyWidget role="ADMIN" />
       <Sidebar space="ESPACE ADMIN" items={nav} userName={ctx.fullName} roleLabel="Admin" />
       <div className="pb-28 lg:pb-6 lg:pl-[17.5rem] print:p-0 print:lg:pl-0">
         <div className="print:hidden">

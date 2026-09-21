@@ -6,6 +6,7 @@ import { listNotifications } from "@/server/services/notifications";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { TiltEffects } from "@/components/layout/TiltEffects";
+import { BuddyWidget } from "@/components/buddy/BuddyWidget";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   // Compte bloqué par un administrateur : la session est close sur-le-champ,
@@ -46,6 +47,7 @@ export default async function ClientLayout({ children }: { children: React.React
   return (
     <div className="min-h-screen">
       <TiltEffects />
+      <BuddyWidget role="CLIENT" />
       <Sidebar space="ESPACE CLIENT" items={nav} userName={ctx.fullName} roleLabel={client?.companyName ?? "Client"} />
       <div className="pb-28 lg:pb-6 lg:pl-[17.5rem] print:p-0 print:lg:pl-0">
         <div className="print:hidden">
