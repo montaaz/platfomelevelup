@@ -129,7 +129,11 @@ model Client {
   companySize           String?   @map("company_size") @db.VarChar(40)
   mainMarket            String?   @map("main_market") @db.VarChar(80)
   mainNeed              String?   @map("main_need") @db.VarChar(60)
+  /// Besoins cochés ; `mainNeed` reprend le premier.
+  mainNeeds             String[]  @default([]) @map("main_needs")
   heardFrom             String?   @map("heard_from") @db.VarChar(60)
+  /// Origines cochées ; `heardFrom` reprend la première.
+  heardFroms            String[]  @default([]) @map("heard_froms")
   heardFromOther        String?   @map("heard_from_other") @db.VarChar(160)
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz(6)
   detectedCountryCode   String?   @map("detected_country_code") @db.Char(2)

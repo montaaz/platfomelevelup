@@ -20,8 +20,8 @@ type Answers = {
   contactRoleOther: string;
   companySize: string;
   mainMarket: string;
-  mainNeed: string;
-  heardFrom: string;
+  mainNeeds: string[];
+  heardFroms: string[];
   heardFromOther: string;
 };
 
@@ -114,8 +114,8 @@ export function OnboardingWizard({
     contactRoleOther: "",
     companySize: "",
     mainMarket: "TN",
-    mainNeed: "",
-    heardFrom: "",
+    mainNeeds: [],
+    heardFroms: [],
     heardFromOther: "",
   });
 
@@ -141,9 +141,10 @@ export function OnboardingWizard({
       case 4:
         return a.mainMarket !== "";
       case 5:
-        return a.mainNeed !== "";
+        return a.mainNeeds.length > 0;
       case 6:
-        return a.heardFrom === "" || a.heardFrom !== "AUTRE" || a.heardFromOther.trim().length >= 2;
+        // Facultative : on peut terminer sans rien cocher.
+        return !a.heardFroms.includes("AUTRE") || a.heardFromOther.trim().length >= 2;
       default:
         return false;
     }
@@ -165,8 +166,8 @@ export function OnboardingWizard({
           contactRoleOther: a.contactRoleOther || null,
           companySize: a.companySize,
           mainMarket: a.mainMarket,
-          mainNeed: a.mainNeed,
-          heardFrom: a.heardFrom || null,
+          mainNeeds: a.mainNeeds,
+          heardFroms: a.heardFroms,
           heardFromOther: a.heardFromOther || null,
         },
       });
@@ -357,9 +358,17 @@ export function OnboardingWizard({
       {/* 5 — besoin principal */}
       {step === 5 && (
         <>
-          <h2 className={styles.question}>Votre besoin principal</h2>
-          <p className={styles.hint}>Nous vous orientons vers le bon service.</p>
-          <Choices options={MAIN_NEEDS} value={a.mainNeed} onPick={(v) => set("mainNeed", v)} />
+          <h2 className={styles.question}>Vos besoins</h2>
+          <p className={styles.hint}>
+            Plusieurs réponses possibles — cochez tout ce qui vous intéresse.
+          </p>
+          <MultiChoices
+            options={MAIN_NEEDS}
+            values={a.mainNeeds}
+            onToggle={(v) =>
+              set("mainNeeds", a.mainNeeds.includes(v) ? a.mainNeeds.filter((x) => x !== v) : [...a.mainNeeds, v])
+            }
+          />
         </>
       )}
 
@@ -367,9 +376,17 @@ export function OnboardingWizard({
       {step === 6 && (
         <>
           <h2 className={styles.question}>Comment nous avez-vous connu ?</h2>
-          <p className={styles.hint}>Facultatif — vous pouvez terminer sans répondre.</p>
-          <Choices options={HEARD_FROM} value={a.heardFrom} onPick={(v) => set("heardFrom", v)} />
-          {a.heardFrom === "AUTRE" && (
+          <p className={styles.hint}>
+            Facultatif, plusieurs réponses possibles — vous pouvez terminer sans répondre.
+          </p>
+          <MultiChoices
+            options={HEARD_FROM}
+            values={a.heardFroms}
+            onToggle={(v) =>
+              set("heardFroms", a.heardFroms.includes(v) ? a.heardFroms.filter((x) => x !== v) : [...a.heardFroms, v])
+            }
+          />
+          {a.heardFroms.includes("AUTRE") && (
             <div className={styles.field}>
               <input
                 id="heardOther"

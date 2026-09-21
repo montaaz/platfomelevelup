@@ -9,7 +9,7 @@ import {
   PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL,
 } from "@/lib/format";
 import {
-  INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, labelOf,
+  INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, labelOf, type Option,
 } from "@/lib/onboardingOptions";
 import { countryByCode, countryFlag } from "@/lib/countries";
 
@@ -39,16 +39,24 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   }
 
   const ob = c.onboarding;
-  // Plusieurs secteurs possibles ; les fiches anciennes n'en ont qu'un, repris
-  // depuis `industry` pour que l'affichage reste identique.
-  const industryCodes = ob.industries.length > 0 ? ob.industries : ob.industry ? [ob.industry] : [];
-  const industry =
-    industryCodes
-      .map((code) => (code === "AUTRE" ? ob.industryOther : labelOf(INDUSTRIES, code)))
+
+  /**
+   * Libellés d'une réponse à choix multiples.
+   *
+   * Les fiches d'avant la bascule n'ont qu'une valeur, gardée dans la colonne
+   * simple : on retombe dessus pour que toutes s'affichent pareil. « Autre »
+   * est remplacé par la précision saisie.
+   */
+  const labels = (codes: string[], single: string | null, options: Option[], other: string | null) =>
+    (codes.length > 0 ? codes : single ? [single] : [])
+      .map((code) => (code === "AUTRE" ? other : labelOf(options, code)))
       .filter(Boolean)
       .join(" · ") || null;
+
+  const industry = labels(ob.industries, ob.industry, INDUSTRIES, ob.industryOther);
+  const needs = labels(ob.mainNeeds, ob.mainNeed, MAIN_NEEDS, null);
+  const heard = labels(ob.heardFroms, ob.heardFrom, HEARD_FROM, ob.heardFromOther);
   const role = ob.contactRole === "AUTRE" ? ob.contactRoleOther : labelOf(CONTACT_ROLES, ob.contactRole);
-  const heard = ob.heardFrom === "AUTRE" ? ob.heardFromOther : labelOf(HEARD_FROM, ob.heardFrom);
   const market = countryByCode(ob.mainMarket)?.name ?? ob.mainMarket;
 
   const unpaid = c.invoices
@@ -109,7 +117,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
                 <Row label="Fonction du contact" value={role} />
                 <Row label="Taille de l'entreprise" value={labelOf(COMPANY_SIZES, ob.companySize)} />
                 <Row label="Marché principal" value={market} />
-                <Row label="Besoin principal" value={labelOf(MAIN_NEEDS, ob.mainNeed)} />
+                <Row label="Besoins" value={needs} />
                 <Row label="Nous a connus par" value={heard} />
               </div>
             ) : (

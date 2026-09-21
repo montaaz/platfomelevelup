@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { clientScope, ValidationError, type Ctx } from "@/server/context";
 import {
-  INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, isValid,
+  INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, isValid, type Option,
 } from "@/lib/onboardingOptions";
 import { COUNTRIES } from "@/lib/countries";
 
@@ -17,8 +17,10 @@ export type OnboardingInput = {
   contactRoleOther?: string;
   companySize: string;
   mainMarket: string;     // code pays ISO
-  mainNeed: string;
-  heardFrom?: string;
+  /** Besoins cochés : un client en veut souvent plusieurs. */
+  mainNeeds: string[];
+  /** Origines cochées (facultatif). */
+  heardFroms?: string[];
   heardFromOther?: string;
 };
 
@@ -35,6 +37,31 @@ export async function onboardingStatus(ctx: Ctx) {
     contactName: client.contactName,
     phone: client.phone,
   };
+}
+
+/**
+ * Nettoie et valide une liste de réponses cochées.
+ *
+ * Écarte les doublons, refuse toute valeur hors de la liste proposée, et
+ * réordonne selon le questionnaire plutôt que selon l'ordre des clics : deux
+ * clients ayant coché les mêmes cases obtiennent ainsi la même fiche.
+ */
+function cleanChoices(
+  values: string[] | undefined,
+  options: Option[],
+  label: string,
+  required: boolean,
+): string[] {
+  const list = [...new Set(values ?? [])];
+  if (list.length === 0) {
+    if (required) throw new ValidationError(`Merci de choisir au moins un ${label.toLowerCase()}.`);
+    return [];
+  }
+  if (list.length > options.length) throw new ValidationError(`Trop de réponses pour : ${label}.`);
+  if (!list.every((v) => isValid(options, v))) throw new ValidationError(`${label} invalide.`);
+  return list.sort(
+    (a, b) => options.findIndex((o) => o.value === a) - options.findIndex((o) => o.value === b),
+  );
 }
 
 const need = (v: string | undefined, label: string, max = 160) => {
@@ -60,34 +87,19 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
     throw new ValidationError("Numéro de téléphone invalide.");
   }
 
-  // Au moins un secteur, sans doublon, et chacun connu de la liste.
-  const industries = [...new Set(input.industries ?? [])];
-  if (industries.length === 0) {
-    throw new ValidationError("Merci de choisir au moins un secteur d'activité.");
-  }
-  if (industries.length > INDUSTRIES.length) {
-    throw new ValidationError("Trop de secteurs sélectionnés.");
-  }
-  if (!industries.every((v) => isValid(INDUSTRIES, v))) {
-    throw new ValidationError("Secteur d'activité invalide.");
-  }
-  // L'ordre de la liste prime sur l'ordre des clics : deux clients ayant coché
-  // les mêmes cases obtiennent la même fiche.
-  industries.sort((a, b) => INDUSTRIES.findIndex((o) => o.value === a) - INDUSTRIES.findIndex((o) => o.value === b));
+  const industries = cleanChoices(input.industries, INDUSTRIES, "Secteur d'activité", true);
+  const mainNeeds = cleanChoices(input.mainNeeds, MAIN_NEEDS, "Besoin", true);
+  const heardFroms = cleanChoices(input.heardFroms, HEARD_FROM, "Origine", false);
   if (!isValid(CONTACT_ROLES, input.contactRole)) throw new ValidationError("Fonction invalide.");
   if (!isValid(COMPANY_SIZES, input.companySize)) throw new ValidationError("Taille d'entreprise invalide.");
-  if (!isValid(MAIN_NEEDS, input.mainNeed)) throw new ValidationError("Besoin principal invalide.");
   if (!COUNTRIES.some((c) => c.code === input.mainMarket)) {
     throw new ValidationError("Pays / marché principal invalide.");
-  }
-  if (input.heardFrom && !isValid(HEARD_FROM, input.heardFrom)) {
-    throw new ValidationError("Origine invalide.");
   }
 
   // les champs « Autre » ne sont exigés que si l'option Autre est choisie
   const industryOther = industries.includes("AUTRE") ? need(input.industryOther, "Précisez le secteur") : null;
   const contactRoleOther = input.contactRole === "AUTRE" ? need(input.contactRoleOther, "Précisez la fonction") : null;
-  const heardFromOther = input.heardFrom === "AUTRE" ? need(input.heardFromOther, "Précisez l'origine") : null;
+  const heardFromOther = heardFroms.includes("AUTRE") ? need(input.heardFromOther, "Précisez l'origine") : null;
 
   const dial = COUNTRIES.find((c) => c.code === phoneCountry)!.dial;
 
@@ -107,8 +119,11 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
       contactRoleOther,
       companySize: input.companySize,
       mainMarket: input.mainMarket,
-      mainNeed: input.mainNeed,
-      heardFrom: input.heardFrom || null,
+      // Valeur principale conservée : tout ce qui la lit déjà continue de marcher.
+      mainNeed: mainNeeds[0]!,
+      mainNeeds,
+      heardFrom: heardFroms[0] ?? null,
+      heardFroms,
       heardFromOther,
       onboardingCompletedAt: new Date(),
     },

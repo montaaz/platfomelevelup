@@ -114,8 +114,8 @@ const typeDefs = /* GraphQL */ `
   input OnboardingInput {
     contactName: String!, phoneCountry: String!, phone: String!, companyName: String!,
     industries: [String!]!, industryOther: String, contactRole: String!, contactRoleOther: String,
-    companySize: String!, mainMarket: String!, mainNeed: String!,
-    heardFrom: String, heardFromOther: String
+    companySize: String!, mainMarket: String!, mainNeeds: [String!]!,
+    heardFroms: [String!], heardFromOther: String
   }
 
   type UserAccountRow {

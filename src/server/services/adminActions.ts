@@ -175,7 +175,9 @@ export async function getClient(ctx: Ctx, clientId: bigint) {
     companySize: c.companySize,
     mainMarket: c.mainMarket,
     mainNeed: c.mainNeed,
+    mainNeeds: c.mainNeeds,
     heardFrom: c.heardFrom,
+    heardFroms: c.heardFroms,
     heardFromOther: c.heardFromOther,
     onboardingCompletedAt: c.onboardingCompletedAt?.toISOString() ?? null,
   };
@@ -234,7 +236,9 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
       companySize: c.companySize,
       mainMarket: c.mainMarket,
       mainNeed: c.mainNeed,
+      mainNeeds: c.mainNeeds,
       heardFrom: c.heardFrom,
+      heardFroms: c.heardFroms,
       heardFromOther: c.heardFromOther,
     },
     accounts: c.users.map((u) => ({
