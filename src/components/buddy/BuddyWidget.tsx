@@ -23,6 +23,9 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
+  // Contexte du dernier échange, renvoyé tel quel au serveur pour les
+  // questions de suivi (« et les payées ? »). Le serveur le revalide.
+  const [context, setContext] = useState<unknown>(undefined);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,9 +51,10 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
       const res = await fetch("/api/buddy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, context }),
       });
       const data = await res.json();
+      if (res.ok && data.context !== undefined) setContext(data.context);
       setTurns((t) => [
         ...t,
         res.ok && typeof data.text === "string"

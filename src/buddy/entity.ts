@@ -47,7 +47,14 @@ export function extractEntity(raw: string): EntityRef {
   if (OTHERS.some((re) => re.test(message))) return { kind: "others" };
 
   const quoted = QUOTED.exec(message);
-  if (quoted?.[1]) return { kind: "named", name: quoted[1].trim() };
+  if (quoted?.[1]) {
+    // « projet « Vidéo IA » » ou « facture « F-2026-041 » » désignent un
+    // élément du compte, pas un autre client.
+    const before = message.slice(0, quoted.index);
+    if (!/\b(projet|project|facture|invoice|commande|order|fichier|file)\s*$/i.test(before)) {
+      return { kind: "named", name: quoted[1].trim() };
+    }
+  }
 
   const named = NAMED_AFTER.exec(message);
   if (named?.[1]) {

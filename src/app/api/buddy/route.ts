@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/session";
 import { toCtx, isAccountActive } from "@/server/context";
-import { answerBuddy } from "@/buddy/answer";
+import { answerBuddy, parseContext } from "@/buddy/answer";
 import { prismaDataSource } from "@/buddy/data/prisma";
 import { SUGGESTIONS } from "@/buddy/intents";
 
@@ -10,7 +10,9 @@ import { SUGGESTIONS } from "@/buddy/intents";
  *
  * L'identité vient de la session — jamais du corps de la requête — et un
  * compte bloqué est refusé ici comme partout ailleurs. Le message est traité
- * par le routeur d'intentions sans modèle ; rien ne sort du serveur.
+ * par le routeur d'intentions sans modèle ; rien ne sort du serveur. Le
+ * contexte du tour précédent, renvoyé par le navigateur, est revalidé champ
+ * par champ avant usage.
  */
 
 const MAX_CHARS = 1500;
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Trop de messages. Patientez une minute." }, { status: 429 });
   }
 
-  let body: { message?: unknown };
+  let body: { message?: unknown; context?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
   if (!message) return NextResponse.json({ error: "Message vide." }, { status: 400 });
 
   try {
-    const result = await answerBuddy(ctx, message, prismaDataSource);
+    const result = await answerBuddy(ctx, message, prismaDataSource, parseContext(body.context));
     return NextResponse.json(result);
   } catch (e) {
     // Le détail va au journal, jamais au navigateur.

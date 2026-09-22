@@ -206,3 +206,145 @@ describe("routeur", () => {
     }
   });
 });
+
+/* ------------------------------------------------------------------ */
+/* Capacités ajoutées : tolérance, politesse, dialecte, filtres, suivi  */
+/* ------------------------------------------------------------------ */
+
+import { parseContext } from "../answer";
+
+describe("compréhension plus souple", () => {
+  it("tolère une faute de frappe", async () => {
+    expect((await ask(nour, "mes fatcures")).text).toContain("F-2026-035");   // lettres inversées
+    expect((await ask(nour, "mes comandes")).text).toContain("Pack Croissance"); // lettre manquante
+  });
+
+  it("répond aux salutations et remerciements, avec le prénom", async () => {
+    const hi = await ask(nour, "Bonjour");
+    expect(hi.kind).toBe("answer");
+    expect(hi.text).toContain("Bonjour Nour");
+    expect(hi.suggestions).toEqual(SUGGESTIONS.CLIENT);
+    expect((await ask(nour, "merci beaucoup")).text).toContain("Avec plaisir");
+    expect((await ask(nour, "au revoir")).text).toContain("À bientôt");
+    expect((await ask(nour, "salam")).text).toContain("Bonjour Nour");
+  });
+
+  it("« bonjour, mes factures » est une question, pas une politesse", async () => {
+    const r = await ask(nour, "Bonjour, mes factures ?");
+    expect(r.text).toContain("F-2026-035");
+  });
+
+  it("comprend quelques mots du parler tunisien", async () => {
+    expect((await ask(nour, "fatoura")).text).toContain("F-2026-035");
+    expect((await ask(nour, "9adech lezem nkhalles ?")).text).toContain("reste à régler");
+  });
+});
+
+describe("filtres dans la question", () => {
+  it("statut : « mes factures payées »", async () => {
+    const r = await ask(nour, "mes factures payées");
+    expect(r.text).toContain("factures payées");
+    expect(r.text).toContain("F-2026-031");
+    expect(r.text).toContain("F-2026-036");
+    expect(r.text).not.toContain("F-2026-035");
+  });
+
+  it("période : « mes factures de ce mois »", async () => {
+    const r = await ask(nour, "mes factures de ce mois");
+    expect(r.text).toContain("de ce mois");
+    expect(r.text).toContain("F-2026-035");
+    expect(r.text).toContain("F-2026-036");
+    expect(r.text).not.toContain("F-2026-031"); // émise en août
+  });
+
+  it("nombre : « les 2 dernières factures »", async () => {
+    const r = await ask(nour, "les 2 dernières factures");
+    expect(r.text).toContain("2 factures");
+    expect(r.text).not.toContain("F-2026-031");
+  });
+
+  it("référence : « la facture F-2026-035 » donne le détail", async () => {
+    const r = await ask(nour, "la facture F-2026-035");
+    expect(r.text).toContain("Facture F-2026-035");
+    expect(r.text).toContain("Échéance le");
+    expect(r.text).toContain("Projet : Site e-commerce Nour");
+  });
+
+  it("projet nommé : « où en est le projet Site e-commerce » donne les étapes", async () => {
+    const r = await ask(nour, "où en est le projet Site e-commerce ?");
+    expect(r.text).toContain("Site e-commerce Nour");
+    expect(r.text).toContain("✓ Brief reçu");
+    expect(r.text).toContain("○ Première version");
+    expect(r.text).toContain("Prochaine étape : Première version");
+  });
+
+  it("« où en sont mes projets » reste un résumé", async () => {
+    const r = await ask(nour, "où en sont mes projets ?");
+    expect(r.text).toContain("projet actif");
+  });
+
+  it("un client ne peut pas nommer un autre client, même avec un filtre", async () => {
+    const r = await ask(nour, "les factures payées de Café Medina");
+    expect(r.text).toBe(REFUSALS.unauthorized);
+  });
+
+  it("un projet cité entre guillemets n'est pas pris pour un autre client", () => {
+    expect(extractEntity("le projet « Vidéo IA »")).toBeNull();
+    expect(extractEntity("le client « Café Medina »")).toEqual({ kind: "named", name: "Café Medina" });
+  });
+});
+
+describe("questions de suivi (mémoire d'un tour)", () => {
+  it("« et ce mois ? » affine la question précédente", async () => {
+    const first = await ask(nour, "mes factures");
+    expect(first.context?.intent).toBe("invoices");
+    const next = await answerBuddy(nour, "et ce mois ?", source, first.context, NOW);
+    expect(next.text).toContain("de ce mois");
+    expect(next.text).not.toContain("F-2026-031");
+  });
+
+  it("« et pour Café Medina ? » filtre par client, côté admin", async () => {
+    const first = await ask(admin, "les commandes");
+    const next = await answerBuddy(admin, "et pour Café Medina ?", source, first.context, NOW);
+    expect(next.text).toContain("Pack Découverte");
+    expect(next.text).not.toContain("Pack Croissance");
+    expect(next.context?.filter?.company).toBe("Café Medina");
+  });
+
+  it("« détaille la 2ᵉ » ouvre le deuxième élément de la liste", async () => {
+    const first = await ask(nour, "mes factures");
+    const next = await answerBuddy(nour, "détaille la 2e", source, first.context, NOW);
+    expect(next.text).toContain("Facture F-2026-036");
+    expect(next.kind).toBe("review"); // référence de paiement manquante
+  });
+
+  it("« détaille la 1re » : le suffixe « re » est compris", async () => {
+    const first = await ask(nour, "mes factures");
+    const next = await answerBuddy(nour, "détaille la 1re", source, first.context, NOW);
+    expect(next.text).toContain("Facture F-2026-035");
+  });
+
+  it("« la dernière » et un rang hors liste", async () => {
+    const first = await ask(nour, "mes factures");
+    expect((await answerBuddy(nour, "la dernière", source, first.context, NOW)).text).toContain("Facture F-2026-031");
+    const out = await answerBuddy(nour, "la 9e", source, first.context, NOW);
+    expect(out.kind).toBe("refusal");
+    expect(out.text).toContain("pas de 9ᵉ élément");
+  });
+
+  it("sans contexte, un message de suivi est refusé, pas deviné", async () => {
+    const r = await ask(nour, "et ce mois ?");
+    expect(r.kind).toBe("refusal");
+  });
+
+  it("le contexte venu du navigateur est revalidé champ par champ", () => {
+    expect(parseContext({ intent: "invoices", filter: { status: "PAYEE", limit: 5 } }, NOW))
+      .toEqual({ intent: "invoices", filter: { status: "PAYEE", limit: 5 } });
+    expect(parseContext({ intent: "dropAllTables" }, NOW)).toBeUndefined();
+    expect(parseContext({ intent: "invoices", filter: { status: "'; DROP TABLE--" } }, NOW)).toEqual({ intent: "invoices" });
+    expect(parseContext({ intent: "invoices", filter: { limit: 999999 } }, NOW)).toEqual({ intent: "invoices" });
+    expect(parseContext({ intent: "invoices", filter: { since: "1900-01-01" } }, NOW)).toEqual({ intent: "invoices" });
+    expect(parseContext({ intent: "invoices", filter: { reference: "javascript:alert(1)" } }, NOW)).toEqual({ intent: "invoices" });
+    expect(parseContext("n'importe quoi", NOW)).toBeUndefined();
+  });
+});
