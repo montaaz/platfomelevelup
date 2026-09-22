@@ -153,6 +153,7 @@ model Client {
   subscriptions   Subscription[]
   projectRequests ProjectRequest[]
   orders          Order[]
+  assistantMessages AssistantMessage[]
 
   @@map("clients")
 }
@@ -188,6 +189,7 @@ model User {
   createdRequests     ProjectRequest[]
   addedIpExceptions   IpException[]
   confirmedOrders     Order[]
+  assistantMessages   AssistantMessage[]
 
   @@map("users")
 }
@@ -552,4 +554,25 @@ model Order {
   invoice      Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@map("orders")
+}
+
+/// Échanges avec le Dashboard Buddy, par compte (migration 010).
+model AssistantMessage {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  clientId  BigInt?  @map("client_id")
+  role      String   @db.VarChar(10)
+  body      String
+  kind      String?  @db.VarChar(10)
+  intent    String?  @db.VarChar(40)
+  context   Json?
+  actions   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([clientId, createdAt(sort: Desc)])
+  @@map("assistant_messages")
 }

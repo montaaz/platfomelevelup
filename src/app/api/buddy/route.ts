@@ -1,18 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/session";
-import { toCtx, isAccountActive } from "@/server/context";
+import { toCtx, isAccountActive, type Ctx } from "@/server/context";
 import { answerBuddy, parseContext } from "@/buddy/answer";
 import { prismaDataSource } from "@/buddy/data/prisma";
 import { SUGGESTIONS } from "@/buddy/intents";
+import { clearMyHistory, myHistory, recordExchange } from "@/buddy/history";
 
 /**
  * Point d'entrée du Dashboard Buddy.
  *
  * L'identité vient de la session — jamais du corps de la requête — et un
  * compte bloqué est refusé ici comme partout ailleurs. Le message est traité
- * par le routeur d'intentions sans modèle ; rien ne sort du serveur. Le
- * contexte du tour précédent, renvoyé par le navigateur, est revalidé champ
- * par champ avant usage.
+ * par le routeur d'intentions sans modèle ; rien ne sort du serveur. Chaque
+ * échange est conservé : GET rend le fil du compte, DELETE l'efface.
  */
 
 const MAX_CHARS = 1500;
@@ -46,14 +46,22 @@ function crossOrigin(req: NextRequest): boolean {
   }
 }
 
-export async function POST(req: NextRequest) {
+/** Session valide et compte actif, ou la réponse d'erreur à renvoyer. */
+async function authenticate(req: NextRequest): Promise<{ ctx: Ctx } | { error: NextResponse }> {
   const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  if (!session) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) };
   const ctx = toCtx(session);
   if (!(await isAccountActive(ctx.userId))) {
-    return NextResponse.json({ error: "Compte désactivé." }, { status: 403 });
+    return { error: NextResponse.json({ error: "Compte désactivé." }, { status: 403 }) };
   }
-  if (crossOrigin(req)) return NextResponse.json({ error: "Origine refusée." }, { status: 403 });
+  if (crossOrigin(req)) return { error: NextResponse.json({ error: "Origine refusée." }, { status: 403 }) };
+  return { ctx };
+}
+
+export async function POST(req: NextRequest) {
+  const auth = await authenticate(req);
+  if ("error" in auth) return auth.error;
+  const { ctx } = auth;
   if (rateLimited(ctx.userId.toString())) {
     return NextResponse.json({ error: "Trop de messages. Patientez une minute." }, { status: 429 });
   }
@@ -69,6 +77,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await answerBuddy(ctx, message, prismaDataSource, parseContext(body.context));
+    await recordExchange(ctx, message, result);
     return NextResponse.json(result);
   } catch (e) {
     // Le détail va au journal, jamais au navigateur.
@@ -78,4 +87,24 @@ export async function POST(req: NextRequest) {
       { status: 200 },
     );
   }
+}
+
+/** Le fil du compte connecté, pour le rouvrir là où il en était. */
+export async function GET(req: NextRequest) {
+  const auth = await authenticate(req);
+  if ("error" in auth) return auth.error;
+  try {
+    return NextResponse.json(await myHistory(auth.ctx));
+  } catch (e) {
+    console.error("[buddy] historique illisible:", e);
+    return NextResponse.json({ messages: [] });
+  }
+}
+
+/** Efface le fil du compte connecté — le sien uniquement. */
+export async function DELETE(req: NextRequest) {
+  const auth = await authenticate(req);
+  if ("error" in auth) return auth.error;
+  const deleted = await clearMyHistory(auth.ctx);
+  return NextResponse.json({ deleted });
 }

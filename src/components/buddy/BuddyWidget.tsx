@@ -27,8 +27,37 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
   // Contexte du dernier échange, renvoyé tel quel au serveur pour les
   // questions de suivi (« et les payées ? »). Le serveur le revalide.
   const [context, setContext] = useState<unknown>(undefined);
+  const [loaded, setLoaded] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // À la première ouverture, le fil est repris là où il en était — contexte
+  // de suivi compris, pour qu'un « et les payées ? » marche après rechargement.
+  useEffect(() => {
+    if (!open || loaded) return;
+    setLoaded(true);
+    fetch("/api/buddy")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data || !Array.isArray(data.messages)) return;
+        setTurns(
+          data.messages.map((m: { role: "user" | "bot"; text: string; kind?: Turn["kind"]; actions?: Turn["actions"] }) => ({
+            role: m.role, text: m.text, kind: m.kind ?? undefined, actions: m.actions ?? undefined,
+          })),
+        );
+        if (data.context !== undefined) setContext(data.context);
+      })
+      .catch(() => { /* sans historique, on repart de zéro */ });
+  }, [open, loaded]);
+
+  async function clearHistory() {
+    if (!window.confirm("Effacer votre conversation avec l'assistant ?")) return;
+    try {
+      await fetch("/api/buddy", { method: "DELETE" });
+      setTurns([]);
+      setContext(undefined);
+    } catch { /* on garde l'affichage tel quel */ }
+  }
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
@@ -107,9 +136,22 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
           aria-label="Assistant"
           className="glass-strong fixed right-4 bottom-36 z-40 flex max-h-[70vh] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl shadow-2xl sm:w-96 lg:right-6 lg:bottom-24 print:hidden"
         >
-          <header className="border-b border-ink/6 px-4 py-3">
-            <p className="text-[14px] font-semibold text-ink">Assistant</p>
-            <p className="text-[11.5px] text-ink/60">Vos projets, commandes, factures et messages — d&apos;après vos données.</p>
+          <header className="flex items-start justify-between gap-3 border-b border-ink/6 px-4 py-3">
+            <div>
+              <p className="text-[14px] font-semibold text-ink">Assistant</p>
+              <p className="text-[11.5px] text-ink/60">Vos projets, commandes, factures et messages — d&apos;après vos données.</p>
+            </div>
+            {turns.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void clearHistory()}
+                aria-label="Effacer la conversation"
+                title="Effacer la conversation"
+                className="shrink-0 rounded-lg p-1.5 text-ink/45 transition hover:bg-ink/5 hover:text-red-600"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>
+              </button>
+            )}
           </header>
 
           <div ref={logRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">

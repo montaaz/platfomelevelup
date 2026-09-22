@@ -4,6 +4,8 @@ import { requireCtx, ForbiddenError } from "@/server/context";
 import { adminClientDetail } from "@/server/services/adminActions";
 import { Card, CardHeader, StatusBadge, Avatar, EmptyState } from "@/components/ui";
 import { ClientLoginCard } from "@/components/admin/ClientLoginCard";
+import { AssistantHistoryCard } from "@/components/admin/AssistantHistoryCard";
+import { clientAssistantHistory } from "@/buddy/history";
 import {
   formatDT, formatDateFull, formatDateShort,
   PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL,
@@ -38,6 +40,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
     throw e;
   }
 
+  const assistant = await clientAssistantHistory(ctx, BigInt(id));
   const ob = c.onboarding;
 
   /**
@@ -207,6 +210,9 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
             clientEmail={c.email}
             accounts={c.accounts}
           />
+
+          {/* Ce que le client a demandé à l'assistant */}
+          <AssistantHistoryCard messages={assistant} />
 
           {/* Abonnements */}
           {c.subscriptions.length > 0 && (

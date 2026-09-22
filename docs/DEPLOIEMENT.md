@@ -308,8 +308,9 @@ Le `sed` retire `?schema=public`, que Prisma comprend mais pas `psql`.
 
 ### État des migrations — vérifié le 22 septembre 2026
 
-Les migrations **006 à 009** (projet en attente de paiement, pays détecté,
-secteurs multiples, besoins et origines multiples) ont été appliquées
+Les migrations **006 à 010** (projet en attente de paiement, pays détecté,
+secteurs multiples, besoins et origines multiples, historique de l'assistant)
+ont été appliquées
 **directement sur la base de production** pendant le développement, et la
 correction des fiches « Tunisie » sans adresse aussi. Le prochain
 déploiement ne concerne donc que le code : `git pull`, `npm ci`, `npm run
@@ -321,8 +322,9 @@ partout), mais ce n'est pas nécessaire. Pour s'en assurer :
 ```bash
 psql "$(grep DATABASE_URL .env | cut -d= -f2- | tr -d '"' | sed 's/?.*//')" -tA -c \
   "SELECT column_name FROM information_schema.columns
-    WHERE table_name='clients' AND column_name IN ('detected_country_code','industries','main_needs')"
-# trois lignes attendues
+    WHERE table_name='clients' AND column_name IN ('detected_country_code','industries','main_needs')
+   UNION ALL SELECT 'assistant_messages' FROM information_schema.tables WHERE table_name='assistant_messages'"
+# quatre lignes attendues
 ```
 
 ### Après le déploiement, vérifier
@@ -370,8 +372,10 @@ Assistant **sans modèle** : reconnaissance d'intention par règles, requêtes
 fixes cloisonnées par la session, réponses par gabarits. Aucun appel à un
 service d'IA, aucune clé à configurer, aucune migration.
 
-- Plateforme : route `POST /api/buddy`, widget monté dans les espaces admin et
-  client. Rien à ajouter au `.env`.
+- Plateforme : route `/api/buddy` (POST question, GET fil, DELETE effacer),
+  widget monté dans les espaces admin et client. Les échanges sont conservés
+  dans `assistant_messages` (migration 010) : le client retrouve son fil, la
+  fiche client montre à l'équipe ce qui a été demandé. Rien à ajouter au `.env`.
 - Vitrine : `POST /api/chat` ne passe plus par Anthropic. Sur le serveur,
   **retirer `ANTHROPIC_API_KEY` du `.env` de la vitrine** et relancer
   `npm ci` pour désinstaller le SDK, puis `npm run build`.
