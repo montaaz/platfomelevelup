@@ -34,6 +34,8 @@ export type QueryFilter = {
   label?: string;
   reference?: string;
   name?: string;
+  /** Projet précis, résolu côté serveur — jamais fourni tel quel par le navigateur. */
+  projectId?: string;
   limit?: number;
 };
 
@@ -76,8 +78,13 @@ export type ProductDTO = {
   code: string;
   name: string;
   description: string | null;
+  /** Ce que l'offre comprend, une ligne par élément. */
+  includes: string[];
+  tagline: string | null;
   price: number;
   isMonthly: boolean;
+  /** Rang d'affichage : « pack 01 » désigne la première offre. */
+  position: number;
 };
 
 export type ReviewItemDTO = {
@@ -88,12 +95,21 @@ export type ReviewItemDTO = {
 };
 
 export type ThreadDTO = {
+  projectId: string;
   projectTitle: string;
   clientCompany: string;
   lastMessage: string;
   lastSenderName: string;
   unread: number;
   lastAt: string;
+};
+
+export type TeamMessageDTO = {
+  projectId: string;
+  projectTitle: string;
+  senderName: string;
+  body: string;
+  createdAt: string;
 };
 
 export type TaskDTO = {
@@ -124,6 +140,34 @@ export type ProjectDTO = {
   steps: { label: string; reachedAt: string | null }[];
   startDate: string | null;
   dueDate: string | null;
+  deliveredAt: string | null;
+};
+
+export type DeliverableDTO = {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  name: string;
+  mime: string;
+  version: number;
+  /** EN_ATTENTE | APPROUVE | REVISION_DEMANDEE, ou null pour un élément client. */
+  approval: string | null;
+  createdAt: string;
+  /** Lien de téléchargement, protégé par la session côté serveur. */
+  href: string;
+};
+
+export type ProfileDTO = {
+  fullName: string;
+  email: string;
+  companyName: string;
+  contactName: string;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  /** Adresse et pays renseignés. */
+  complete: boolean;
 };
 
 export interface BuddyDataSource {
@@ -132,7 +176,10 @@ export interface BuddyDataSource {
   products(): Promise<ProductDTO[]>;
   reviewItems(ctx: BuddyCtx, filter?: QueryFilter): Promise<ReviewItemDTO[]>;
   threads(ctx: BuddyCtx, filter?: QueryFilter): Promise<ThreadDTO[]>;
+  teamMessages(ctx: BuddyCtx, filter?: QueryFilter): Promise<TeamMessageDTO[]>;
   tasks(ctx: BuddyCtx, filter?: QueryFilter): Promise<TaskDTO[]>;
   invoices(ctx: BuddyCtx, filter?: QueryFilter): Promise<InvoiceDTO[]>;
   projects(ctx: BuddyCtx, filter?: QueryFilter): Promise<ProjectDTO[]>;
+  deliverables(ctx: BuddyCtx, filter?: QueryFilter): Promise<DeliverableDTO[]>;
+  profile(ctx: BuddyCtx): Promise<ProfileDTO | null>;
 }

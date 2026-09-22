@@ -5,8 +5,8 @@ import { listThreads } from "@/server/services/messaging";
 import { reviewInvoice, reviewOrder } from "./review";
 import { dateRange, invoiceStatus, orderStatus, projectStatus } from "./status";
 import type {
-  BuddyCtx, BuddyDataSource, InvoiceDTO, OrderDTO, ProductDTO, ProjectDTO, QueryFilter,
-  ReviewItemDTO, SummaryDTO, TaskDTO, ThreadDTO,
+  BuddyCtx, BuddyDataSource, DeliverableDTO, InvoiceDTO, OrderDTO, ProductDTO, ProfileDTO, ProjectDTO,
+  QueryFilter, ReviewItemDTO, SummaryDTO, TaskDTO, TeamMessageDTO, ThreadDTO,
 } from "./types";
 
 /**
@@ -113,8 +113,11 @@ export const prismaDataSource: BuddyDataSource = {
       code: p.code,
       name: p.name,
       description: p.description,
+      includes: p.includes,
+      tagline: p.tagline,
       price: Number(p.price),
       isMonthly: p.isMonthly,
+      position: p.position,
     }));
   },
 
@@ -140,6 +143,7 @@ export const prismaDataSource: BuddyDataSource = {
       .filter((t) => !filter?.since || new Date(t.lastAt) >= filter.since)
       .slice(0, filter?.limit ?? 5)
       .map((t) => ({
+        projectId: t.projectId,
         projectTitle: t.projectTitle,
         clientCompany: t.clientCompany,
         lastMessage: t.lastMessage,
@@ -223,6 +227,7 @@ export const prismaDataSource: BuddyDataSource = {
         deletedAt: null,
         ...(status ? { status } : {}),
         ...(filter?.name ? { title: { contains: filter.name, mode: "insensitive" } } : {}),
+        ...(filter?.projectId ? { id: BigInt(filter.projectId) } : {}),
         ...(dateRange(filter?.since, filter?.until) ? { createdAt: dateRange(filter?.since, filter?.until) } : {}),
       },
       orderBy: { createdAt: "desc" },
@@ -240,6 +245,71 @@ export const prismaDataSource: BuddyDataSource = {
       steps: p.steps.map((s) => ({ label: s.label, reachedAt: s.reachedAt?.toISOString() ?? null })),
       startDate: p.startDate?.toISOString() ?? null,
       dueDate: p.dueDate?.toISOString() ?? null,
+      deliveredAt: p.deliveredAt?.toISOString() ?? null,
     }));
+  },
+
+  async deliverables(ctx, filter): Promise<DeliverableDTO[]> {
+    const rows = await prisma.file.findMany({
+      where: {
+        kind: "LIVRABLE",
+        deletedAt: null,
+        project: { deletedAt: null, ...scope(ctx, filter), ...(filter?.projectId ? { id: BigInt(filter.projectId) } : {}) },
+      },
+      orderBy: { createdAt: "desc" },
+      take: take(filter),
+      include: { project: true },
+    });
+    return rows.map((f) => ({
+      id: f.id.toString(),
+      projectId: f.projectId.toString(),
+      projectTitle: f.project.title,
+      name: f.originalName,
+      mime: f.mimeType,
+      version: f.version,
+      approval: f.approval,
+      createdAt: f.createdAt.toISOString(),
+      href: `/api/files/${f.publicId}`,
+    }));
+  },
+
+  async teamMessages(ctx, filter): Promise<TeamMessageDTO[]> {
+    // Le client lit ce que l'équipe lui a écrit ; l'équipe, ce que les clients ont écrit.
+    const rows = await prisma.message.findMany({
+      where: {
+        sender: { role: ctx.role === "CLIENT" ? "ADMIN" : "CLIENT" },
+        project: { deletedAt: null, ...scope(ctx, filter), ...(filter?.projectId ? { id: BigInt(filter.projectId) } : {}) },
+      },
+      orderBy: { createdAt: "desc" },
+      take: Math.min(filter?.limit ?? 3, 20),
+      include: { sender: true, project: true },
+    });
+    return rows.map((m) => ({
+      projectId: m.projectId.toString(),
+      projectTitle: m.project.title,
+      senderName: m.sender.fullName,
+      body: m.body,
+      createdAt: m.createdAt.toISOString(),
+    }));
+  },
+
+  async profile(ctx): Promise<ProfileDTO | null> {
+    if (ctx.role !== "CLIENT") return null;
+    const clientId = clientScope(ctx);
+    const [user, client] = await Promise.all([
+      prisma.user.findUniqueOrThrow({ where: { id: ctx.userId }, select: { fullName: true, email: true } }),
+      prisma.client.findUniqueOrThrow({ where: { id: clientId } }),
+    ]);
+    return {
+      fullName: user.fullName,
+      email: user.email,
+      companyName: client.companyName,
+      contactName: client.contactName,
+      phone: client.phone,
+      address: client.address,
+      city: client.city,
+      country: client.country,
+      complete: Boolean(client.address?.trim() && client.country?.trim()),
+    };
   },
 };

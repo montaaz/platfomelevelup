@@ -22,7 +22,7 @@ export type Filters = {
   status?: StatusToken;
   since?: Date;
   until?: Date;
-  /** Libellé humain de la période, pour l'en-tête de la réponse. */
+  /** Clé de période (« thisMonth », « days:7 »), traduite au rendu. */
   label?: string;
   /** Numéro de facture, normalisé en F-AAAA-NNN. */
   reference?: string;
@@ -74,15 +74,15 @@ export function extractFilters(raw: string, now: Date): Filters {
   const days = /\b(?:depuis|derniers|dernieres|last|past)\s+(\d{1,3})\s*(?:jours|days|j)\b|\b(\d{1,3})\s+(?:derniers|dernieres|last)\s+(?:jours|days)\b/.exec(n);
   if (days) {
     const count = Number(days[1] ?? days[2]);
-    if (count > 0 && count <= 365) { f.since = new Date(startOfDay(now).getTime() - count * DAY); f.label = `des ${count} derniers jours`; }
-  } else if (has(/\baujourd hui\b|\btoday\b/)) { f.since = startOfDay(now); f.label = "d'aujourd'hui"; }
-  else if (has(/\bhier\b|\byesterday\b/)) { f.since = new Date(startOfDay(now).getTime() - DAY); f.until = startOfDay(now); f.label = "d'hier"; }
-  else if (has(/\bcette semaine\b|\bthis week\b/)) { f.since = startOfWeek(now); f.label = "de cette semaine"; }
-  else if (has(/\bsemaine derniere\b|\bla semaine passee\b|\blast week\b/)) { f.since = new Date(startOfWeek(now).getTime() - 7 * DAY); f.until = startOfWeek(now); f.label = "de la semaine dernière"; }
-  else if (has(/\bce mois\b|\bdu mois\b|\bthis month\b/)) { f.since = startOfMonth(now); f.label = "de ce mois"; }
+    if (count > 0 && count <= 365) { f.since = new Date(startOfDay(now).getTime() - count * DAY); f.label = `days:${count}`; }
+  } else if (has(/\baujourd hui\b|\btoday\b/)) { f.since = startOfDay(now); f.label = "today"; }
+  else if (has(/\bhier\b|\byesterday\b/)) { f.since = new Date(startOfDay(now).getTime() - DAY); f.until = startOfDay(now); f.label = "yesterday"; }
+  else if (has(/\bcette semaine\b|\bthis week\b/)) { f.since = startOfWeek(now); f.label = "thisWeek"; }
+  else if (has(/\bsemaine derniere\b|\bla semaine passee\b|\blast week\b/)) { f.since = new Date(startOfWeek(now).getTime() - 7 * DAY); f.until = startOfWeek(now); f.label = "lastWeek"; }
+  else if (has(/\bce mois\b|\bdu mois\b|\bthis month\b/)) { f.since = startOfMonth(now); f.label = "thisMonth"; }
   else if (has(/\bmois dernier\b|\ble mois passe\b|\blast month\b/)) {
-    f.since = new Date(now.getFullYear(), now.getMonth() - 1, 1); f.until = startOfMonth(now); f.label = "du mois dernier";
-  } else if (has(/\bcette annee\b|\bthis year\b/)) { f.since = new Date(now.getFullYear(), 0, 1); f.label = "de cette année"; }
+    f.since = new Date(now.getFullYear(), now.getMonth() - 1, 1); f.until = startOfMonth(now); f.label = "lastMonth";
+  } else if (has(/\bcette annee\b|\bthis year\b/)) { f.since = new Date(now.getFullYear(), 0, 1); f.label = "thisYear"; }
 
   /* --- nombre d'éléments : « les 3 dernières », « last 5 » --- */
   const limit = /\b(\d{1,2})\s+(?:derniers|dernieres|last|premiers|premieres|first)\b|\b(?:derniers|dernieres|last|premiers|premieres|first)\s+(\d{1,2})\b/.exec(n);

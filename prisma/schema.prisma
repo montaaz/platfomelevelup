@@ -518,6 +518,9 @@ model Pack {
   price       Decimal  @db.Decimal(12, 3)
   currency    String   @default("TND") @db.Char(3)
   isMonthly   Boolean  @default(false) @map("is_monthly")
+  /// Ce que l'offre comprend, une ligne par élément (migration 011).
+  includes    String[] @default([])
+  tagline     String?
   serviceId   BigInt?  @map("service_id")
   position    Int      @default(0) @db.SmallInt
   isActive    Boolean  @default(true) @map("is_active")

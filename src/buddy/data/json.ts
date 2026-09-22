@@ -2,8 +2,8 @@ import { assertAdmin, clientScope } from "@/server/context";
 import { reviewInvoice, reviewOrder } from "./review";
 import { inRange, invoiceStatus, orderStatus, projectStatus } from "./status";
 import type {
-  BuddyCtx, BuddyDataSource, InvoiceDTO, OrderDTO, ProductDTO, ProjectDTO, QueryFilter,
-  ReviewItemDTO, SummaryDTO, TaskDTO, ThreadDTO,
+  BuddyCtx, BuddyDataSource, DeliverableDTO, InvoiceDTO, OrderDTO, ProductDTO, ProfileDTO, ProjectDTO,
+  QueryFilter, ReviewItemDTO, SummaryDTO, TaskDTO, TeamMessageDTO, ThreadDTO,
 } from "./types";
 
 /**
@@ -17,17 +17,17 @@ import type {
 
 export type Fixtures = {
   clients: { id: string; companyName: string; address: string | null; country: string | null }[];
-  users: { id: string; role: "ADMIN" | "CLIENT"; clientId: string | null; fullName: string }[];
-  packs: { code: string; name: string; description: string | null; price: number; isMonthly: boolean }[];
+  users: { id: string; role: "ADMIN" | "CLIENT"; clientId: string | null; fullName: string; email?: string }[];
+  packs: { code: string; name: string; description: string | null; includes?: string[]; tagline?: string | null; price: number; isMonthly: boolean; position?: number }[];
   orders: {
     id: string; clientId: string; packCode: string; amount: number; status: string; createdAt: string;
     paidAt?: string | null; projectId: string | null; invoiceId: string | null; paymentMethod: string | null; paymentReference: string | null;
   }[];
   projects: {
     id: string; clientId: string; title: string; serviceName?: string; status: string; createdAt?: string;
-    startDate?: string | null; dueDate?: string | null; steps: { label: string; reachedAt: string | null }[];
+    startDate?: string | null; dueDate?: string | null; deliveredAt?: string | null; steps: { label: string; reachedAt: string | null }[];
   }[];
-  files: { projectId: string; originalName: string; kind: string; approval: string | null }[];
+  files: { id?: string; publicId?: string; projectId: string; originalName: string; mimeType?: string; version?: number; kind: string; approval: string | null; createdAt?: string }[];
   invoices: {
     id: string; number: string; clientId: string; projectId?: string | null; status: string; total: number;
     issueDate?: string; dueDate: string | null; paidAt?: string | null; lineCount: number;
@@ -108,6 +108,7 @@ export function jsonDataSource(data: Fixtures, now: () => Date = () => new Date(
     steps: p.steps,
     startDate: p.startDate ?? null,
     dueDate: p.dueDate ?? null,
+    deliveredAt: p.deliveredAt ?? null,
   });
 
   return {
@@ -163,7 +164,9 @@ export function jsonDataSource(data: Fixtures, now: () => Date = () => new Date(
     },
 
     async products(): Promise<ProductDTO[]> {
-      return data.packs.map((p) => ({ ...p }));
+      return data.packs.map((p, i) => ({
+        ...p, includes: p.includes ?? [], tagline: p.tagline ?? null, position: p.position ?? i + 1,
+      }));
     },
 
     async reviewItems(ctx, filter): Promise<ReviewItemDTO[]> {
@@ -189,6 +192,7 @@ export function jsonDataSource(data: Fixtures, now: () => Date = () => new Date(
         const last = msgs[0];
         if (!last) continue;
         threads.push({
+          projectId: p.id,
           projectTitle: p.title,
           clientCompany: company(p.clientId),
           lastMessage: last.body,
@@ -269,10 +273,66 @@ export function jsonDataSource(data: Fixtures, now: () => Date = () => new Date(
           .filter((p) => ids.has(p.clientId))
           .filter((p) => !status || p.status === status)
           .filter((p) => !needle || p.title.toLowerCase().includes(needle))
+          .filter((p) => !filter?.projectId || p.id === filter.projectId)
           .filter((p) => inRange(p.createdAt ?? p.startDate, filter?.since, filter?.until))
           .map(projectDTO),
         filter,
       );
+    },
+
+    async deliverables(ctx, filter): Promise<DeliverableDTO[]> {
+      const ids = visibleClients(ctx, filter);
+      const projects = data.projects.filter((p) => ids.has(p.clientId) && (!filter?.projectId || p.id === filter.projectId));
+      const out: DeliverableDTO[] = [];
+      for (const f of data.files.filter((f) => f.kind === "LIVRABLE")) {
+        const p = projects.find((p) => p.id === f.projectId);
+        if (!p) continue;
+        out.push({
+          id: f.id ?? f.originalName,
+          projectId: p.id,
+          projectTitle: p.title,
+          name: f.originalName,
+          mime: f.mimeType ?? "application/octet-stream",
+          version: f.version ?? 1,
+          approval: f.approval,
+          createdAt: f.createdAt ?? "",
+          href: `/api/files/${f.publicId ?? "00000000-0000-0000-0000-000000000000"}`,
+        });
+      }
+      return cap(out.sort((a, b) => b.createdAt.localeCompare(a.createdAt)), filter);
+    },
+
+    async teamMessages(ctx, filter): Promise<TeamMessageDTO[]> {
+      const ids = visibleClients(ctx, filter);
+      const wanted = ctx.role === "CLIENT" ? "ADMIN" : "CLIENT";
+      const out: TeamMessageDTO[] = [];
+      for (const m of data.messages) {
+        const p = data.projects.find((p) => p.id === m.projectId);
+        const sender = data.users.find((u) => u.id === m.senderUserId);
+        if (!p || !ids.has(p.clientId) || sender?.role !== wanted) continue;
+        if (filter?.projectId && p.id !== filter.projectId) continue;
+        out.push({ projectId: p.id, projectTitle: p.title, senderName: m.senderName, body: m.body, createdAt: m.createdAt });
+      }
+      return out.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, Math.min(filter?.limit ?? 3, 20));
+    },
+
+    async profile(ctx): Promise<ProfileDTO | null> {
+      if (ctx.role !== "CLIENT") return null;
+      const clientId = clientScope(ctx).toString();
+      const client = data.clients.find((c) => c.id === clientId);
+      const user = data.users.find((u) => u.id === ctx.userId.toString());
+      if (!client || !user) return null;
+      return {
+        fullName: user.fullName,
+        email: user.email ?? "",
+        companyName: client.companyName,
+        contactName: client.companyName,
+        phone: null,
+        address: client.address,
+        city: null,
+        country: client.country,
+        complete: Boolean(client.address?.trim() && client.country?.trim()),
+      };
     },
   };
 }

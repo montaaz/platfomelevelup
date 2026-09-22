@@ -1,235 +1,127 @@
-import { formatDT, formatDateFull, relativeTime, PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL } from "@/lib/format";
-import { bullets, paragraphs, plural, truncate } from "./core/templates";
+import { bullets, paragraphs } from "./core/templates";
+import type { Strings } from "./locales";
 import type {
-  InvoiceDTO, OrderDTO, ProductDTO, ProjectDTO, QueryFilter, ReviewItemDTO, SummaryDTO, TaskDTO, ThreadDTO,
+  DeliverableDTO, InvoiceDTO, OrderDTO, ProjectDTO, QueryFilter, ReviewItemDTO, SummaryDTO, TaskDTO, TeamMessageDTO, ThreadDTO,
 } from "./data/types";
 
 /**
  * Gabarits de réponse du Dashboard Buddy.
  *
  * Chaque fonction reçoit des données déjà lues et cloisonnées, et les met en
- * phrases fixes. Aucun texte n'est composé librement : ce qui n'est pas dans
- * les données n'apparaît pas dans la réponse.
+ * phrases fixes dans la langue demandée. Aucun texte n'est composé
+ * librement : ce qui n'est pas dans les données n'apparaît pas.
  */
-
-const ORDER_STATUS: Record<string, string> = {
-  EN_ATTENTE_PAIEMENT: "en attente de paiement",
-  PAYEE: "payée",
-  ANNULEE: "annulée",
-};
-
-const PAYMENT_METHOD: Record<string, string> = {
-  VIREMENT: "virement", CARTE: "carte", ESPECES: "espèces", CHEQUE: "chèque", EN_LIGNE: "en ligne",
-};
-
-const STATUS_WORD: Record<string, string> = {
-  PAYEE: "payées", EN_ATTENTE: "en attente", EN_RETARD: "en retard", ANNULEE: "annulées",
-  EN_COURS: "en cours", EN_REVISION: "en révision", LIVRE: "livrés", CLOTURE: "clôturés",
-};
-
-export const REFUSALS = {
-  unsupported: (suggestions: string[]) =>
-    paragraphs(
-      "Je ne réponds qu'aux questions sur votre espace : projets, commandes, factures, messages et tâches. Voici ce que vous pouvez me demander :",
-      bullets(suggestions),
-    ),
-  ambiguous: (options: string[]) => `Vouliez-vous dire : ${options.join(" ou ")} ? Précisez et je vous réponds.`,
-  unauthorized: "Vous ne pouvez consulter que les données de votre propre compte.",
-  noEvidence: "Aucune donnée ne correspond pour l'instant.",
-  noSuchItem: (n: number, count: number) =>
-    `Il n'y a pas de ${n}ᵉ élément : la liste précédente en compte ${count}.`,
-  help: (suggestions: string[]) => paragraphs("Voici ce que vous pouvez me demander :", bullets(suggestions)),
-} as const;
-
-export const SMALLTALK = {
-  greeting: (firstName: string, suggestions: string[]) =>
-    paragraphs(`Bonjour ${firstName} ! Que voulez-vous savoir sur votre espace ?`, bullets(suggestions)),
-  thanks: "Avec plaisir. Autre chose ?",
-  bye: "À bientôt ! Je reste ici si vous avez une question.",
-} as const;
-
-export const INTENT_LABELS: Record<string, string> = {
-  summary: "Résumé",
-  orders: "Commandes",
-  products: "Offres",
-  review: "À vérifier",
-  threads: "Conversations",
-  tasks: "Tâches",
-  invoices: "Facturation",
-  project: "Projets",
-  newProject: "Nouveau projet",
-  help: "Aide",
-};
 
 export type Action = { label: string; href: string };
 
-/** Comment lancer un projet, selon le rôle — avec le bouton qui ouvre la page. */
-export function renderNewProject(role: "ADMIN" | "CLIENT"): { text: string; actions: Action[] } {
-  if (role === "CLIENT") {
-    return {
-      text: paragraphs(
-        "Pour lancer un nouveau projet, ouvrez « Nouveau projet » et décrivez votre besoin — site, vidéo, shooting, identité visuelle, chatbot… L'équipe l'étudie et vous répond dans votre messagerie.",
-        "Vous pouvez aussi choisir directement un pack sur levelupia.agency : il apparaîtra ici dans vos projets.",
-      ),
-      actions: [{ label: "Ouvrir « Nouveau projet »", href: "/client/nouveau-projet" }],
-    };
-  }
-  return {
-    text: "Pour créer un projet : Projets → « Nouveau projet », puis choisissez le client, le service et le prix. Les demandes envoyées par les clients sont à étudier dans la même page.",
-    actions: [{ label: "Ouvrir « Projets »", href: "/admin/projets" }],
-  };
-}
-
 /** « payées de ce mois », « en retard »… : ce que la question a précisé. */
-export function filterSuffix(filter?: QueryFilter): string {
+export function filterSuffix(t: Strings, filter?: QueryFilter): string {
   if (!filter) return "";
   const parts: string[] = [];
-  if (filter.status && STATUS_WORD[filter.status]) parts.push(STATUS_WORD[filter.status]!);
-  if (filter.label) parts.push(filter.label);
-  if (filter.company) parts.push(`de ${filter.company}`);
+  if (filter.status && t.filterStatus[filter.status]) parts.push(t.filterStatus[filter.status]!);
+  if (filter.label) parts.push(t.period(filter.label));
+  if (filter.company) parts.push(`${t.lang === "fr" ? "de" : "of"} ${filter.company}`);
   return parts.length ? ` ${parts.join(" ")}` : "";
 }
 
 /** Pied de réponse quand des enregistrements sont incomplets. */
-export function reviewFooter(items: { ref: string; clientCompany?: string; reasons: string[] }[], showCompany: boolean): string {
+export function reviewFooter(t: Strings, items: { ref: string; clientCompany?: string; reasons: string[] }[], showCompany: boolean): string {
   if (items.length === 0) return "";
   return paragraphs(
-    `⚠ ${plural(items.length, "enregistrement à vérifier manuellement", "enregistrements à vérifier manuellement")} :`,
+    t.reviewHeading(items.length),
     bullets(items.map((i) => `${i.ref}${showCompany && i.clientCompany ? ` — ${i.clientCompany}` : ""} : ${i.reasons.join(", ")}`)),
   );
 }
 
-export function renderSummary(s: SummaryDTO): string {
-  if (s.role === "CLIENT") {
-    const projects = s.activeProjects.length === 0
-      ? "Aucun projet en cours."
-      : bullets(s.activeProjects.map((p) =>
-          `${p.title} — ${PROJECT_STATUS_LABEL[p.status] ?? p.status}, ${p.progress} %${p.nextStep ? ` · prochaine étape : ${p.nextStep}` : ""}`,
-        ));
-    return paragraphs(
-      `Vous avez ${plural(s.activeProjects.length, "projet actif", "projets actifs")}.`,
-      projects,
-      s.unpaidCount > 0 ? `${plural(s.unpaidCount, "facture à régler", "factures à régler")} : ${formatDT(s.unpaidTotal)}.` : "Aucune facture en attente.",
-      s.pendingOrders > 0 ? `${plural(s.pendingOrders, "commande en attente de paiement", "commandes en attente de paiement")}.` : null,
-      s.unread > 0 ? `${plural(s.unread, "message non lu", "messages non lus")}.` : null,
-    );
-  }
-  return paragraphs(
-    "Situation de l'agence :",
-    bullets([
-      `Chiffre d'affaires du mois : ${formatDT(s.revenueMonth)}`,
-      `${plural(s.projectsInProgress, "projet en cours", "projets en cours")}`,
-      `${plural(s.unpaidCount, "facture impayée", "factures impayées")} : ${formatDT(s.unpaidTotal)}`,
-      `${plural(s.revisionRequests, "demande de révision", "demandes de révision")}`,
-      `${plural(s.pendingOrders, "commande à encaisser", "commandes à encaisser")}`,
-      `${plural(s.newRequests, "nouvelle demande de projet", "nouvelles demandes de projet")}`,
-    ]),
+export const renderSummary = (t: Strings, s: SummaryDTO) => (s.role === "CLIENT" ? t.summaryClient(s) : t.summaryAdmin(s));
+
+export const renderOrders = (t: Strings, orders: OrderDTO[], showCompany: boolean, filter?: QueryFilter) =>
+  paragraphs(
+    t.ordersHeading(orders.length, filterSuffix(t, filter)),
+    bullets(orders.map((o, i) => `${i + 1}. ${o.packName}${showCompany ? ` — ${o.clientCompany}` : ""} · ${t.money(o.amount)} · ${t.orderStatus[o.status] ?? o.status} · ${t.date(o.createdAt)}`)),
   );
-}
 
-export function renderOrders(orders: OrderDTO[], showCompany: boolean, filter?: QueryFilter): string {
-  return paragraphs(
-    `${plural(orders.length, "commande", "commandes")}${filterSuffix(filter)} :`,
-    bullets(orders.map((o, i) =>
-      `${i + 1}. ${o.packName}${showCompany ? ` — ${o.clientCompany}` : ""} · ${formatDT(o.amount)} · ${ORDER_STATUS[o.status] ?? o.status} · ${formatDateFull(o.createdAt)}`,
-    )),
+export const renderOrderDetail = (t: Strings, o: OrderDTO, showCompany: boolean) => t.orderDetail(o, showCompany);
+
+export const renderReview = (t: Strings, items: ReviewItemDTO[], showCompany: boolean) =>
+  items.length === 0 ? t.reviewNone : reviewFooter(t, items, showCompany);
+
+export const renderThreads = (t: Strings, threads: ThreadDTO[], showCompany: boolean, filter?: QueryFilter) =>
+  paragraphs(
+    t.threadsHeading(threads.length, filterSuffix(t, filter)),
+    bullets(threads.map((th, i) => `${i + 1}. ${t.threadLine({ ...th, lastMessage: th.lastMessage.length > 80 ? `${th.lastMessage.slice(0, 80)}…` : th.lastMessage }, showCompany)}`)),
   );
-}
 
-export function renderOrderDetail(o: OrderDTO, showCompany: boolean): string {
-  return paragraphs(
-    `Commande #${o.id} — ${o.packName}${showCompany ? ` (${o.clientCompany})` : ""}`,
-    bullets([
-      `Montant : ${formatDT(o.amount)}`,
-      `Statut : ${ORDER_STATUS[o.status] ?? o.status}`,
-      `Passée le ${formatDateFull(o.createdAt)}`,
-      o.paidAt ? `Payée le ${formatDateFull(o.paidAt)}${o.paymentMethod ? ` par ${PAYMENT_METHOD[o.paymentMethod] ?? o.paymentMethod}` : ""}` : "Paiement non enregistré",
-    ]),
-    o.review.length ? `⚠ À vérifier : ${o.review.join(", ")}` : null,
-  );
-}
+export const renderThreadDetail = (t: Strings, th: ThreadDTO, showCompany: boolean) => t.threadDetail(th, showCompany);
 
-export function renderProducts(products: ProductDTO[], mentionsStock: boolean): string {
-  return paragraphs(
-    mentionsStock ? "Nous ne gérons pas de stock : nos offres sont des prestations. Les voici :" : "Nos offres :",
-    bullets(products.map((p) =>
-      `${p.name} · ${formatDT(p.price)}${p.isMonthly ? " / mois" : ""}${p.description ? ` — ${truncate(p.description, 90)}` : ""}`,
-    )),
-  );
-}
+export const renderTeamMessages = (t: Strings, items: TeamMessageDTO[], now: Date) =>
+  items.length === 0 ? t.noTeamMessages : t.teamMessagesReply(items, now);
 
-export function renderReview(items: ReviewItemDTO[], showCompany: boolean): string {
-  if (items.length === 0) return "Rien à vérifier : tous les enregistrements consultés sont complets.";
-  return reviewFooter(items, showCompany);
-}
+export const renderTasks = (t: Strings, tasks: TaskDTO[], showCompany: boolean) =>
+  t.tasksReply(tasks.map((x, i) => ({ ...x, label: `${i + 1}. ${x.label}` })), showCompany);
 
-export function renderThreads(threads: ThreadDTO[], showCompany: boolean, filter?: QueryFilter): string {
-  return paragraphs(
-    `${plural(threads.length, "conversation récente", "conversations récentes")}${filterSuffix(filter)} :`,
-    bullets(threads.map((t, i) =>
-      `${i + 1}. ${t.projectTitle}${showCompany ? ` — ${t.clientCompany}` : ""} · ${t.lastSenderName.split(" ")[0]} : « ${truncate(t.lastMessage, 80)} » · ${relativeTime(t.lastAt)}${t.unread > 0 ? ` · ${plural(t.unread, "non lu", "non lus")}` : ""}`,
-    )),
-  );
-}
-
-export function renderThreadDetail(t: ThreadDTO, showCompany: boolean): string {
-  return paragraphs(
-    `${t.projectTitle}${showCompany ? ` — ${t.clientCompany}` : ""}`,
-    `Dernier message, ${relativeTime(t.lastAt)}, de ${t.lastSenderName} :\n« ${t.lastMessage} »`,
-    t.unread > 0 ? `${plural(t.unread, "message non lu", "messages non lus")} dans ce fil.` : null,
-  );
-}
-
-export function renderTasks(tasks: TaskDTO[], showCompany: boolean): string {
-  if (tasks.length === 0) return "Rien en attente de votre part pour le moment.";
-  return paragraphs(
-    `${plural(tasks.length, "tâche en attente", "tâches en attente")} :`,
-    bullets(tasks.map((t, i) => `${i + 1}. ${t.label}${showCompany ? ` — ${t.clientCompany}` : ""}`)),
-  );
-}
-
-export function renderInvoices(invoices: InvoiceDTO[], showCompany: boolean, filter?: QueryFilter): string {
+export function renderInvoices(t: Strings, invoices: InvoiceDTO[], showCompany: boolean, filter?: QueryFilter): string {
   const unpaid = invoices.filter((i) => i.status === "EN_ATTENTE" || i.status === "EN_RETARD");
   const unpaidTotal = unpaid.reduce((s, i) => s + i.total, 0);
   const paidTotal = invoices.filter((i) => i.status === "PAYEE").reduce((s, i) => s + i.total, 0);
   return paragraphs(
-    `${plural(invoices.length, "facture", "factures")}${filterSuffix(filter)} — payé : ${formatDT(paidTotal)}, reste à régler : ${formatDT(unpaidTotal)}.`,
-    bullets(invoices.map((i, n) =>
-      `${n + 1}. ${i.number}${showCompany ? ` — ${i.clientCompany}` : ""} · ${formatDT(i.total)} · ${INVOICE_STATUS_LABEL[i.status] ?? i.status}${i.dueDate ? ` · échéance ${formatDateFull(i.dueDate)}` : ""}`,
-    )),
+    t.invoicesHeading(invoices.length, filterSuffix(t, filter), paidTotal, unpaidTotal),
+    bullets(invoices.map((i, k) => `${k + 1}. ${t.invoiceLine(i, showCompany)}`)),
   );
 }
 
-export function renderInvoiceDetail(i: InvoiceDTO, showCompany: boolean): string {
-  return paragraphs(
-    `Facture ${i.number}${showCompany ? ` — ${i.clientCompany}` : ""}`,
-    bullets([
-      `Montant : ${formatDT(i.total)}`,
-      `Statut : ${INVOICE_STATUS_LABEL[i.status] ?? i.status}`,
-      `Émise le ${formatDateFull(i.issueDate)}`,
-      i.dueDate ? `Échéance le ${formatDateFull(i.dueDate)}` : null,
-      i.paidAt ? `Payée le ${formatDateFull(i.paidAt)}` : null,
-      i.projectTitle ? `Projet : ${i.projectTitle}` : null,
-    ].filter((l): l is string => !!l)),
-    i.review.length ? `⚠ À vérifier : ${i.review.join(", ")}` : null,
+export const renderInvoiceDetail = (t: Strings, i: InvoiceDTO, showCompany: boolean) => t.invoiceDetail(i, showCompany);
+
+export const renderProjects = (t: Strings, projects: ProjectDTO[], showCompany: boolean, filter?: QueryFilter) =>
+  paragraphs(
+    t.projectsHeading(projects.length, filterSuffix(t, filter)),
+    bullets(projects.map((p, i) => `${i + 1}. ${t.projectLine(p)}${showCompany ? ` — ${p.clientCompany}` : ""}`)),
+    t.projectsHint,
   );
+
+export const renderProjectStatus = (t: Strings, p: ProjectDTO, now: Date, detailed: boolean) =>
+  detailed ? t.stepsReply(p) : t.projectStatusReply(p, now);
+
+export const renderDeadline = (t: Strings, p: ProjectDTO, now: Date) => t.deadlineReply(p, now);
+
+export function renderDeliverables(t: Strings, items: DeliverableDTO[], projectTitle: string | undefined, showProject: boolean): { text: string; actions: Action[] } {
+  if (items.length === 0) return { text: t.noDeliverables(projectTitle), actions: [] };
+  return {
+    text: t.deliverablesReply(items, showProject),
+    actions: items.slice(0, 4).map((d) => ({ label: t.actions.download(d.name), href: d.href })),
+  };
 }
 
-export function renderProjects(projects: ProjectDTO[], showCompany: boolean, filter?: QueryFilter): string {
-  return paragraphs(
-    `${plural(projects.length, "projet", "projets")}${filterSuffix(filter)} :`,
-    bullets(projects.map((p, i) =>
-      `${i + 1}. ${p.title}${showCompany ? ` — ${p.clientCompany}` : ""} · ${PROJECT_STATUS_LABEL[p.status] ?? p.status} · ${p.progress} %${p.nextStep ? ` · prochaine étape : ${p.nextStep}` : ""}`,
-    )),
-    "Demandez « où en est le projet … » pour le détail des étapes.",
-  );
+export function renderDownload(t: Strings, items: DeliverableDTO[], projectTitle: string | undefined): { text: string; actions: Action[] } {
+  if (items.length === 0) return { text: t.noDeliverables(projectTitle), actions: [] };
+  return {
+    text: t.downloadReply(items.length),
+    actions: items.slice(0, 6).map((d) => ({ label: t.actions.download(d.name), href: d.href })),
+  };
 }
 
-export function renderProjectDetail(p: ProjectDTO, showCompany: boolean): string {
-  return paragraphs(
-    `${p.title}${showCompany ? ` — ${p.clientCompany}` : ""}${p.serviceName ? ` · ${p.serviceName}` : ""}`,
-    `${PROJECT_STATUS_LABEL[p.status] ?? p.status}, ${p.progress} % d'avancement${p.dueDate ? ` · échéance ${formatDateFull(p.dueDate)}` : ""}.`,
-    bullets(p.steps.map((s) => `${s.reachedAt ? "✓" : "○"} ${s.label}${s.reachedAt ? ` — ${formatDateFull(s.reachedAt)}` : ""}`)),
-    p.nextStep ? `Prochaine étape : ${p.nextStep}.` : "Toutes les étapes sont franchies.",
-  );
+/** Le livrable qui attend le client sur ce projet, s'il y en a un. */
+export const awaitingDeliverable = (items: DeliverableDTO[]) => items.find((d) => d.approval === "EN_ATTENTE") ?? null;
+
+export const renderRevision = (t: Strings, d: DeliverableDTO | null, projectTitle: string) => ({
+  text: t.revisionReply(d, projectTitle),
+  actions: d ? [{ label: t.actions.home, href: "/client" }] : [{ label: t.actions.messages, href: "/client/messages" }],
+});
+
+export const renderApprove = (t: Strings, d: DeliverableDTO | null, projectTitle: string) => ({
+  text: t.approveReply(d, projectTitle),
+  actions: d ? [{ label: t.actions.home, href: "/client" }] : [{ label: t.actions.messages, href: "/client/messages" }],
+});
+
+export function renderHuman(t: Strings, role: "ADMIN" | "CLIENT", project: ProjectDTO | null): { text: string; actions: Action[] } {
+  if (role === "ADMIN") return { text: t.humanAdmin, actions: [{ label: t.intentLabel.threads, href: "/admin/messagerie" }] };
+  return {
+    text: t.humanReply(project?.title ?? null),
+    actions: [project ? { label: t.actions.thread(project.title), href: `/client/messages/${project.id}` } : { label: t.actions.messages, href: "/client/messages" }],
+  };
 }
+
+export const renderNewProject = (t: Strings, role: "ADMIN" | "CLIENT") =>
+  role === "CLIENT"
+    ? { text: t.newProjectClient, actions: [{ label: t.actions.newProject, href: "/client/nouveau-projet" }] }
+    : { text: t.newProjectAdmin, actions: [{ label: t.actions.adminProjects, href: "/admin/projets" }] };

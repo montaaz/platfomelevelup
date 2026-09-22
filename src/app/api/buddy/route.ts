@@ -3,7 +3,8 @@ import { getSession } from "@/lib/session";
 import { toCtx, isAccountActive, type Ctx } from "@/server/context";
 import { answerBuddy, parseContext } from "@/buddy/answer";
 import { prismaDataSource } from "@/buddy/data/prisma";
-import { SUGGESTIONS } from "@/buddy/intents";
+import { L } from "@/buddy/locales";
+import { detectLanguage } from "@/buddy/core/language";
 import { clearMyHistory, myHistory, recordExchange } from "@/buddy/history";
 
 /**
@@ -82,10 +83,8 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     // Le détail va au journal, jamais au navigateur.
     console.error("[buddy]", e);
-    return NextResponse.json(
-      { kind: "refusal", text: "Je n'ai pas pu lire vos données. Réessayez dans un instant.", suggestions: SUGGESTIONS[ctx.role] },
-      { status: 200 },
-    );
+    const lang = detectLanguage(message, "fr");
+    return NextResponse.json({ kind: "refusal", lang, text: L(lang).serverError, suggestions: L(lang).suggestions(ctx.role) }, { status: 200 });
   }
 }
 
