@@ -348,3 +348,32 @@ describe("questions de suivi (mémoire d'un tour)", () => {
     expect(parseContext("n'importe quoi", NOW)).toBeUndefined();
   });
 });
+
+describe("nouveau projet", () => {
+  it("« J'ai besion de crée un project » (trois fautes) guide vers Nouveau projet", async () => {
+    const r = await ask(nour, "J'ai besion de crée un project");
+    expect(r.kind).toBe("answer");
+    expect(r.text).toContain("Nouveau projet");
+    expect(r.actions).toEqual([{ label: "Ouvrir « Nouveau projet »", href: "/client/nouveau-projet" }]);
+  });
+
+  it("« nouveau projet », « j'ai besoin d'un site web »", async () => {
+    expect((await ask(nour, "nouveau projet")).actions?.[0]?.href).toBe("/client/nouveau-projet");
+    expect((await ask(nour, "j'ai besoin d'un site web")).actions?.[0]?.href).toBe("/client/nouveau-projet");
+  });
+
+  it("côté admin, renvoie vers la page Projets", async () => {
+    const r = await ask(admin, "créer un projet pour un client");
+    expect(r.actions?.[0]?.href).toBe("/admin/projets");
+  });
+
+  it("« j'ai besoin de mes factures » reste une question de facturation", async () => {
+    const r = await ask(nour, "j'ai besoin de mes factures");
+    expect(r.text).toContain("F-2026-035");
+    expect(r.actions).toBeUndefined();
+  });
+
+  it("« mes projets » reste un résumé", async () => {
+    expect((await ask(nour, "mes projets")).text).toContain("projet actif");
+  });
+});

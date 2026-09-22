@@ -57,8 +57,28 @@ export const INTENT_LABELS: Record<string, string> = {
   tasks: "Tâches",
   invoices: "Facturation",
   project: "Projets",
+  newProject: "Nouveau projet",
   help: "Aide",
 };
+
+export type Action = { label: string; href: string };
+
+/** Comment lancer un projet, selon le rôle — avec le bouton qui ouvre la page. */
+export function renderNewProject(role: "ADMIN" | "CLIENT"): { text: string; actions: Action[] } {
+  if (role === "CLIENT") {
+    return {
+      text: paragraphs(
+        "Pour lancer un nouveau projet, ouvrez « Nouveau projet » et décrivez votre besoin — site, vidéo, shooting, identité visuelle, chatbot… L'équipe l'étudie et vous répond dans votre messagerie.",
+        "Vous pouvez aussi choisir directement un pack sur levelupia.agency : il apparaîtra ici dans vos projets.",
+      ),
+      actions: [{ label: "Ouvrir « Nouveau projet »", href: "/client/nouveau-projet" }],
+    };
+  }
+  return {
+    text: "Pour créer un projet : Projets → « Nouveau projet », puis choisissez le client, le service et le prix. Les demandes envoyées par les clients sont à étudier dans la même page.",
+    actions: [{ label: "Ouvrir « Projets »", href: "/admin/projets" }],
+  };
+}
 
 /** « payées de ce mois », « en retard »… : ce que la question a précisé. */
 export function filterSuffix(filter?: QueryFilter): string {

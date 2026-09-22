@@ -252,14 +252,20 @@ La déconnexion doit revenir sur `https://levelupia.app/login` (et non `localhos
 
 ```bash
 cd /root/app/platfomelevelup
-git pull
-npm install
-npx prisma generate
+git checkout -- package-lock.json   # un `npm install` passé l'a modifié ; le dépôt fait foi
+git pull origin main
+npm ci
 npm run build
 pm2 restart levelup
 ```
 
-> `npm run build` lance déjà `prisma generate` ; la ligne séparée ne gêne pas.
+> `npm ci` installe exactement le `package-lock.json` du dépôt et ne le
+> modifie jamais — contrairement à `npm install`, qui est à l'origine du
+> refus « Your local changes … would be overwritten by merge ». Si `git pull`
+> refuse encore, `git status` dit quel fichier bloque : `git checkout -- <fichier>`.
+>
+> Ne collez pas tout le bloc d'un coup si `git pull` peut échouer : les
+> commandes suivantes tourneraient sur l'ancien code.
 
 **Si la mise à jour apporte une migration**, l'appliquer *avant* le build —
 voir la section suivante.

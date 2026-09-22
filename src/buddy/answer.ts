@@ -6,9 +6,9 @@ import { extractEntity } from "./entity";
 import { extractFilters, STATUS_TOKENS, type Filters, type StatusToken } from "./filters";
 import { INTENTS, INTENT_IDS, SUGGESTIONS, type BuddyIntentId } from "./intents";
 import {
-  INTENT_LABELS, REFUSALS, SMALLTALK, renderInvoiceDetail, renderInvoices, renderOrderDetail, renderOrders,
-  renderProducts, renderProjectDetail, renderProjects, renderReview, renderSummary, renderTasks,
-  renderThreadDetail, renderThreads, reviewFooter,
+  INTENT_LABELS, REFUSALS, SMALLTALK, renderInvoiceDetail, renderInvoices, renderNewProject, renderOrderDetail,
+  renderOrders, renderProducts, renderProjectDetail, renderProjects, renderReview, renderSummary, renderTasks,
+  renderThreadDetail, renderThreads, reviewFooter, type Action,
 } from "./templates";
 import type { BuddyCtx, BuddyDataSource, QueryFilter } from "./data/types";
 
@@ -41,6 +41,8 @@ export type BuddyResult = {
   reviewCount?: number;
   /** À renvoyer avec le message suivant pour permettre une question de suivi. */
   context?: BuddyContext;
+  /** Boutons vers une page de l'espace — toujours des chemins internes. */
+  actions?: Action[];
 };
 
 const MAX_CHARS = 1500;
@@ -182,6 +184,11 @@ async function render(
   switch (id) {
     case "help":
       return { kind: "answer", text: REFUSALS.help(suggestions), suggestions };
+
+    case "newProject": {
+      const { text, actions } = renderNewProject(ctx.role);
+      return { kind: "answer", text, actions };
+    }
 
     case "summary":
       return { kind: "answer", text: renderSummary(await source.summary(ctx)) };

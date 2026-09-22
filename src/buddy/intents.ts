@@ -10,10 +10,10 @@ import type { IntentDef } from "./core/router";
  */
 
 export type BuddyIntentId =
-  | "help" | "summary" | "orders" | "products" | "review" | "threads" | "tasks" | "invoices" | "project";
+  | "help" | "summary" | "orders" | "products" | "review" | "threads" | "tasks" | "invoices" | "project" | "newProject";
 
 export const INTENT_IDS: BuddyIntentId[] = [
-  "help", "summary", "orders", "products", "review", "threads", "tasks", "invoices", "project",
+  "help", "summary", "orders", "products", "review", "threads", "tasks", "invoices", "project", "newProject",
 ];
 
 export const INTENTS: IntentDef<BuddyIntentId>[] = [
@@ -36,6 +36,16 @@ export const INTENTS: IntentDef<BuddyIntentId>[] = [
     strong: ["etape", "etapes", "step", "steps", "avancement", "progression"],
     keywords: ["projet", "projets", "project", "projects", "livraison", "delivery", "echeance", "deadline"],
     phrases: ["ou en est", "where is", "how far", "le projet", "du projet", "the project"],
+  },
+  {
+    // « Créer un projet », « nouveau projet », « j'ai besoin d'un site » : on
+    // guide vers la demande de projet. « besoin » et « veux » ne valent qu'un
+    // point : « j'ai besoin de mes factures » doit rester une question de
+    // facturation.
+    id: "newProject",
+    strong: ["nouveau", "nouvelle", "creer", "lancer", "demarrer", "new", "create", "start", "demande"],
+    keywords: ["projet", "projets", "project", "besoin", "need", "veux", "want", "voudrais", "site", "video", "videos", "shooting", "logo", "campagne", "chatbot", "identite"],
+    phrases: ["nouveau projet", "new project", "creer un projet", "create a project", "lancer un projet", "demande de projet", "demarrer un projet", "start a project"],
   },
   {
     id: "orders",
@@ -84,6 +94,6 @@ export const INTENTS: IntentDef<BuddyIntentId>[] = [
 
 /** Questions proposées en puces, selon le rôle. */
 export const SUGGESTIONS: Record<"ADMIN" | "CLIENT", string[]> = {
-  CLIENT: ["Mon résumé", "Mes commandes", "Mes factures", "Mes messages", "Que dois-je faire ?", "Vos offres"],
+  CLIENT: ["Mon résumé", "Mes commandes", "Mes factures", "Mes messages", "Que dois-je faire ?", "Nouveau projet", "Vos offres"],
   ADMIN: ["Résumé de l'agence", "Commandes à encaisser", "Factures en retard", "À vérifier", "Dernières conversations", "Tâches en attente"],
 };

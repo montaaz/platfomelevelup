@@ -8,6 +8,7 @@ type Turn = {
   text: string;
   kind?: "answer" | "refusal" | "review";
   suggestions?: string[];
+  actions?: { label: string; href: string }[];
 };
 
 /**
@@ -58,7 +59,7 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
       setTurns((t) => [
         ...t,
         res.ok && typeof data.text === "string"
-          ? { role: "bot", text: data.text, kind: data.kind, suggestions: data.suggestions }
+          ? { role: "bot", text: data.text, kind: data.kind, suggestions: data.suggestions, actions: data.actions }
           : { role: "bot", text: data.error ?? "Une erreur est survenue. Réessayez.", kind: "refusal" },
       ]);
     } catch {
@@ -127,6 +128,21 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
                   }`}
                 >
                   {turn.text}
+                  {turn.actions && turn.actions.length > 0 && (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {turn.actions
+                        .filter((a) => a.href.startsWith("/")) // jamais un lien externe
+                        .map((a) => (
+                          <a
+                            key={a.href}
+                            href={a.href}
+                            className="rounded-full bg-brand-500 px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand-600"
+                          >
+                            {a.label} →
+                          </a>
+                        ))}
+                    </div>
+                  )}
                   {turn.suggestions && turn.suggestions.length > 0 && chips(turn.suggestions)}
                 </div>
               ),
