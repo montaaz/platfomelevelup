@@ -1,0 +1,61 @@
+{
+  "clients": [
+    { "id": "1", "companyName": "Boutique Nour", "address": "12 rue de Tunis", "country": "Tunisie" },
+    { "id": "2", "companyName": "Café Medina", "address": null, "country": null }
+  ],
+  "users": [
+    { "id": "1", "role": "ADMIN", "clientId": null, "fullName": "Sarra Dhaouadi" },
+    { "id": "10", "role": "CLIENT", "clientId": "1", "fullName": "Nour Ben Salah" },
+    { "id": "11", "role": "CLIENT", "clientId": "2", "fullName": "Karim Jaziri" }
+  ],
+  "packs": [
+    { "code": "PACK_DECOUVERTE", "name": "Pack Découverte", "description": "Site vitrine ou shooting produit", "price": 890, "isMonthly": false },
+    { "code": "PACK_CROISSANCE", "name": "Pack Croissance", "description": "Site + contenus + campagne", "price": 3490, "isMonthly": false },
+    { "code": "ABO_STARTER", "name": "Abonnement Starter", "description": "12 visuels + 4 vidéos par mois", "price": 1190, "isMonthly": true }
+  ],
+  "orders": [
+    { "id": "1", "clientId": "1", "packCode": "PACK_CROISSANCE", "amount": 3490, "status": "PAYEE", "createdAt": "2026-08-20T10:00:00Z", "paidAt": "2026-08-22T10:00:00Z",
+      "projectId": "1", "invoiceId": "1", "paymentMethod": "VIREMENT", "paymentReference": "VIR-2026-0812" },
+    { "id": "2", "clientId": "2", "packCode": "PACK_DECOUVERTE", "amount": 890, "status": "EN_ATTENTE_PAIEMENT", "createdAt": "2026-09-01T09:00:00Z",
+      "projectId": "2", "invoiceId": null, "paymentMethod": null, "paymentReference": null }
+  ],
+  "projects": [
+    { "id": "1", "clientId": "1", "title": "Site e-commerce Nour", "serviceName": "Création de site", "status": "EN_COURS",
+      "createdAt": "2026-08-21T10:00:00Z", "startDate": "2026-08-21", "dueDate": "2026-10-15",
+      "steps": [
+        { "label": "Brief reçu", "reachedAt": "2026-08-21T10:00:00Z" },
+        { "label": "Production", "reachedAt": "2026-08-28T10:00:00Z" },
+        { "label": "Première version", "reachedAt": null },
+        { "label": "Votre validation", "reachedAt": null },
+        { "label": "Livraison finale", "reachedAt": null }
+      ] },
+    { "id": "2", "clientId": "2", "title": "Vidéo produit Medina", "serviceName": "Vidéo IA", "status": "EN_REVISION",
+      "createdAt": "2026-09-02T10:00:00Z", "startDate": "2026-09-02", "dueDate": null,
+      "steps": [
+        { "label": "Brief reçu", "reachedAt": "2026-09-02T10:00:00Z" },
+        { "label": "Production", "reachedAt": "2026-09-10T10:00:00Z" },
+        { "label": "Première version", "reachedAt": "2026-09-15T10:00:00Z" },
+        { "label": "Votre validation", "reachedAt": null },
+        { "label": "Livraison finale", "reachedAt": null }
+      ] }
+  ],
+  "files": [
+    { "projectId": "1", "originalName": "maquette-accueil-v2.pdf", "kind": "LIVRABLE", "approval": "EN_ATTENTE" }
+  ],
+  "invoices": [
+    { "id": "1", "number": "F-2026-031", "clientId": "1", "projectId": "1", "status": "PAYEE", "total": 3490, "issueDate": "2026-08-25", "dueDate": "2026-09-05", "paidAt": "2026-08-22T10:00:00Z", "lineCount": 2,
+      "payments": [ { "method": "VIREMENT", "reference": "VIR-2026-0812" } ] },
+    { "id": "2", "number": "F-2026-035", "clientId": "1", "projectId": "1", "status": "EN_ATTENTE", "total": 850, "issueDate": "2026-09-15", "dueDate": "2026-10-15", "lineCount": 1, "payments": [] },
+    { "id": "3", "number": "F-2026-028", "clientId": "2", "projectId": "2", "status": "EN_RETARD", "total": 780, "issueDate": "2026-08-01", "dueDate": "2026-08-30", "lineCount": 1, "payments": [] },
+    { "id": "4", "number": "F-2026-036", "clientId": "1", "projectId": null, "status": "PAYEE", "total": 850, "issueDate": "2026-09-10", "dueDate": "2026-09-10", "paidAt": "2026-09-11T10:00:00Z", "lineCount": 1,
+      "payments": [ { "method": "VIREMENT", "reference": null } ] }
+  ],
+  "requests": [
+    { "clientId": "2", "title": "Refonte du logo", "status": "NOUVELLE" }
+  ],
+  "messages": [
+    { "projectId": "1", "senderUserId": "1", "senderName": "Sarra Dhaouadi", "body": "Bonjour Nour, la maquette v2 est en ligne.", "createdAt": "2026-09-18T09:00:00Z", "readBy": ["1"] },
+    { "projectId": "1", "senderUserId": "10", "senderName": "Nour Ben Salah", "body": "Merci, je regarde ça ce soir.", "createdAt": "2026-09-18T18:30:00Z", "readBy": ["10"] },
+    { "projectId": "2", "senderUserId": "1", "senderName": "Sarra Dhaouadi", "body": "La première version de la vidéo est prête.", "createdAt": "2026-09-15T11:00:00Z", "readBy": ["1"] }
+  ]
+}

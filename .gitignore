@@ -11,7 +11,7 @@ storage/uploads/
 .qodo/
 .sentry-native/
 # confidential client documents (public repo) — keep locally only
-data/
+/data/
 .next-verify/
 # fichiers de secrets OAuth téléchargés depuis la console Google
 client_secret_*.json
