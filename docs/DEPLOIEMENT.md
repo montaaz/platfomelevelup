@@ -300,23 +300,24 @@ Le `sed` retire `?schema=public`, que Prisma comprend mais pas `psql`.
 > psql "…" -c "ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'PROFIL_INCOMPLET';"
 > ```
 
-### Migration 007 — pays des clients (à faire au prochain déploiement)
+### État des migrations — vérifié le 22 septembre 2026
 
-Après l'avoir appliquée, une correction de données est nécessaire. La colonne
-`country` portait un `DEFAULT 'Tunisie'` : **tout compte créé sans adresse
-paraissait tunisien**. La migration supprime ce défaut, mais les lignes déjà
-écrites gardent la valeur. Cette requête ne vide que les fiches sans adresse
-*ni* ville — donc celles où « Tunisie » n'était qu'un reliquat, jamais une
-saisie du client :
+Les migrations **006 à 009** (projet en attente de paiement, pays détecté,
+secteurs multiples, besoins et origines multiples) ont été appliquées
+**directement sur la base de production** pendant le développement, et la
+correction des fiches « Tunisie » sans adresse aussi. Le prochain
+déploiement ne concerne donc que le code : `git pull`, `npm ci`, `npm run
+build`, `pm2 restart`.
 
-```sql
-UPDATE clients SET country = NULL
-WHERE deleted_at IS NULL AND country = 'Tunisie'
-  AND address IS NULL AND city IS NULL;
+Rejouer un fichier de migration reste sans danger (`IF NOT EXISTS`
+partout), mais ce n'est pas nécessaire. Pour s'en assurer :
+
+```bash
+psql "$(grep DATABASE_URL .env | cut -d= -f2- | tr -d '"' | sed 's/?.*//')" -tA -c \
+  "SELECT column_name FROM information_schema.columns
+    WHERE table_name='clients' AND column_name IN ('detected_country_code','industries','main_needs')"
+# trois lignes attendues
 ```
-
-Ces clients apparaîtront sous « À détecter » dans le sélecteur de pays, jusqu'à
-leur prochaine connexion.
 
 ### Après le déploiement, vérifier
 
