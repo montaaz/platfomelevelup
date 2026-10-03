@@ -54,7 +54,7 @@ export const INTENTS: IntentDef<BuddyIntentId>[] = [
   },
   {
     id: "deadline",
-    strong: ["echeance", "deadline", "delai", "delais", "due", "livraison", "delivery"],
+    strong: ["echeance", "deadline", "delai", "delais", "due", "livraison", "delivery", "wa9tech", "waqtech", "wa9teh", "waktech", "yetsalla7", "yekmel", "tkamlou", "tsalla7"],
     keywords: ["quand", "when", "date", "pret", "prete", "ready", "fini", "finished", "termine", "livre", "delivered", "prevu", "expected"],
     phrases: [
       "quand est ce que", "ce sera pret", "sera pret", "sera livre", "when is it due", "when will it be ready",

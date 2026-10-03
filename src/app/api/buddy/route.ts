@@ -6,13 +6,16 @@ import { prismaDataSource } from "@/buddy/data/prisma";
 import { L } from "@/buddy/locales";
 import { detectLanguage } from "@/buddy/core/language";
 import { clearMyHistory, myHistory, recordExchange } from "@/buddy/history";
+import { configuredModel } from "@/buddy/ai/model";
 
 /**
  * Point d'entrée du Dashboard Buddy.
  *
  * L'identité vient de la session — jamais du corps de la requête — et un
  * compte bloqué est refusé ici comme partout ailleurs. Le message est traité
- * par le routeur d'intentions sans modèle ; rien ne sort du serveur. Chaque
+ * par le routeur d'intentions ; quand BUDDY_AI=on, le modèle local (Ollama,
+ * sur ce serveur) prend le relais de ce que les règles ne comprennent pas.
+ * Rien ne sort du serveur. Chaque
  * échange est conservé : GET rend le fil du compte, DELETE l'efface.
  */
 
@@ -77,7 +80,7 @@ export async function POST(req: NextRequest) {
   if (!message) return NextResponse.json({ error: "Message vide." }, { status: 400 });
 
   try {
-    const result = await answerBuddy(ctx, message, prismaDataSource, parseContext(body.context));
+    const result = await answerBuddy(ctx, message, prismaDataSource, parseContext(body.context), new Date(), undefined, configuredModel());
     await recordExchange(ctx, message, result);
     return NextResponse.json(result);
   } catch (e) {

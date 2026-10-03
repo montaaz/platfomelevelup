@@ -10,6 +10,8 @@ type Turn = {
   kind?: "answer" | "refusal" | "review" | "error";
   suggestions?: string[];
   actions?: { label: string; href: string }[];
+  /** Réponse rédigée par le modèle local. */
+  ai?: boolean;
   /** Question à renvoyer si l'utilisateur clique sur « Réessayer ». */
   retryFor?: string;
 };
@@ -77,7 +79,7 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
       if (res.ok && typeof data.text === "string") {
         if (data.context !== undefined) setContext(data.context);
         if (data.lang === "en" || data.lang === "fr") setLang(data.lang);
-        setTurns((prev) => [...prev, { role: "bot", text: data.text, kind: data.kind, suggestions: data.suggestions, actions: data.actions }]);
+        setTurns((prev) => [...prev, { role: "bot", text: data.text, kind: data.kind, suggestions: data.suggestions, actions: data.actions, ai: data.ai === true }]);
       } else {
         setTurns((prev) => [...prev, { role: "bot", text: data.error ?? t.widget.error, kind: "error", retryFor: text }]);
       }
@@ -183,6 +185,7 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
                   }`}
                 >
                   {turn.text}
+                  {turn.ai && <p className="mt-1.5 text-[10.5px] text-ink/45">✦ {t.widget.aiNote}</p>}
                   {turn.actions && turn.actions.length > 0 && (
                     <div className="mt-2.5 flex flex-wrap gap-1.5">
                       {turn.actions.filter((a) => a.href.startsWith("/")).map((a) => (

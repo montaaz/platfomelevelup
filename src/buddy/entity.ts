@@ -32,6 +32,13 @@ const NOT_A_NAME = new Set([
   "january", "february", "march", "april", "may", "june", "july", "august",
   "september", "october", "november", "december",
   "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
+  // Plateformes, lieux, langues, fêtes : « des vidéos pour TikTok » ne vise pas un autre client.
+  "tiktok", "instagram", "insta", "facebook", "fb", "whatsapp", "messenger", "youtube", "linkedin", "snapchat",
+  "google", "twitter", "pinterest", "shopify", "wordpress", "woocommerce", "airbnb", "booking",
+  "tunisie", "tunisia", "tunis", "sfax", "sousse", "nabeul", "hammamet", "monastir", "djerba", "bizerte",
+  "france", "paris", "europe", "afrique", "africa", "maghreb",
+  "anglais", "english", "français", "francais", "french", "arabe", "arabic", "italien", "italian", "allemand", "german",
+  "ramadan", "aïd", "aid", "noël", "noel", "christmas", "ia", "ai",
 ]);
 
 const CAPITALIZED = "[A-ZÀ-ÝÆŒ][\\wÀ-ÿæœ'’-]*";

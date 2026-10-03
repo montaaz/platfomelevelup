@@ -37,7 +37,8 @@ export async function recordExchange(ctx: Ctx, question: string, result: BuddyRe
           role: "ASSISTANT",
           body: result.text,
           kind: result.kind,
-          intent: result.context?.intent ?? null,
+          // « ai » : réponse rédigée par le modèle local, repérable dans l'historique.
+          intent: result.ai ? "ai" : (result.context?.intent ?? null),
           context: result.context ? (result.context as object) : undefined,
           actions: result.actions ? (result.actions as object[]) : undefined,
         },

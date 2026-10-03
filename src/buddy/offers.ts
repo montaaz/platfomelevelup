@@ -142,3 +142,21 @@ export function answerOffers(t: Strings, message: string, products: ProductDTO[]
   const mentionsStock = tokenize(message).some((x) => termMatches(x, "stock"));
   return { text: paragraphs(mentionsStock ? o.noStock : o.list(products.length), bullets(products.map(line)), o.hint) };
 }
+
+/**
+ * Ce que `answerOffers` saura faire de ce message. « open » : le message
+ * contient des mots qui ne désignent ni une offre, ni un budget, ni un besoin
+ * reconnu (« pour un restaurant », « pour attirer des clients ») — la simple
+ * liste n'y répondrait pas, le modèle local peut être consulté.
+ */
+export function offersMode(message: string, products: ProductDTO[]): { mode: "compare" | "detail" | "budget" | "need" | "list"; open: boolean } {
+  const named = findNamedOffers(message, products);
+  if (named.length >= 2) return { mode: "compare", open: false };
+  if (named.length === 1) return { mode: "detail", open: false };
+  if (findBudget(message) !== null) return { mode: "budget", open: false };
+  const rest = contentTokens(message).filter((t) => !NOISE.has(t) && !/^\d+$/.test(t));
+  const need = findByNeed(message, products);
+  // « une marque de vêtements » : « marque » est reconnu, « vêtements » non — la liste filtrée n'y répond qu'à moitié.
+  if (need) return { mode: "need", open: rest.some((t) => !need.need.split(", ").includes(t)) };
+  return { mode: "list", open: rest.length > 0 };
+}

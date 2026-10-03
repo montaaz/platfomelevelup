@@ -5,7 +5,11 @@ import { extractEntity } from "./entity";
 import { STATUS_TOKENS, type Filters, type StatusToken } from "./filters";
 import { INTENTS, INTENT_IDS, PROJECT_INTENTS, type BuddyIntentId } from "./intents";
 import { L, type Strings } from "./locales";
-import { answerOffers } from "./offers";
+import { answerOffers, offersMode } from "./offers";
+import { classify, compose, type Classified } from "./ai/assist";
+import { accountFacts } from "./ai/facts";
+import { guideChunks, productChunks, publicKnowledge, retrieve } from "./ai/knowledge";
+import type { LocalModel } from "./ai/model";
 import { ruleBasedUnderstander, type Understander } from "./reasoning";
 import {
   awaitingDeliverable, renderApprove, renderDeadline, renderDeliverables, renderDownload, renderHuman, renderInvoiceDetail,
@@ -53,6 +57,8 @@ export type BuddyResult = {
   context?: BuddyContext;
   /** Boutons vers une page de l'espace — toujours des chemins internes. */
   actions?: Action[];
+  /** Réponse rédigée par le modèle local (et validée par ai/guard), pas par un gabarit. */
+  ai?: boolean;
 };
 
 const MAX_CHARS = 1500;
@@ -150,6 +156,8 @@ export async function answerBuddy(
   previous?: BuddyContext,
   now: Date = new Date(),
   understander: Understander = ruleBasedUnderstander,
+  /** Modèle local (Ollama) ; absent, l'assistant reste purement à règles. */
+  ai: LocalModel | null = null,
 ): Promise<BuddyResult> {
   const message = (rawMessage ?? "").slice(0, MAX_CHARS).trim();
   const u = understander.understand(message, { intents: INTENTS, previousLang: previous?.lang, now });
@@ -193,14 +201,60 @@ export async function answerBuddy(
   } else if (refines && previous && (u.filters.status || u.filters.since || u.filters.reference || u.filters.name || u.filters.ordinal || u.filters.limit || u.entity)) {
     intent = previous.intent;
     filter = { ...deserialize(previous.filter), ...filter };
+  } else if (u.routed.kind === "ambiguous" && !isAdmin && u.routed.ids.filter((id) => !ADMIN_ONLY.has(id as BuddyIntentId)).length === 1) {
+    // Hésitation entre une intention client et une intention réservée à l'équipe : un client n'a que la première.
+    intent = u.routed.ids.find((id) => !ADMIN_ONLY.has(id as BuddyIntentId)) as BuddyIntentId;
   } else if (u.routed.kind === "ambiguous") {
-    const labels = u.routed.ids.map((id) => t.intentLabel[id as BuddyIntentId] ?? id);
-    return { kind: "refusal", lang, text: t.ambiguous(labels), suggestions: u.routed.ids.map((id) => t.intentQuestion[id as BuddyIntentId] ?? id), context: carry };
+    // Deux lectures possibles : le modèle local départage s'il en choisit une des deux.
+    const guess = ai ? await classify(ai, message, ctx.role) : null;
+    if (guess && (u.routed.ids as string[]).includes(guess)) {
+      intent = guess as BuddyIntentId;
+    } else {
+      if (ai && (guess === "question" || guess === "account_question")) {
+        const r = await aiAnswer(ai, guess, t, ctx, message, source, now, previous, suggestions);
+        if (r) return r;
+      }
+      const labels = u.routed.ids.map((id) => t.intentLabel[id as BuddyIntentId] ?? id);
+      return { kind: "refusal", lang, text: t.ambiguous(labels), suggestions: u.routed.ids.map((id) => t.intentQuestion[id as BuddyIntentId] ?? id), context: carry };
+    }
   } else {
-    return fallback(t, message, u.partial.map((p) => p.id as BuddyIntentId), ctx.role, previous, lang);
+    // Les règles n'ont rien reconnu : le modèle local classe la question,
+    // ou y répond à partir des faits du compte et du contenu public.
+    const guess = ai ? await classify(ai, message, ctx.role) : null;
+    if (guess && isIntent(guess)) {
+      intent = guess;
+    } else {
+      if (ai && (guess === "question" || guess === "account_question")) {
+        const r = await aiAnswer(ai, guess, t, ctx, message, source, now, previous, suggestions);
+        if (r) return r;
+      }
+      return fallback(t, message, u.partial.map((p) => p.id as BuddyIntentId), ctx.role, previous, lang);
+    }
   }
 
   if (filter.reference && intent !== "review") intent = "invoices";
+
+  // Les gabarits listent des données ; ils n'expliquent pas. Une question
+  // « comment / pourquoi / quelle différence » sur les offres, les commandes,
+  // les factures ou un projet, ou un conseil d'offre qu'aucune règle ne
+  // couvre (« quel pack pour un restaurant ? »), va au modèle local — et
+  // retombe sur le gabarit s'il ne sait pas.
+  if (ai && (intent === "products" || intent === "orders" || intent === "invoices" || intent === "project")) {
+    const explain = EXPLAIN.test(` ${tokenize(message).join(" ")} `);
+    let open = false;
+    if (intent === "products") {
+      const products = await source.products();
+      const mode = products.length ? offersMode(message, products) : null;
+      open = !!mode && (mode.mode === "list" || mode.mode === "need") && (mode.open || explain);
+    }
+    if (open || (explain && intent !== "products")) {
+      // « mon pack », « my order » : une question sur ce que ce client a pris, donc sur son compte.
+      const mine = /\b(mon|ma|mes|my|mine|mte3i)\b/.test(` ${tokenize(message).join(" ")} `);
+      const general = intent === "products" && !mine;
+      const r = await aiAnswer(ai, general ? "question" : "account_question", t, ctx, message, source, now, previous, suggestions, general && OFFER_WORDS.test(` ${tokenize(message).join(" ")} `));
+      if (r) return r;
+    }
+  }
   if (filter.name && intent === "summary") intent = "project";
 
   /* --- quel projet ? --- */
@@ -231,6 +285,64 @@ export async function answerBuddy(
 
   const result = await render(t, intent, ctx, message, source, filter, u.filters.ordinal, project, now, suggestions);
   return { ...result, lang, context: { intent, filter: serialize(filter), projectId: project?.id ?? (PROJECT_INTENTS.has(intent) ? undefined : previous?.projectId), lang, fallbacks: 0 } };
+}
+
+/** La question porte sur les offres elles-mêmes : le modèle reçoit alors toute la grille. */
+const OFFER_WORDS = /\b(packs?|offres?|offers?|abonnements?|subscriptions?|formules?|tarifs?|prix|price|prices|budget)\b/;
+
+/** Intentions réservées à l'équipe. */
+const ADMIN_ONLY: ReadonlySet<BuddyIntentId> = new Set(["review", "tasks"]);
+
+/** Une demande d'explication plutôt que de données. */
+const EXPLAIN = /\b(comment|pourquoi|how|why|combien de temps|how long|kifech|kifach|3lech|alech|difference|differences|c est quoi|qu est ce qu un|qu est ce que c est|what is|what s the difference|explique|expliquez|explain)\b/;
+
+const isIntent = (c: Classified): c is BuddyIntentId => (INTENT_IDS as string[]).includes(c);
+
+/**
+ * Réponse rédigée par le modèle local. Question générale : contenu public
+ * seul. Question sur le compte : faits du compte (cloisonnés) + mode d'emploi
+ * de l'espace. Null si le modèle ne sait pas ou si guard.ts refuse sa réponse.
+ */
+async function aiAnswer(
+  ai: LocalModel, kind: "question" | "account_question", t: Strings, ctx: BuddyCtx, message: string,
+  source: BuddyDataSource, now: Date, previous: BuddyContext | undefined, suggestions: string[], focusOffers = false,
+): Promise<BuddyResult | null> {
+  const lang = t.lang;
+  const account = kind === "account_question";
+  const products = await source.products();
+
+  if (account) {
+    // Question sur le compte : les faits du compte, le contenu des packs que
+    // ce client a commandés, et le mode d'emploi de l'espace le plus proche.
+    const facts = await accountFacts(t, ctx, source, now);
+    const owned = productChunks(products.filter((p) => facts.includes(p.name)), lang, t.money);
+    const guide = await retrieve(message, guideChunks(lang), 2, ai);
+    const r = await compose(ai, { lang, message, facts, knowledge: [...owned, ...guide] });
+    return r ? aiResult(t, ctx, r.text, previous, suggestions) : null;
+  }
+
+  const pool = publicKnowledge(products, lang, t.money);
+  const isPack = (c: { id: string }) => c.id.startsWith("pack:");
+  // Question d'offre : les extraits du site les plus proches, puis toute la grille (peu d'offres).
+  // Sinon : les extraits les plus proches, puis la présentation de l'agence — les premiers priment.
+  const knowledge = focusOffers
+    ? [...(await retrieve(message, pool.filter((c) => !isPack(c)), 3, ai)), ...pool.filter(isPack)]
+    : await retrieve(message, pool, 3, ai).then((found) => [...found, ...pool.filter((c) => c.id === `site:${lang}:about` && !found.includes(c))]);
+  const r = await compose(ai, { lang, message, knowledge });
+  return r ? aiResult(t, ctx, r.text, previous, suggestions) : null;
+}
+
+function aiResult(t: Strings, ctx: BuddyCtx, text: string, previous: BuddyContext | undefined, suggestions: string[]): BuddyResult {
+  const lang = t.lang;
+  return {
+    kind: "answer",
+    lang,
+    text,
+    ai: true,
+    suggestions: suggestions.slice(0, 3),
+    actions: ctx.role === "CLIENT" ? [{ label: t.actions.messages, href: "/client/messages" }] : undefined,
+    context: { intent: "help", projectId: previous?.projectId, lang, fallbacks: 0 },
+  };
 }
 
 function clarify(t: Strings, intent: BuddyIntentId, options: ProjectDTO[], lang: Lang, previous?: BuddyContext): BuddyResult {

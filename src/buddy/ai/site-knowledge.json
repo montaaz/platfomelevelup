@@ -1,0 +1,270 @@
+{
+ "source": "levelupia.agency",
+ "generatedAt": "2026-10-03",
+ "chunks": [
+  {
+   "id": "site:fr:about",
+   "lang": "fr",
+   "title": "À propos de Level Up IA",
+   "text": "LevelUp AI crée des sites web accessibles, des vidéos commerciales générées par IA et des automatisations concrètes pour les PME et les startups. LevelUp AI aide les business et les startups à gagner en crédibilité, à avancer plus vite et à croître plus intelligemment : sites web accessibles, vidéos commerciales IA et automatisations concrètes. Pensé pour tous les business. Livraison rapide et ciblée. IA guidée par l'humain De la première impression au suivi en coulisses, nous aidons votre entreprise à paraître plus professionnelle et plus performante. Level Up AI devient l'un des premiers acteurs du marché à proposer des services de marketing digital entièrement propulsés par l'IA. Sites web, shootings produit et vidéos, livrés plus rapidement, au même niveau de qualité, à des tarifs nettement plus compétitifs. Pensé pour les entreprises qui veulent une présence digitale professionnelle sans les délais et les coûts de la production classique, et pour les clients déjà accompagnés qui souhaitent aller plus loin dans leur transformation digitale."
+  },
+  {
+   "id": "site:fr:sectors",
+   "lang": "fr",
+   "title": "Secteurs et exemples de réalisations",
+   "text": "Pensé pour tous les business. Exemples de secteurs : Mode, Pharmaceutique, Hôtellerie / Maisons d'hôtes, Immobilier. Exemples de publicités IA réalisées : Publicité beauté, Publicité maquillage, Publicité restauration, Campagne joaillerie. Un aperçu du style cinématographique que nous produisons — pas des projets clients, juste l'étendue de nos possibilités."
+  },
+  {
+   "id": "site:fr:services-lead",
+   "lang": "fr",
+   "title": "Quatre packs pour faire décoller votre activité.",
+   "text": "Pas besoin d'un budget d'agence. Choisissez le pack qui correspond à votre situation aujourd'hui — site web, visuels et vidéo, réunis à un tarif clair."
+  },
+  {
+   "id": "site:fr:service-0",
+   "lang": "fr",
+   "title": "Sites web IA",
+   "text": "Des sites vitrines professionnels, rapides et optimisés. Livrés en quelques jours plutôt qu'en semaines."
+  },
+  {
+   "id": "site:fr:service-1",
+   "lang": "fr",
+   "title": "Site marchand IA",
+   "text": "Boutique en ligne complète avec paiement, commandes et suivi client. Automatisation des emails, WhatsApp, paniers abandonnés et relances.Gestion des produits, stocks, livraisons, promotions et analyse des ventes."
+  },
+  {
+   "id": "site:fr:service-2",
+   "lang": "fr",
+   "title": "Shootings & vidéos IA",
+   "text": "Photos et vidéos produits générées par l’IA pour vos réseaux sociaux, vos publicités et votre e-commerce, avec un rendu haut de gamme et rapide à produire."
+  },
+  {
+   "id": "site:fr:service-3",
+   "lang": "fr",
+   "title": "Rédaction IA",
+   "text": "Fiches produit, descriptions e-commerce et textes publicitaires rédigés et adaptés à la voix de la marque du client."
+  },
+  {
+   "id": "site:fr:service-4",
+   "lang": "fr",
+   "title": "Voix off & doublage multilingue",
+   "text": "Vos vidéos disponibles en plusieurs langues sans nouveau tournage, pour atteindre les marchés internationaux."
+  },
+  {
+   "id": "site:fr:service-5",
+   "lang": "fr",
+   "title": "Avatars & porte-parole virtuels",
+   "text": "Une présence régulière à l'image pour la marque, sans mobiliser une personne réelle à chaque tournage."
+  },
+  {
+   "id": "site:fr:service-6",
+   "lang": "fr",
+   "title": "Chatbots & automatisation",
+   "text": "Des agents conversationnels pour le support client ou la prise de rendez-vous, sur WhatsApp, votre site ou Messenger."
+  },
+  {
+   "id": "site:fr:service-7",
+   "lang": "fr",
+   "title": "SEO, référencement, email marketing automatisé",
+   "text": "Référencement naturel et pages optimisées pour être trouvé, plus des campagnes email automatisées : segmentation, personnalisation et relances pilotées par l'IA."
+  },
+  {
+   "id": "site:fr:service-8",
+   "lang": "fr",
+   "title": "Identité visuelle express",
+   "text": "Logo et charte graphique générés rapidement pour les entreprises qui démarrent."
+  },
+  {
+   "id": "site:fr:approach-0",
+   "lang": "fr",
+   "title": "Partir de l'objectif business",
+   "text": "Nous n'ajoutons pas de l'IA parce que c'est à la mode. Nous partons du client, du point de blocage et du résultat que vous visez."
+  },
+  {
+   "id": "site:fr:approach-1",
+   "lang": "fr",
+   "title": "Concevoir pour la clarté",
+   "text": "Votre site, votre vidéo ou votre automatisation doit rester simple à utiliser et facile à comprendre — même quand la technologie derrière est avancée."
+  },
+  {
+   "id": "site:fr:approach-2",
+   "lang": "fr",
+   "title": "Construire à la bonne échelle",
+   "text": "Pas de package surdimensionné. Pas de complexité inutile. Vous obtenez ce dont votre entreprise a besoin maintenant, avec de la marge pour grandir."
+  },
+  {
+   "id": "site:fr:approach-3",
+   "lang": "fr",
+   "title": "Rester humain là où ça compte",
+   "text": "L'IA nous fait avancer plus vite, mais votre voix, votre jugement et vos relations clients restent au centre."
+  },
+  {
+   "id": "site:fr:process",
+   "lang": "fr",
+   "title": "De l'idée au lancement, en toute clarté.",
+   "text": "Un processus resserré garde les projets en mouvement, les décisions simples et les imprévus au minimum. 1. Découvrir : Nous comprenons votre entreprise, votre audience, votre offre et le résultat attendu. 2. Cadrer : Nous définissons le bon périmètre, la direction créative, le message et le plan de projet. 3. Créer : Nous concevons, testons et affinons l'expérience avec vos retours. 4. Lancer : Nous livrons le projet final, expliquons son fonctionnement et vous aidons à avancer."
+  },
+  {
+   "id": "site:fr:faq-0",
+   "lang": "fr",
+   "title": "Vos sites sont-ils vraiment adaptés à une petite entreprise?",
+   "text": "Oui. Nous ajustons le périmètre à ce dont votre entreprise a le plus besoin, pour que vous puissiez lancer un site professionnel sans payer des pages ou des fonctionnalités inutiles."
+  },
+  {
+   "id": "site:fr:faq-1",
+   "lang": "fr",
+   "title": "Pouvez-vous créer une publicité IA sans tournage vidéo classique ?",
+   "text": "Oui. Selon le concept, nous combinons images produit, scènes générées par IA, animation, voix off, musique et montage pour créer une publicité soignée."
+  },
+  {
+   "id": "site:fr:faq-2",
+   "lang": "fr",
+   "title": "Quelles tâches d'entreprise pouvez-vous automatiser ?",
+   "text": "Par exemple : la collecte et la qualification des prospects, les emails de relance, les rappels de rendez-vous, la génération de contenu, les flux documentaires et la synchronisation entre vos outils."
+  },
+  {
+   "id": "site:fr:faq-3",
+   "lang": "fr",
+   "title": "Dois-je m'y connaître en IA ou en technologie ?",
+   "text": "Non. Nous expliquons le projet dans un langage business, gardons le système simple et vous montrons exactement comment utiliser ce que nous créons."
+  },
+  {
+   "id": "site:fr:contact",
+   "lang": "fr",
+   "title": "Prêt à passer au niveau supérieur ?",
+   "text": "Dites-nous ce que vous construisez, ce que vous promouvez ou ce que vous cherchez à simplifier. Nous vous aiderons à choisir la première étape la plus pertinente. Un bon premier message contient : Ce que fait votre entreprise (Une courte description suffit.), Ce que vous voulez créer (Site web, vidéo, automatisation, ou une combinaison.), Votre objectif et vos délais (À quoi ressemble la réussite et pour quand vous en avez besoin.)"
+  },
+  {
+   "id": "site:en:about",
+   "lang": "en",
+   "title": "About Level Up IA",
+   "text": "LevelUp AI builds affordable websites, AI-powered commercial videos, and smart business automations for small businesses and startups. LevelUp AI helps businesses and startups look bigger, move faster, and grow smarter with affordable websites, AI commercial videos, and practical automations. Built for every business. Fast, focused delivery. Human-guided AI From the first impression to the follow-up behind the scenes, we help your business feel more professional and more capable. Level Up is expanding into one of the first players on the market offering fully AI-powered digital marketing services. Websites, product shoots, and videos, produced faster, at the same quality bar, for noticeably more competitive rates. Built for businesses that want a professional digital presence without the delays and costs of classic production, and for existing clients ready to go further in their digital transformation."
+  },
+  {
+   "id": "site:en:sectors",
+   "lang": "en",
+   "title": "Sectors and sample work",
+   "text": "Built for every business. Sample sectors : Fashion, Pharmaceutical, hotellerie / airbnb, Real estate. Sample AI commercials produced : Beauty commercial, Makeup commercial, Restaurant commercial, Jewelry campaign. A look at the kind of cinematic style we produce — not client work, just the range."
+  },
+  {
+   "id": "site:en:services-lead",
+   "lang": "en",
+   "title": "Four packs to level up your business.",
+   "text": "You do not need a giant agency budget. Pick the pack that matches where your business is today — website, visuals, and video, bundled at one clear price."
+  },
+  {
+   "id": "site:en:service-0",
+   "lang": "en",
+   "title": "AI websites",
+   "text": "Professional, fast, optimized showcase sites. Delivered in days instead of weeks."
+  },
+  {
+   "id": "site:en:service-1",
+   "lang": "en",
+   "title": "AI-Powered E-Commerce Website",
+   "text": "Complete online store with payments, orders, products, inventory, and delivery. Automated emails, WhatsApp, cart recovery, customer follow-ups, and sales tracking."
+  },
+  {
+   "id": "site:en:service-2",
+   "lang": "en",
+   "title": "AI-Powered Product Photography & Video",
+   "text": "High-quality product photos and videos created with AI for your social media, advertising, and e-commerce — with a premium look and faster production."
+  },
+  {
+   "id": "site:en:service-3",
+   "lang": "en",
+   "title": "AI copywriting",
+   "text": "Product sheets, e-commerce descriptions, and ad copy written and tailored to the client's brand voice."
+  },
+  {
+   "id": "site:en:service-4",
+   "lang": "en",
+   "title": "Voiceover & multilingual dubbing",
+   "text": "Videos available in multiple languages with no new shoot, so you can reach international markets."
+  },
+  {
+   "id": "site:en:service-5",
+   "lang": "en",
+   "title": "Avatars & virtual spokespeople",
+   "text": "Regular on-camera presence for the brand without needing a real person for every shoot."
+  },
+  {
+   "id": "site:en:service-6",
+   "lang": "en",
+   "title": "Chatbots & automation",
+   "text": "Conversational agents for customer support or booking, on WhatsApp, your website, or Messenger."
+  },
+  {
+   "id": "site:en:service-7",
+   "lang": "en",
+   "title": "SEO, search engine optimization, automated email marketing",
+   "text": "Search engine optimization and pages built to be found, plus automated email campaigns: segmentation, personalization, and follow-ups driven by AI."
+  },
+  {
+   "id": "site:en:service-8",
+   "lang": "en",
+   "title": "Express visual identity",
+   "text": "Logo and brand guidelines generated quickly for businesses just getting started."
+  },
+  {
+   "id": "site:en:approach-0",
+   "lang": "en",
+   "title": "Start with the business goal",
+   "text": "We do not add AI just because it is trendy. We begin with the customer, the bottleneck, and the result you want."
+  },
+  {
+   "id": "site:en:approach-1",
+   "lang": "en",
+   "title": "Design for clarity",
+   "text": "Your website, video, or automation should feel simple to use and easy to understand - even when the technology behind it is advanced."
+  },
+  {
+   "id": "site:en:approach-2",
+   "lang": "en",
+   "title": "Build the right-sized solution",
+   "text": "No bloated package. No unnecessary complexity. You get what your business needs now, with room to grow later."
+  },
+  {
+   "id": "site:en:approach-3",
+   "lang": "en",
+   "title": "Stay human where it matters",
+   "text": "AI helps us move faster, but your voice, judgment, and customer relationships stay at the center."
+  },
+  {
+   "id": "site:en:process",
+   "lang": "en",
+   "title": "Clear from idea to launch.",
+   "text": "A focused process keeps projects moving, decisions easy, and surprises to a minimum. 1. Discover : We understand your business, audience, offer, and the result you need. 2. Shape : We define the right scope, creative direction, message, and project plan. 3. Build : We create, test, and refine the experience with your feedback. 4. Launch : We deliver the final project, explain how it works, and help you move forward."
+  },
+  {
+   "id": "site:en:faq-0",
+   "lang": "en",
+   "title": "Are your websites really affordable for a small business?",
+   "text": "Yes. We shape the scope around what your business needs most, so you can launch a professional site without paying for unnecessary pages or features."
+  },
+  {
+   "id": "site:en:faq-1",
+   "lang": "en",
+   "title": "Can you create an AI commercial without a traditional video shoot?",
+   "text": "Yes. Depending on the concept, we can combine product images, AI-generated scenes, motion, voiceover, music, and editing to create a polished commercial."
+  },
+  {
+   "id": "site:en:faq-2",
+   "lang": "en",
+   "title": "What kind of business tasks can you automate?",
+   "text": "Common examples include lead capture, qualification, follow-up emails, appointment reminders, content generation, document workflows, and updates between business tools."
+  },
+  {
+   "id": "site:en:faq-3",
+   "lang": "en",
+   "title": "Do I need to understand AI or technology?",
+   "text": "No. We explain the project in business language, keep the system practical, and show you exactly how to use what we build."
+  },
+  {
+   "id": "site:en:contact",
+   "lang": "en",
+   "title": "Ready to level up?",
+   "text": "Tell us what you are building, promoting, or trying to simplify. We will help you choose the smartest first step. A good first message includes: What your business does (A short description is enough.), What you want to create (Website, video, automation, or a combination.), Your goal and timing (What success looks like and when you need it.)"
+  }
+ ]
+}
