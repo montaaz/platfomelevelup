@@ -256,6 +256,8 @@ export async function clientHome(ctx: Ctx) {
   return {
     featured: featured ? mapProject(featured) : null,
     others: others.map(mapProject),
+    // Tous les projets en cours, celui mis en avant compris : la carte « Vos projets » les liste tous.
+    active: active.map((p) => ({ ...mapProject(p), featured: p === featured })),
     unreadCount,
     teamMessages: teamMessages.map((m) => ({
       projectId: m.projectId.toString(),

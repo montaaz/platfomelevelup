@@ -69,7 +69,11 @@ export default async function ClientHomePage() {
                 <p className="text-[12px] text-white/80">Statut actuel</p>
                 <p className="mt-1 text-[19px] leading-tight font-bold sm:text-[26px]">{PROJECT_STATUS_LABEL[featured.status]}</p>
                 <p className="mt-1 text-[11.5px] text-white/78">
-                  {featured.status === "EN_REVISION" ? "votre validation est attendue" : "l'équipe travaille pour vous"}
+                  {featured.status === "EN_REVISION"
+                    ? "votre validation est attendue"
+                    : featured.status === "EN_ATTENTE_PAIEMENT"
+                      ? "démarrage après paiement"
+                      : "l'équipe travaille pour vous"}
                 </p>
               </div>
               <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
@@ -180,23 +184,26 @@ export default async function ClientHomePage() {
         </Card>
       )}
 
-      {/* ============================== Autres projets + messages */}
+      {/* ============================== Projets en cours + messages */}
       <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader
-            title="Vos autres projets"
-            subtitle={`${data.others.length} projet${data.others.length > 1 ? "s" : ""} en cours`}
+            title="Vos projets"
+            subtitle={`${data.active.length} projet${data.active.length > 1 ? "s" : ""} en cours`}
             action={{ label: "Tout voir", href: "/client/historique" }}
           />
           <div className="divide-y divide-ink/4 pb-2">
-            {data.others.length === 0 && <EmptyState message="Aucun autre projet en cours." />}
-            {data.others.map((project) => (
+            {data.active.length === 0 && <EmptyState message="Aucun projet en cours." />}
+            {data.active.map((project) => (
               <div key={project.id} className="px-5 py-4 sm:px-6">
                 <div className="flex items-center gap-3">
                   <Avatar name={project.title} size={36} />
                   <div className="min-w-0 flex-1">
                     <p className="sm:truncate text-[13.5px] font-semibold text-ink">{project.title}</p>
-                    <p className="text-[11.5px] text-ink/60">{project.serviceName}</p>
+                    <p className="text-[11.5px] text-ink/60">
+                      {project.serviceName}
+                      {project.featured && data.active.length > 1 ? " · affiché ci-dessus" : ""}
+                    </p>
                   </div>
                   <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />
                 </div>
