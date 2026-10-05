@@ -80,7 +80,11 @@ export default async function PaiementPage({
         )}
 
         {access.accessGranted ? (
-          <Link href="/client" className={styles.back} style={{ display: "block", marginTop: 18, textAlign: "center" }}>
+          <Link
+            href="/client"
+            className={styles.back}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 18 }}
+          >
             Retour à mon espace
           </Link>
         ) : (

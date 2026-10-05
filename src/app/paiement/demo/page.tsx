@@ -12,8 +12,8 @@ export const metadata = { title: "Paiement — démonstration" };
  * Écran de paiement SIMULÉ, affiché à la place de la page de carte de la
  * banque tant que la passerelle ClicToPay n'est pas configurée.
  *
- * Il ne demande aucune carte et n'encaisse rien : « accepté » mène à
- * l'inscription, où la commande est créée EN ATTENTE de règlement, exactement
+ * Il ne demande aucune carte et n'encaisse rien : « accepté » enregistre la
+ * commande EN ATTENTE de règlement (voir /api/paiement/demo), exactement
  * comme avant. Une simulation ne doit jamais produire une commande payée —
  * cette page est publique.
  */
@@ -62,17 +62,16 @@ export default async function PaiementDemoPage({
           demandée et aucun montant n&apos;est débité.
         </p>
 
+        <form action="/api/paiement/demo" method="POST">
+          <input type="hidden" name="pack" value={pack.code} />
+          <button type="submit" className={styles.submit} style={{ marginTop: 16 }}>
+            Simuler un paiement accepté
+          </button>
+        </form>
         <Link
-          href={`/inscription?pack=${encodeURIComponent(pack.code)}&demo=1`}
-          className={styles.submit}
-          style={{ display: "block", marginTop: 16, textAlign: "center", textDecoration: "none" }}
-        >
-          Simuler un paiement accepté
-        </Link>
-        <Link
-          href="/paiement/echec"
+          href="/paiement/echec?motif=demo"
           className={styles.back}
-          style={{ display: "block", marginTop: 10, textAlign: "center" }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 12 }}
         >
           Simuler un paiement refusé
         </Link>

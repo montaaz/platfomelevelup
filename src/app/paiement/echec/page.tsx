@@ -10,6 +10,10 @@ const MESSAGES: Record<string, { title: string; text: string }> = {
     title: "Paiement en cours de vérification",
     text: "Nous n'avons pas encore reçu la confirmation de la banque. Si votre carte a été débitée, votre commande sera validée automatiquement : inutile de payer une seconde fois.",
   },
+  demo: {
+    title: "Paiement refusé (démonstration)",
+    text: "Voici l'écran qu'un client verra si sa carte est refusée. Aucun montant n'a été débité et aucune commande n'a été enregistrée.",
+  },
   indisponible: {
     title: "Paiement en ligne indisponible",
     text: "La banque ne répond pas pour le moment. Réessayez dans quelques minutes ou contactez l'équipe.",
@@ -36,7 +40,11 @@ export default async function PaiementEchecPage({
         <p className={styles.hint} style={{ marginTop: 14 }}>
           Besoin d&apos;aide ? contact@levelupia.agency
         </p>
-        <Link href="/client" className={styles.back} style={{ display: "block", marginTop: 18, textAlign: "center" }}>
+        <Link
+          href="/client"
+          className={styles.back}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 18 }}
+        >
           Retour à mon espace
         </Link>
       </div>
