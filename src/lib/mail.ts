@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { stripPublicPort } from "@/lib/publicUrl";
 
@@ -35,8 +35,8 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
-let smtp: nodemailer.Transporter | null = null;
-function smtpTransport(): nodemailer.Transporter | null {
+let smtp: Transporter | null = null;
+function smtpTransport(): Transporter | null {
   const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null;
   const port = Number(process.env.SMTP_PORT ?? 465);

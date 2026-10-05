@@ -2,7 +2,7 @@
   "name": "levelup-ai-platforme",
   "version": "1.0.0",
   "private": true,
-  "description": "Level Up IA — Dashboard (espace admin + espace client)",
+  "description": "Level Up IA \u2014 Dashboard (espace admin + espace client)",
   "engines": {
     "node": ">=20.9.0"
   },
@@ -23,7 +23,7 @@
     "graphql-yoga": "^5.15.1",
     "jose": "^6.0.13",
     "next": "^15.4.6",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^10.0.15",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "recharts": "^3.1.2",
@@ -40,5 +40,9 @@
     "tsx": "^4.20.4",
     "typescript": "^5.9.2",
     "vitest": "^5.0.1"
+  },
+  "overrides": {
+    "postcss": "^8.5.23",
+    "deepmerge-ts": "^8.0.0"
   }
 }
