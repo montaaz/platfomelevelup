@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { requireCtx } from "@/server/context";
 import { clientHome } from "@/server/services/dashboard";
-import { myAccessState } from "@/server/services/orders";
+import { myPendingOrders } from "@/server/services/orders";
 import { Card, CardHeader, StatusBadge, Avatar, ProgressBar, EmptyState } from "@/components/ui";
 import { DeliverableActions } from "@/components/client/DeliverableActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
-import { primaryBtnCls } from "@/components/Modal";
-import { clictopayConfigured } from "@/lib/clictopay";
+import { PayOrderButton } from "@/components/client/PayOrderButton";
 import { formatDT, formatDateShort, formatBytes, relativeTime, PROJECT_STATUS_LABEL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +17,8 @@ function daysUntil(iso: string | null) {
 
 export default async function ClientHomePage() {
   const ctx = await requireCtx("CLIENT");
-  const [data, access] = await Promise.all([clientHome(ctx), myAccessState(ctx)]);
-  const pending = access.pendingOrder;
+  const [data, pendingOrders] = await Promise.all([clientHome(ctx), myPendingOrders(ctx)]);
+  const orderOfProject = new Map(pendingOrders.flatMap((o) => (o.projectId ? [[o.projectId, o.id] as const] : [])));
   const featured = data.featured;
   const days = featured ? daysUntil(featured.dueDate) : null;
   const latestDeliverable = featured?.deliverables[0];
@@ -27,8 +26,8 @@ export default async function ClientHomePage() {
 
   return (
     <div className="space-y-5 pb-8">
-      {pending && (
-        <Card>
+      {pendingOrders.map((pending) => (
+        <Card key={pending.id}>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-5">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-[20px]">
               ⏳
@@ -46,19 +45,10 @@ export default async function ClientHomePage() {
               {formatDT(pending.amount)}
               {pending.isMonthly ? "/mois" : ""}
             </p>
-            {clictopayConfigured() && (
-              <form action="/api/paiement/demarrer" method="POST">
-                <button
-                  type="submit"
-                  className={`${primaryBtnCls} whitespace-nowrap`}
-                >
-                  Payer par carte
-                </button>
-              </form>
-            )}
+            <PayOrderButton orderId={pending.id} />
           </div>
         </Card>
-      )}
+      ))}
       {featured ? (
         <>
           {/* ============================== Hero: the project awaiting action */}
@@ -218,6 +208,7 @@ export default async function ClientHomePage() {
                     </p>
                   </div>
                   <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />
+                  {orderOfProject.has(project.id) && <PayOrderButton orderId={orderOfProject.get(project.id)!} small />}
                 </div>
                 <div className="mt-3 flex items-center gap-3">
                   <div className="flex-1">

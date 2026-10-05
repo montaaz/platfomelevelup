@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import styles from "@/styles/neu.module.css";
 import { ctxOrNull } from "@/server/context";
-import { myAccessState } from "@/server/services/orders";
+import Link from "next/link";
+import { myAccessState, myPendingOrders } from "@/server/services/orders";
 import { formatDT } from "@/lib/format";
 import { clictopayConfigured } from "@/lib/clictopay";
 
@@ -11,13 +12,21 @@ export const dynamic = "force-dynamic";
  * Écran d'attente de paiement. Tant que l'admin ou la banque n'a
  * pas confirmé l'encaissement, le client ne peut pas entrer dans la plateforme.
  */
-export default async function PaiementPage() {
+export default async function PaiementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ commande?: string }>;
+}) {
   const ctx = await ctxOrNull("CLIENT");
   if (!ctx) redirect("/api/auth/logout?motif=compte_bloque");
-  const access = await myAccessState(ctx);
-  if (access.accessGranted) redirect("/client");
-
-  const order = access.pendingOrder;
+  const [access, pendingOrders, { commande }] = await Promise.all([
+    myAccessState(ctx),
+    myPendingOrders(ctx),
+    searchParams,
+  ]);
+  // La commande désignée par le bouton « Payer », sinon la plus récente.
+  const order = pendingOrders.find((o) => o.id === commande) ?? pendingOrders[0] ?? null;
+  if (!order && access.accessGranted) redirect("/client");
   const payOnline = order != null && clictopayConfigured();
 
   return (
@@ -63,17 +72,24 @@ export default async function PaiementPage() {
 
         {payOnline && (
           <form action="/api/paiement/demarrer" method="POST" style={{ marginTop: 14 }}>
+            <input type="hidden" name="orderId" value={order.id} />
             <button type="submit" className={styles.submit} style={{ width: "100%" }}>
               Payer par carte
             </button>
           </form>
         )}
 
-        <form action="/api/auth/logout" method="POST" style={{ marginTop: 18 }}>
-          <button type="submit" className={styles.back} style={{ width: "100%" }}>
-            Se déconnecter
-          </button>
-        </form>
+        {access.accessGranted ? (
+          <Link href="/client" className={styles.back} style={{ display: "block", marginTop: 18, textAlign: "center" }}>
+            Retour à mon espace
+          </Link>
+        ) : (
+          <form action="/api/auth/logout" method="POST" style={{ marginTop: 18 }}>
+            <button type="submit" className={styles.back} style={{ width: "100%" }}>
+              Se déconnecter
+            </button>
+          </form>
+        )}
       </div>
     </main>
   );

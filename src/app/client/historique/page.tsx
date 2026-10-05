@@ -1,5 +1,7 @@
 import { requireCtx } from "@/server/context";
 import { clientHistory } from "@/server/services/directory";
+import { myPendingOrders } from "@/server/services/orders";
+import { PayOrderButton } from "@/components/client/PayOrderButton";
 import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/ui";
 import { formatDT, formatDateFull, PROJECT_STATUS_LABEL } from "@/lib/format";
 
@@ -7,7 +9,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientHistoryPage() {
   const ctx = await requireCtx("CLIENT");
-  const history = await clientHistory(ctx);
+  const [history, pendingOrders] = await Promise.all([clientHistory(ctx), myPendingOrders(ctx)]);
+  const orderOfProject = new Map(pendingOrders.flatMap((o) => (o.projectId ? [[o.projectId, o.id] as const] : [])));
 
   return (
     <div className="space-y-5 pb-8">
@@ -38,7 +41,8 @@ export default async function ClientHistoryPage() {
                 <th className="px-4 py-2.5">Statut</th>
                 <th className="px-4 py-2.5">Commandé le</th>
                 <th className="px-4 py-2.5">Livré le</th>
-                <th className="px-6 py-2.5 text-right">Montant</th>
+                <th className="px-4 py-2.5 text-right">Montant</th>
+                <th className="px-6 py-2.5 text-right">Paiement</th>
               </tr>
             </thead>
             <tbody>
@@ -58,7 +62,16 @@ export default async function ClientHistoryPage() {
                   </td>
                   <td className="px-4 py-3.5 text-[13px] text-ink/72">{formatDateFull(h.startDate ?? h.createdAt)}</td>
                   <td className="px-4 py-3.5 text-[13px] text-ink/72">{formatDateFull(h.deliveredAt)}</td>
-                  <td className="px-6 py-3.5 text-right text-[13.5px] font-semibold">{formatDT(h.price)}</td>
+                  <td className="px-4 py-3.5 text-right text-[13.5px] font-semibold whitespace-nowrap">{formatDT(h.price)}</td>
+                  <td className="px-6 py-3.5">
+                    <div className="flex justify-end">
+                      {orderOfProject.has(h.id) ? (
+                        <PayOrderButton orderId={orderOfProject.get(h.id)!} small />
+                      ) : (
+                        <span className="text-[13px] text-ink/40">—</span>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

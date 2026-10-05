@@ -170,6 +170,26 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
 }
 
 
+/**
+ * Commandes du client connecté qui attendent encore leur règlement, de la
+ * plus récente à la plus ancienne : chacune porte un bouton « Payer ».
+ */
+export async function myPendingOrders(ctx: Ctx) {
+  const clientId = clientScope(ctx);
+  const orders = await prisma.order.findMany({
+    where: { clientId, status: "EN_ATTENTE_PAIEMENT" },
+    orderBy: { createdAt: "desc" },
+    include: { pack: true },
+  });
+  return orders.map((o) => ({
+    id: o.id.toString(),
+    projectId: o.projectId?.toString() ?? null,
+    packName: o.pack.name,
+    amount: Number(o.amount),
+    isMonthly: o.pack.isMonthly,
+  }));
+}
+
 /** État d'accès du client connecté : sert à bloquer l'espace client. */
 export async function myAccessState(ctx: Ctx) {
   const clientId = clientScope(ctx);
@@ -433,14 +453,15 @@ export const PAYMENT_RETURN_PATH = "/api/paiement/retour";
 export const PAYMENT_FAIL_PATH = "/api/paiement/echec";
 
 /**
- * Ouvre une transaction ClicToPay pour la commande en attente du client
- * connecté et renvoie la page de saisie de carte de la banque.
- * Le montant est celui de la commande en base, jamais celui du navigateur.
+ * Ouvre une transaction ClicToPay pour une commande en attente du client
+ * connecté (la plus récente si aucune n'est désignée) et renvoie la page de
+ * saisie de carte de la banque. Le navigateur ne désigne que la commande : son
+ * appartenance au client est vérifiée ici et son montant relu en base.
  */
-export async function startOnlinePayment(ctx: Ctx): Promise<string> {
+export async function startOnlinePayment(ctx: Ctx, orderId?: bigint): Promise<string> {
   const clientId = clientScope(ctx);
   const order = await prisma.order.findFirst({
-    where: { clientId, status: "EN_ATTENTE_PAIEMENT" },
+    where: { clientId, status: "EN_ATTENTE_PAIEMENT", ...(orderId != null ? { id: orderId } : {}) },
     orderBy: { createdAt: "desc" },
     include: { pack: true },
   });
