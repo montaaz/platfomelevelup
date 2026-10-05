@@ -102,7 +102,8 @@ export function DeleteClientButton({
           )}
 
           <p className="text-[12px] text-ink/55">
-            Les données ne sont pas effacées : contactez-nous si vous devez revenir en arrière.
+            Les données ne sont pas effacées : le client passe dans « Clients supprimés », en bas de
+            cette page, d&apos;où vous pouvez le réactiver.
           </p>
 
           {error && <p className="text-[12.5px] text-red-600">{error}</p>}

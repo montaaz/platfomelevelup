@@ -4,7 +4,9 @@ import { listClients } from "@/server/services/directory";
 import { Card, CardHeader, Avatar, EmptyState } from "@/components/ui";
 import { ClientFormButton } from "@/components/admin/ClientFormModal";
 import { DeleteClientButton } from "@/components/admin/DeleteClientButton";
-import { formatDT } from "@/lib/format";
+import { ArchivedClientActions } from "@/components/admin/ArchivedClientActions";
+import { listArchivedClients } from "@/server/services/adminActions";
+import { formatDT, formatDateFull } from "@/lib/format";
 import { countryFlag } from "@/lib/countries";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +19,7 @@ export default async function AdminClientsPage({
   const ctx = await requireCtx("ADMIN");
   const { pays } = await searchParams;
   const country = pays?.trim() || null;
-  const clients = await listClients(ctx, country);
+  const [clients, archived] = await Promise.all([listClients(ctx, country), listArchivedClients(ctx)]);
   const totalUnpaid = clients.reduce((s, c) => s + c.unpaidTotal, 0);
 
   return (
@@ -138,6 +140,61 @@ export default async function AdminClientsPage({
           {clients.length === 0 && <EmptyState message="Aucun client." />}
         </div>
       </Card>
+
+      {archived.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Clients supprimés"
+            subtitle={`${archived.length} fiche${archived.length > 1 ? "s" : ""} — à réactiver ou à supprimer définitivement`}
+          />
+          <div className="overflow-x-auto">
+            <table className="rt w-full min-w-200 text-left">
+              <thead>
+                <tr className="border-y border-ink/5 text-[10.5px] font-semibold tracking-[0.1em] text-ink/60 uppercase">
+                  <th className="px-6 py-2.5">Entreprise</th>
+                  <th className="px-4 py-2.5">Contact</th>
+                  <th className="px-4 py-2.5">Supprimé le</th>
+                  <th className="px-4 py-2.5">Projets</th>
+                  <th className="px-4 py-2.5">Factures</th>
+                  <th className="px-6 py-2.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {archived.map((client) => (
+                  <tr key={client.id} className="border-b border-ink/4 last:border-0 hover:bg-white/40">
+                    <td className="px-6 py-3.5">
+                      <div className="flex items-center gap-3 opacity-70">
+                        <Avatar name={client.companyName} size={38} />
+                        <div className="min-w-0">
+                          <p className="text-[13.5px] font-semibold text-ink sm:truncate">{client.companyName}</p>
+                          <p className="truncate text-[12px] text-ink/60">{client.city ?? client.email ?? "—"}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <p className="text-[13px] text-ink">{client.contactName}</p>
+                      <p className="text-[11.5px] text-ink/60">{client.email ?? "—"}</p>
+                    </td>
+                    <td className="px-4 py-3.5 text-[13px] whitespace-nowrap text-ink/72">
+                      {formatDateFull(client.deletedAt)}
+                    </td>
+                    <td className="px-4 py-3.5 text-[13px] text-ink/82">{client.projects}</td>
+                    <td className="px-4 py-3.5 text-[13px] text-ink/82">{client.invoices}</td>
+                    <td className="px-6 py-3.5 text-right whitespace-nowrap">
+                      <ArchivedClientActions
+                        clientId={client.id}
+                        companyName={client.companyName}
+                        projects={client.projects}
+                        invoices={client.invoices}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import path from "node:path";
+import { unlink } from "node:fs/promises";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -149,6 +151,119 @@ export async function clientDeletionImpact(ctx: Ctx, clientId: bigint) {
     prisma.user.count({ where: { clientId, isActive: true } }),
   ]);
   return { companyName: client.companyName, projects, invoices, accounts };
+}
+
+/** Même dossier que la route d'envoi des livrables (api/admin/upload). */
+const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
+
+/** Clients supprimés (archivés), du plus récent au plus ancien. */
+export async function listArchivedClients(ctx: Ctx) {
+  assertAdmin(ctx);
+  const clients = await prisma.client.findMany({
+    where: { deletedAt: { not: null } },
+    orderBy: { deletedAt: "desc" },
+    include: { _count: { select: { projects: true, invoices: true } } },
+  });
+  return clients.map((c) => ({
+    id: c.id.toString(),
+    companyName: c.companyName,
+    contactName: c.contactName,
+    email: c.email,
+    city: c.city,
+    deletedAt: c.deletedAt!.toISOString(),
+    projects: c._count.projects,
+    invoices: c._count.invoices,
+  }));
+}
+
+/**
+ * Réactive un client supprimé : sa fiche, ses projets et ses accès de
+ * connexion reviennent comme avant la suppression.
+ *
+ * Seuls les projets partis AVEC la fiche reviennent (même date de
+ * suppression) : un projet supprimé séparément auparavant reste supprimé.
+ */
+export async function restoreClient(ctx: Ctx, clientId: bigint) {
+  assertAdmin(ctx);
+  const client = await prisma.client.findFirst({
+    where: { id: clientId, deletedAt: { not: null } },
+    select: { id: true, deletedAt: true },
+  });
+  if (!client) throw new ForbiddenError();
+
+  await prisma.$transaction(async (tx) => {
+    await tx.client.update({ where: { id: clientId }, data: { deletedAt: null, isActive: true } });
+    await tx.project.updateMany({
+      where: { clientId, deletedAt: client.deletedAt },
+      data: { deletedAt: null },
+    });
+    await tx.user.updateMany({ where: { clientId }, data: { isActive: true } });
+    await tx.auditLog.create({
+      data: { userId: ctx.userId, action: "CLIENT_RESTORE", entityType: "client", entityId: clientId },
+    });
+  });
+
+  const users = await prisma.user.findMany({ where: { clientId }, select: { id: true } });
+  for (const u of users) forgetAccountState(u.id);
+  return true;
+}
+
+/**
+ * Suppression DÉFINITIVE d'un client déjà supprimé : fiche, comptes de
+ * connexion, projets, messages, livrables, commandes et abonnements sont
+ * effacés de la base, sans retour possible.
+ *
+ * Refusée dès qu'il existe une facture : une pièce comptable se conserve dix
+ * ans, le client reste alors simplement archivé.
+ */
+export async function purgeClient(ctx: Ctx, clientId: bigint) {
+  assertAdmin(ctx);
+  const client = await prisma.client.findFirst({
+    where: { id: clientId, deletedAt: { not: null } },
+    select: { id: true, companyName: true },
+  });
+  if (!client) throw new ForbiddenError();
+
+  const invoices = await prisma.invoice.count({ where: { clientId } });
+  if (invoices > 0) {
+    throw new ValidationError(
+      `Ce client a ${invoices} facture${invoices > 1 ? "s" : ""} : la comptabilité impose de les conserver dix ans. ` +
+        `Il ne peut pas être supprimé définitivement et reste archivé.`,
+    );
+  }
+
+  const files = await prisma.file.findMany({
+    where: { project: { clientId } },
+    select: { storageKey: true },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.order.deleteMany({ where: { clientId } });
+    await tx.subscription.deleteMany({ where: { clientId } });
+    // étapes, historique, livrables et messages partent avec le projet
+    await tx.project.deleteMany({ where: { clientId } });
+    // notifications, lectures et échanges avec l'assistant partent avec le compte
+    await tx.user.deleteMany({ where: { clientId } });
+    await tx.client.delete({ where: { id: clientId } });
+    await tx.auditLog.create({
+      data: {
+        userId: ctx.userId,
+        action: "CLIENT_PURGE",
+        entityType: "client",
+        entityId: clientId,
+        metadata: { companyName: client.companyName },
+      },
+    });
+  });
+
+  // Les fichiers ne sont retirés du disque qu'une fois la base à jour ; un
+  // fichier resté sur le disque est sans conséquence, l'inverse ne le serait pas.
+  for (const f of files) {
+    const filePath = path.resolve(STORAGE_ROOT, f.storageKey);
+    if (!filePath.startsWith(STORAGE_ROOT + path.sep)) continue;
+    await unlink(filePath).catch(() => {});
+  }
+  return true;
 }
 
 export async function getClient(ctx: Ctx, clientId: bigint) {
