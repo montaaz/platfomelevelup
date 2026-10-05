@@ -11,6 +11,7 @@ import { createSession } from "@/lib/session";
 import { findPackByCode, createOrderForClient } from "@/server/services/orders";
 import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
+import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
 
 function backToLogin(req: NextRequest, code: string) {
   return NextResponse.redirect(`${buildRedirectUri(req, "/login")}?error=${code}`, 307);
@@ -49,7 +50,9 @@ export async function GET(req: NextRequest) {
 
     // Enregistre la commande si une offre a été choisie sur le vitrine.
     // Le prix est relu en base ; une offre inconnue n'empêche pas la connexion.
-    if (packCode && user.clientId) {
+    // Une offre déjà payée depuis le panier du vitrine devient la commande.
+    const prepaid = await claimPrepaidFromCookie(user.clientId);
+    if (!prepaid && packCode && user.clientId) {
       try {
         const pack = await findPackByCode(packCode);
         await createOrderForClient(user.clientId, pack.code);

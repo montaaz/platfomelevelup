@@ -528,6 +528,7 @@ model Pack {
 
   service Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   orders  Order[]
+  prepaidPayments PrepaidPayment[]
 
   @@map("packs")
 }
@@ -557,8 +558,30 @@ model Order {
   project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   invoice      Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  prepaidPayments PrepaidPayment[]
 
   @@map("orders")
+}
+
+/// Paiement en ligne reçu avant l'inscription (migration 013) : rattaché à un
+/// client, il devient une commande payée.
+model PrepaidPayment {
+  id               BigInt    @id @default(autoincrement())
+  packId           BigInt    @map("pack_id")
+  amount           Decimal   @db.Decimal(12, 3)
+  currency         String    @default("TND") @db.Char(3)
+  status           String    @default("EN_ATTENTE") @db.VarChar(12)
+  gatewayOrderId   String?   @unique @map("gateway_order_id") @db.VarChar(64)
+  paymentReference String?   @map("payment_reference") @db.VarChar(160)
+  paidAt           DateTime? @map("paid_at") @db.Timestamptz(6)
+  orderId          BigInt?   @map("order_id")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pack  Pack   @relation(fields: [packId], references: [id], onDelete: Restrict)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([status], map: "idx_prepaid_status")
+  @@map("prepaid_payments")
 }
 
 /// Échanges avec le Dashboard Buddy, par compte (migration 010).

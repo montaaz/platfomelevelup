@@ -4,6 +4,7 @@ import { signupClient } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
 import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
+import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
 import { readCartToken, findPackByCode, createOrderForClient } from "@/server/services/orders";
 
 const SignupInput = z.object({
@@ -85,7 +86,10 @@ export async function POST(req: NextRequest) {
     const user = await signupClient(parsed.data);
 
     // commande créée : l'accès reste fermé jusqu'à confirmation du paiement
-    if (pack && user.clientId) {
+    // — sauf si l'offre vient d'être payée depuis le panier du site vitrine :
+    // ce paiement devient alors la commande, déjà réglée.
+    const prepaid = await claimPrepaidFromCookie(user.clientId);
+    if (!prepaid && pack && user.clientId) {
       await createOrderForClient(BigInt(user.clientId), pack.code);
     }
     // connexion immédiate après inscription

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { verifyLogin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { recordDetectedCountry } from "@/server/services/geo";
+import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
 
 const LoginInput = z.object({
   email: z.string().email().max(254),
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
     fullName: result.user.fullName,
     email: result.user.email,
   });
+
+  // Paiement fait depuis le panier du site vitrine avant de se connecter :
+  // il devient une commande payée de ce client.
+  await claimPrepaidFromCookie(result.user.clientId);
 
   // Provenance relevée à chaque connexion : le client qui déménage est suivi.
   if (result.user.clientId) {

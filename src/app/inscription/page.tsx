@@ -78,6 +78,17 @@ function InscriptionForm() {
 
         <h1 className={styles.title}>Create Account</h1>
         <p className={styles.subtitle}>Start your journey with us</p>
+        {params.get("demo") === "1" && (
+          <p className={styles.hint} role="status" style={{ marginTop: 12, fontWeight: 600, color: "#8a5a00" }}>
+            Démonstration : aucun montant n&apos;a été débité. Créez votre compte, votre commande y sera
+            enregistrée en attente de règlement.
+          </p>
+        )}
+        {params.get("paye") === "1" && (
+          <p className={styles.hint} role="status" style={{ marginTop: 12, fontWeight: 600, color: "#0a8f4e" }}>
+            ✅ Paiement accepté. Créez votre compte pour retrouver votre commande dans votre espace.
+          </p>
+        )}
 
         {/* Full Name */}
         <div className={styles.field}>

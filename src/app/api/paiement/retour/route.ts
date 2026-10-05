@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { finalizeGatewayPayment } from "@/server/services/orders";
+import { afterPaidLocation } from "@/server/prepaidClaim";
+import { resolveGatewayReturn } from "@/server/services/prepaid";
 
 const to = (location: string) => new NextResponse(null, { status: 303, headers: { Location: location } });
 
@@ -10,9 +11,9 @@ const to = (location: string) => new NextResponse(null, { status: 303, headers: 
 export async function GET(req: NextRequest) {
   const gatewayOrderId = req.nextUrl.searchParams.get("orderId") ?? "";
   try {
-    const outcome = await finalizeGatewayPayment(gatewayOrderId);
-    if (outcome === "PAID") return to("/paiement/succes");
-    if (outcome === "PENDING") return to("/paiement/echec?motif=en_cours");
+    const result = await resolveGatewayReturn(gatewayOrderId);
+    if (result.outcome === "PAID") return to(await afterPaidLocation(result));
+    if (result.outcome === "PENDING") return to("/paiement/echec?motif=en_cours");
     return to("/paiement/echec");
   } catch (e) {
     console.error("[paiement] retour:", e);

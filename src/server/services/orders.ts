@@ -77,7 +77,12 @@ export async function listPacks() {
  * Crée la commande d'un client après son inscription.
  * L'accès à la plateforme reste fermé tant que le paiement n'est pas confirmé.
  */
-export async function createOrderForClient(clientId: bigint, packCode: string) {
+export async function createOrderForClient(
+  clientId: bigint,
+  packCode: string,
+  /** Montant déjà encaissé en ligne avant l'inscription : c'est lui qui fait foi. */
+  prepaidAmount?: Prisma.Decimal,
+) {
   const pack = await prisma.pack.findFirst({ where: { code: packCode, isActive: true } });
   if (!pack) throw new ValidationError("Cette offre n'est plus disponible.");
 
@@ -96,7 +101,7 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
           serviceId,
           title: pack.name,
           description: pack.description,
-          price: pack.price,
+          price: prepaidAmount ?? pack.price,
           status: "EN_ATTENTE_PAIEMENT",
           startDate: new Date(),
         },
@@ -141,7 +146,7 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
       data: {
         clientId,
         packId: pack.id,
-        amount: pack.price,           // prix serveur, jamais celui du navigateur
+        amount: prepaidAmount ?? pack.price, // prix serveur, jamais celui du navigateur
         currency: pack.currency,
         status: "EN_ATTENTE_PAIEMENT",
         projectId,
@@ -159,8 +164,10 @@ export async function createOrderForClient(clientId: bigint, packCode: string) {
       data: admins.map((a) => ({
         userId: a.id,
         type: "DEMANDE_PROJET" as const,
-        title: `Commande à encaisser — ${pack.name}`,
-        body: `${client?.companyName ?? "Un client"} attend la confirmation du paiement (${Number(pack.price).toFixed(0)} TND).`,
+        title: prepaidAmount ? `Commande payée en ligne — ${pack.name}` : `Commande à encaisser — ${pack.name}`,
+        body: prepaidAmount
+          ? `${client?.companyName ?? "Un client"} a réglé ${Number(prepaidAmount).toFixed(0)} TND par carte avant de créer son compte.`
+          : `${client?.companyName ?? "Un client"} attend la confirmation du paiement (${Number(pack.price).toFixed(0)} TND).`,
         entityType: "order",
         entityId: order.id,
       })),
@@ -280,7 +287,7 @@ type PaymentMethodName = (typeof METHODS)[number];
  * exemple quand le retour du client et la notification de la banque arrivent
  * en même temps.
  */
-async function settleOrder(
+export async function settleOrder(
   orderId: bigint,
   method: PaymentMethodName,
   reference: string | undefined,

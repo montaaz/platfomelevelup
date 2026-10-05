@@ -113,10 +113,38 @@ transaction relire. Le résultat et le montant sont redemandés à la banque
 (`getOrderStatusExtended.do`) avant d'encaisser, et une commande ne peut être
 encaissée qu'une fois.
 
+### Paiement direct depuis le panier du site vitrine
+
+```
+« Finaliser la commande » (vitrine)  →  GET /api/paiement/panier?pack=CODE
+      ↓
+Page de carte de la banque  →  /api/paiement/retour
+      ↓
+Inscription (/inscription?pack=CODE&paye=1) ou connexion
+      ↓
+Commande créée déjà PAYEE + projet + facture
+```
+
+Le visiteur paie avant d'avoir un compte : son paiement est gardé dans
+`prepaid_payments` (migration 013) et un cookie signé le suit jusqu'à
+l'inscription ou la connexion, où il devient une commande payée. S'il est déjà
+connecté, la commande est créée dès le retour de la banque.
+
+Sans identifiants ClicToPay, `/api/paiement/panier` affiche un écran de
+paiement simulé (`/paiement/demo`) : aucune carte demandée, aucun débit.
+« Simuler un paiement accepté » mène à l'inscription, où la commande est créée
+**en attente de règlement** — une simulation ne produit jamais de commande payée.
+Dès que les identifiants sont renseignés, la vraie page de la banque prend sa place.
+
+Si le visiteur ferme son navigateur après avoir payé sans créer de compte,
+l'équipe en est avertie par e-mail (référence bancaire incluse) ; le paiement
+reste en statut `PAYEE` dans `prepaid_payments`.
+
 Mise en service (`.env` de la plateforme, puis redémarrage) :
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/012_paiement_en_ligne.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/013_paiement_avant_inscription.sql
 
 CLICTOPAY_BASE_URL="https://test.clictopay.com/payment/rest"   # production : https://ipay.clictopay.com/payment/rest
 CLICTOPAY_USERNAME="<identifiant marchand fourni par la banque>"

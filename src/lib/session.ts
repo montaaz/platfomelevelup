@@ -76,3 +76,45 @@ export async function destroySession() {
 }
 
 export { SESSION_COOKIE };
+
+/* ---------------------------------------------- paiement avant inscription */
+
+const PREPAID_COOKIE = "levelup_prepaid";
+const PREPAID_DAYS = 30;
+
+/**
+ * Le visiteur vient de payer depuis le panier du site vitrine mais n'a pas
+ * encore de compte : ce cookie signé garde la trace de son paiement jusqu'à
+ * l'inscription ou la connexion, où il devient une commande payée.
+ */
+export async function rememberPrepaidPayment(prepaidId: string) {
+  const token = await new SignJWT({ prepaid: prepaidId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${PREPAID_DAYS}d`)
+    .sign(secret());
+  const store = await cookies();
+  store.set(PREPAID_COOKIE, token, {
+    httpOnly: true,
+    secure: await isHttpsRequest(),
+    sameSite: "lax",
+    path: "/",
+    maxAge: PREPAID_DAYS * 86_400,
+  });
+}
+
+/** Identifiant du paiement à rattacher, ou null. */
+export async function readPrepaidPayment(): Promise<string | null> {
+  const token = (await cookies()).get(PREPAID_COOKIE)?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, secret());
+    return typeof payload.prepaid === "string" && /^\d{1,18}$/.test(payload.prepaid) ? payload.prepaid : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function forgetPrepaidPayment() {
+  (await cookies()).delete(PREPAID_COOKIE);
+}

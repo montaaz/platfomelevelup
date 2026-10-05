@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { finalizeGatewayPayment } from "@/server/services/orders";
+import { resolveGatewayReturn } from "@/server/services/prepaid";
 
 /**
  * URL de notification : la banque l'appelle de serveur à serveur dès qu'une
@@ -9,7 +9,7 @@ import { finalizeGatewayPayment } from "@/server/services/orders";
  */
 async function handle(gatewayOrderId: string) {
   try {
-    await finalizeGatewayPayment(gatewayOrderId);
+    await resolveGatewayReturn(gatewayOrderId);
     return new NextResponse("OK", { status: 200 });
   } catch (e) {
     console.error("[paiement] notification:", e);
