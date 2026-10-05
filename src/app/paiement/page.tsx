@@ -3,11 +3,12 @@ import styles from "@/styles/neu.module.css";
 import { ctxOrNull } from "@/server/context";
 import { myAccessState } from "@/server/services/orders";
 import { formatDT } from "@/lib/format";
+import { clictopayConfigured } from "@/lib/clictopay";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Écran d'attente de paiement. Tant que l'admin (ou plus tard la banque) n'a
+ * Écran d'attente de paiement. Tant que l'admin ou la banque n'a
  * pas confirmé l'encaissement, le client ne peut pas entrer dans la plateforme.
  */
 export default async function PaiementPage() {
@@ -17,6 +18,7 @@ export default async function PaiementPage() {
   if (access.accessGranted) redirect("/client");
 
   const order = access.pendingOrder;
+  const payOnline = order != null && clictopayConfigured();
 
   return (
     <main className={styles.page}>
@@ -50,13 +52,22 @@ export default async function PaiementPage() {
         >
           <p style={{ fontSize: 13, fontWeight: 700, color: "#26303f" }}>Comment régler ?</p>
           <p style={{ marginTop: 6, fontSize: 12.5, color: "#6b7689", fontWeight: 400 }}>
-            Le paiement en ligne arrive bientôt. En attendant, réglez par virement ou contactez
-            l&apos;équipe : votre accès est ouvert dès réception.
+            {payOnline
+              ? "Payez par carte bancaire sur la page sécurisée de la banque, ou réglez par virement en contactant l'équipe : votre accès est ouvert dès réception."
+              : "Réglez par virement ou contactez l'équipe : votre accès est ouvert dès réception."}
           </p>
           <p style={{ marginTop: 8, fontSize: 12.5, fontWeight: 600, color: "#0a5ff0" }}>
-            contact@levelupia.tn
+            contact@levelupia.agency
           </p>
         </div>
+
+        {payOnline && (
+          <form action="/api/paiement/demarrer" method="POST" style={{ marginTop: 14 }}>
+            <button type="submit" className={styles.submit} style={{ width: "100%" }}>
+              Payer par carte
+            </button>
+          </form>
+        )}
 
         <form action="/api/auth/logout" method="POST" style={{ marginTop: 18 }}>
           <button type="submit" className={styles.back} style={{ width: "100%" }}>

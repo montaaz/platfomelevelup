@@ -541,6 +541,8 @@ model Order {
   currency         String         @default("TND") @db.Char(3)
   paymentMethod    PaymentMethod? @map("payment_method")
   paymentReference String?        @map("payment_reference") @db.VarChar(160)
+  /// Transaction ClicToPay en cours ou réglée (migration 012).
+  gatewayOrderId   String?        @unique(map: "idx_orders_gateway_order") @map("gateway_order_id") @db.VarChar(64)
   paidAt           DateTime?      @map("paid_at") @db.Timestamptz(6)
   confirmedBy      BigInt?        @map("confirmed_by")
   projectId        BigInt?        @map("project_id")

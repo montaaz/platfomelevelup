@@ -177,8 +177,8 @@ export async function compose(model: LocalModel, input: ComposeInput): Promise<C
       { maxTokens: 220, temperature: 0, timeoutMs: COMPOSE_TIMEOUT },
     );
     // L'identité de l'agence (1re ligne des règles) compte parmi les sources : « tunisienne », « Tunisie ».
-    const sources = `${rules[0]} Tunisie Tunisia\n${input.facts ?? ""}\n${knowledge}\n${input.message}`;
-    const verdict = checkAnswer(raw, sources, input.lang);
+    const sources = `${rules[0]} Tunisie Tunisia\n${input.facts ?? ""}\n${knowledge}`;
+    const verdict = checkAnswer(raw, sources, input.lang, input.message);
     // BUDDY_AI_DEBUG=1 : pour régler l'assistant. Journalise les extraits fournis et la réponse brute — à couper ensuite.
     if (process.env.BUDDY_AI_DEBUG === "1") console.info(`[buddy-ai] extraits=${input.knowledge.map((c) => c.id).join(",")} brut=${JSON.stringify(raw)}`);
     if (!verdict.ok) {

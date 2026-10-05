@@ -9,28 +9,34 @@
    "text": "LevelUp AI crée des sites web accessibles, des vidéos commerciales générées par IA et des automatisations concrètes pour les PME et les startups. LevelUp AI aide les business et les startups à gagner en crédibilité, à avancer plus vite et à croître plus intelligemment : sites web accessibles, vidéos commerciales IA et automatisations concrètes. Pensé pour tous les business. Livraison rapide et ciblée. IA guidée par l'humain De la première impression au suivi en coulisses, nous aidons votre entreprise à paraître plus professionnelle et plus performante. Level Up AI devient l'un des premiers acteurs du marché à proposer des services de marketing digital entièrement propulsés par l'IA. Sites web, shootings produit et vidéos, livrés plus rapidement, au même niveau de qualité, à des tarifs nettement plus compétitifs. Pensé pour les entreprises qui veulent une présence digitale professionnelle sans les délais et les coûts de la production classique, et pour les clients déjà accompagnés qui souhaitent aller plus loin dans leur transformation digitale."
   },
   {
+   "id": "site:fr:team",
+   "lang": "fr",
+   "title": "Qui sommes-nous — fondatrices et équipe derrière Level Up IA",
+   "text": "Chedlia Belhaj, Co-fondatrice : Spécialiste de la communication digitale depuis plusieurs années, Chedlia Belhaj combine vision stratégique, sensibilité artistique et compréhension des enjeux des marques. Sarra Dhaouadi, Co-fondatrice : Ingénieure de formation, Sarra Dhaouadi a très tôt compris que la véritable valeur naît de la rencontre entre technologie de pointe et vision business."
+  },
+  {
    "id": "site:fr:sectors",
    "lang": "fr",
    "title": "Secteurs et exemples de réalisations",
-   "text": "Pensé pour tous les business. Exemples de secteurs : Mode, Pharmaceutique, Hôtellerie / Maisons d'hôtes, Immobilier. Exemples de publicités IA réalisées : Publicité beauté, Publicité maquillage, Publicité restauration, Campagne joaillerie. Un aperçu du style cinématographique que nous produisons — pas des projets clients, juste l'étendue de nos possibilités."
+   "text": "Pensé pour tous les business. Exemples de secteurs : Mode, Pharmaceutique, Hôtellerie / Maisons d'hôtes, Immobilier Hôtellerie / Maisons d'hôtes, Prêt-à-porter. Exemples de publicités IA réalisées : Publicité beauté, Publicité maquillage, Publicité restauration, Campagne joaillerie, Shooting produit, Shooting produit. Un aperçu du style cinématographique que nous produisons — pas des projets clients, juste l'étendue de nos possibilités."
   },
   {
    "id": "site:fr:services-lead",
    "lang": "fr",
-   "title": "Quatre packs pour faire décoller votre activité.",
+   "title": "Rendez votre entreprise plus performante et faites décoller votre business.",
    "text": "Pas besoin d'un budget d'agence. Choisissez le pack qui correspond à votre situation aujourd'hui — site web, visuels et vidéo, réunis à un tarif clair."
   },
   {
    "id": "site:fr:service-0",
    "lang": "fr",
    "title": "Sites web IA",
-   "text": "Des sites vitrines professionnels, rapides et optimisés. Livrés en quelques jours plutôt qu'en semaines."
+   "text": "Des sites vitrines professionnels, rapides et optimisés. Livrés en quelques jours."
   },
   {
    "id": "site:fr:service-1",
    "lang": "fr",
    "title": "Site marchand IA",
-   "text": "Boutique en ligne complète avec paiement, commandes et suivi client. Automatisation des emails, WhatsApp, paniers abandonnés et relances.Gestion des produits, stocks, livraisons, promotions et analyse des ventes."
+   "text": "Boutique en ligne complète avec paiement, commandes et suivi client. Automatisation des emails, WhatsApp, paniers abandonnés et relances. Gestion des produits, stocks, livraisons, promotions et analyse des ventes."
   },
   {
    "id": "site:fr:service-2",
@@ -66,13 +72,13 @@
    "id": "site:fr:service-7",
    "lang": "fr",
    "title": "SEO, référencement, email marketing automatisé",
-   "text": "Référencement naturel et pages optimisées pour être trouvé, plus des campagnes email automatisées : segmentation, personnalisation et relances pilotées par l'IA."
+   "text": "Référencement naturel et pages optimisées pour avoir plus d'impact et être plus compétitifs sur le marché, plus des campagnes email automatisées : segmentation, personnalisation et relances pilotées par l'IA."
   },
   {
    "id": "site:fr:service-8",
    "lang": "fr",
    "title": "Identité visuelle express",
-   "text": "Logo et charte graphique générés rapidement pour les entreprises qui démarrent."
+   "text": "Logo et charte graphique générés rapidement pour améliorer votre image et être à la pointe de la technologie."
   },
   {
    "id": "site:fr:approach-0",
@@ -141,22 +147,28 @@
    "text": "LevelUp AI builds affordable websites, AI-powered commercial videos, and smart business automations for small businesses and startups. LevelUp AI helps businesses and startups look bigger, move faster, and grow smarter with affordable websites, AI commercial videos, and practical automations. Built for every business. Fast, focused delivery. Human-guided AI From the first impression to the follow-up behind the scenes, we help your business feel more professional and more capable. Level Up is expanding into one of the first players on the market offering fully AI-powered digital marketing services. Websites, product shoots, and videos, produced faster, at the same quality bar, for noticeably more competitive rates. Built for businesses that want a professional digital presence without the delays and costs of classic production, and for existing clients ready to go further in their digital transformation."
   },
   {
+   "id": "site:en:team",
+   "lang": "en",
+   "title": "About us — founders and team behind Level Up IA",
+   "text": "Chedlia Belhaj, Co-Founder : With several years of experience in digital communication, Chedlia Belhaj combines strategic vision, artistic sensitivity, and a strong understanding of brands and their challenges. Sarra Dhaouadi, Co-Founder : Los Angeles-based Sarra Dhaouadi lives where AI happens. Not on the sidelines, but right in the middle of it."
+  },
+  {
    "id": "site:en:sectors",
    "lang": "en",
    "title": "Sectors and sample work",
-   "text": "Built for every business. Sample sectors : Fashion, Pharmaceutical, hotellerie / airbnb, Real estate. Sample AI commercials produced : Beauty commercial, Makeup commercial, Restaurant commercial, Jewelry campaign. A look at the kind of cinematic style we produce — not client work, just the range."
+   "text": "Built for every business. Sample sectors : Fashion, Pharmaceutical, hotellerie / airbnb, Real estate Hospitality / guest houses, Ready-to-wear. Sample AI commercials produced : Beauty commercial, Makeup commercial, Restaurant commercial, Jewelry campaign, Product shoot, Product shoot. A look at the kind of cinematic style we produce — not client work, just the range."
   },
   {
    "id": "site:en:services-lead",
    "lang": "en",
-   "title": "Four packs to level up your business.",
+   "title": "Make your company perform better and watch your business take off.",
    "text": "You do not need a giant agency budget. Pick the pack that matches where your business is today — website, visuals, and video, bundled at one clear price."
   },
   {
    "id": "site:en:service-0",
    "lang": "en",
    "title": "AI websites",
-   "text": "Professional, fast, optimized showcase sites. Delivered in days instead of weeks."
+   "text": "Professional, fast, optimized showcase sites. Delivered in a few days."
   },
   {
    "id": "site:en:service-1",
@@ -198,13 +210,13 @@
    "id": "site:en:service-7",
    "lang": "en",
    "title": "SEO, search engine optimization, automated email marketing",
-   "text": "Search engine optimization and pages built to be found, plus automated email campaigns: segmentation, personalization, and follow-ups driven by AI."
+   "text": "Search engine optimization and pages built to make more impact and be more competitive in your market, plus automated email campaigns: segmentation, personalization, and follow-ups driven by AI."
   },
   {
    "id": "site:en:service-8",
    "lang": "en",
    "title": "Express visual identity",
-   "text": "Logo and brand guidelines generated quickly for businesses just getting started."
+   "text": "Logo and brand guidelines generated quickly to improve your image and keep up with the latest technology."
   },
   {
    "id": "site:en:approach-0",

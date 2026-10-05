@@ -5,7 +5,8 @@
  *
  *   node scripts/buddy-knowledge.mjs [dossier des dictionnaires]
  *
- * Par défaut : ../levelup-ai/src/i18n/dictionaries (dépôt vitrine voisin).
+ * Par défaut : ../levelup-ai/Website-levelupAI/src/i18n/dictionaries (dépôt
+ * vitrine sara3699/Website-levelupAI cloné à côté).
  * Écrit src/buddy/ai/site-knowledge.json — à relancer et à committer quand
  * le contenu du site change. Seul du contenu PUBLIC entre ici : textes déjà
  * affichés sur le site. Les prix des packs n'y sont pas repris : ils sont lus
@@ -16,7 +17,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const dictDir = resolve(process.argv[2] ?? join(root, "..", "levelup-ai", "src", "i18n", "dictionaries"));
+const dictDir = resolve(process.argv[2] ?? join(root, "..", "levelup-ai", "Website-levelupAI", "src", "i18n", "dictionaries"));
 const out = join(root, "src", "buddy", "ai", "site-knowledge.json");
 
 const chunks = [];
@@ -29,6 +30,10 @@ for (const lang of ["fr", "en"]) {
   const d = JSON.parse(readFileSync(join(dictDir, `${lang}.json`), "utf8"));
   const about = lang === "fr" ? "À propos de Level Up IA" : "About Level Up IA";
   add(lang, "about", about, [d.meta?.description, d.hero?.copy, (d.hero?.proof ?? []).join(". "), d.work?.lead, d.pricing?.lead].filter(Boolean).join(" "));
+  if (d.about?.people?.length) {
+    add(lang, "team", `${d.about.title} — ${lang === "fr" ? "fondatrices et équipe derrière Level Up IA" : "founders and team behind Level Up IA"}`,
+      d.about.people.map((p) => `${p.name}, ${p.role} : ${p.bio?.[0] ?? ""}`).join(" "));
+  }
   const sectors = Object.values(d.carousel?.labels ?? {});
   const ads = Object.values(d.commercials?.clips ?? {}).map((c) => c.label).filter((l) => !/macro/i.test(l));
   const fr = lang === "fr";

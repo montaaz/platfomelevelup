@@ -89,9 +89,47 @@ APP_URL="https://levelupia.app"                   # base des signupUrl
 Les prix se modifient en base (`UPDATE packs SET price = … WHERE code = …`) :
 aucune mise en production n'est nécessaire.
 
-## Quand la banque sera intégrée
+## Paiement en ligne — ClicToPay (Attijari E-Payment)
 
-Un seul point à brancher : le webhook de la passerelle appelle, **côté serveur**,
-`confirmOrderPayment(order, méthode, référence)` — la même fonction que le
-bouton admin. Tout le reste (ouverture de l'accès, création du projet, de
-l'abonnement et de la facture) est déjà en place et ne change pas.
+```
+« Payer par carte »  →  POST /api/paiement/demarrer  →  page de carte de la banque
+      ↓
+Retour du client     →  /api/paiement/retour (accepté) ou /api/paiement/echec (refusé)
+Notification banque  →  /api/paiement/notification (serveur à serveur)
+      ↓
+Statut relu auprès de la banque  →  commande PAYEE + facture + e-mail à l'équipe
+```
+
+Adresses à déclarer sur la fiche technique de la banque :
+
+| Champ | Valeur |
+|---|---|
+| URL de notification | `https://levelupia.app/api/paiement/notification` |
+| URL de retour si le paiement est accepté | `https://levelupia.app/api/paiement/retour` |
+| URL de retour si le paiement est refusé | `https://levelupia.app/api/paiement/echec` |
+
+Aucune de ces adresses n'est crue sur parole : elles indiquent seulement quelle
+transaction relire. Le résultat et le montant sont redemandés à la banque
+(`getOrderStatusExtended.do`) avant d'encaisser, et une commande ne peut être
+encaissée qu'une fois.
+
+Mise en service (`.env` de la plateforme, puis redémarrage) :
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/012_paiement_en_ligne.sql
+
+CLICTOPAY_BASE_URL="https://test.clictopay.com/payment/rest"   # production : https://ipay.clictopay.com/payment/rest
+CLICTOPAY_USERNAME="<identifiant marchand fourni par la banque>"
+CLICTOPAY_PASSWORD="<mot de passe marchand>"
+PAYMENT_NOTIFY_EMAIL="contact@levelupia.agency"
+
+# envoi des e-mails par la boîte professionnelle (Google Workspace)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="465"
+SMTP_USER="contact@levelupia.agency"
+SMTP_PASS="<mot de passe d'application Google>"
+```
+
+Tant que `CLICTOPAY_USERNAME` / `CLICTOPAY_PASSWORD` sont absents, le bouton
+« Payer par carte » n'apparaît pas et la confirmation manuelle par l'admin
+reste le seul chemin.

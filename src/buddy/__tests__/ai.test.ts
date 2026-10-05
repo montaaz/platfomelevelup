@@ -176,3 +176,18 @@ describe("assistant avec modèle local", () => {
     expect(system(model.calls[1]!)).toContain("Pack Découverte");
   });
 });
+
+describe("contrôle : réponses hors sujet ou contradictoires", () => {
+  const src = "[Identité visuelle express] Logo et charte graphique générés rapidement pour les entreprises qui démarrent.";
+  it("rejette un poème : ses mots ne viennent pas des sources", () => {
+    expect(checkAnswer("Dans l'ombre du jour naissant, le vent murmure ses secrets à la plaine endormie.", src, "fr", "écris-moi un poème").ok).toBe(false);
+  });
+  it("rejette « non » quand les sources parlent du sujet demandé", () => {
+    expect(checkAnswer("Non, nous ne faisons pas de logos.", src, "fr", "vous faites des logos ?").ok).toBe(false);
+    expect(checkAnswer("Nous créons une identité visuelle express. Pas de logo directement.", src, "fr", "vous faites des logos ?").ok).toBe(false);
+    expect(checkAnswer("Oui, nous créons logo et charte graphique rapidement.", src, "fr", "vous faites des logos ?").ok).toBe(true);
+  });
+  it("accepte un « non » quand les sources ne parlent pas du sujet", () => {
+    expect(checkAnswer("Non, la charte graphique est générée rapidement mais pas les applications mobiles.", src, "fr", "vous faites des applications mobiles ?").ok).toBe(true);
+  });
+});

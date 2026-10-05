@@ -5,6 +5,8 @@ import { myAccessState } from "@/server/services/orders";
 import { Card, CardHeader, StatusBadge, Avatar, ProgressBar, EmptyState } from "@/components/ui";
 import { DeliverableActions } from "@/components/client/DeliverableActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
+import { primaryBtnCls } from "@/components/Modal";
+import { clictopayConfigured } from "@/lib/clictopay";
 import { formatDT, formatDateShort, formatBytes, relativeTime, PROJECT_STATUS_LABEL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +46,16 @@ export default async function ClientHomePage() {
               {formatDT(pending.amount)}
               {pending.isMonthly ? "/mois" : ""}
             </p>
+            {clictopayConfigured() && (
+              <form action="/api/paiement/demarrer" method="POST">
+                <button
+                  type="submit"
+                  className={`${primaryBtnCls} whitespace-nowrap`}
+                >
+                  Payer par carte
+                </button>
+              </form>
+            )}
           </div>
         </Card>
       )}

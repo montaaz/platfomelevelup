@@ -2,6 +2,9 @@ import { Prisma } from "@prisma/client";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { assertAdmin, clientScope, ForbiddenError, ValidationError, type Ctx } from "@/server/context";
+import { fetchPaymentStatus, registerPayment, toMillimes, TND_NUMERIC } from "@/lib/clictopay";
+import { notifyTeamByEmail } from "@/lib/mail";
+import { stripPublicPort } from "@/lib/publicUrl";
 
 /**
  * Commandes issues du site vitrine (levelupia.agency) vers la plateforme
@@ -10,7 +13,7 @@ import { assertAdmin, clientScope, ForbiddenError, ValidationError, type Ctx } f
  * Règle de sécurité centrale : le navigateur ne transmet JAMAIS un prix ni un
  * statut de paiement. Il transmet uniquement un CODE de pack, signé. Le prix
  * est relu dans la table `packs`, et le paiement ne peut être confirmé que
- * par un admin (ou, plus tard, par la passerelle bancaire côté serveur).
+ * par un admin ou par la passerelle bancaire, interrogée côté serveur.
  */
 
 const TOKEN_TTL_MIN = 60;
@@ -238,18 +241,46 @@ export async function confirmOrderPayment(
   reference?: string,
 ) {
   assertAdmin(ctx);
-  const METHODS = ["VIREMENT", "CARTE", "ESPECES", "CHEQUE", "EN_LIGNE"] as const;
-  if (!METHODS.includes(method as (typeof METHODS)[number])) {
+  if (!METHODS.includes(method as PaymentMethodName)) {
     throw new ValidationError("Moyen de paiement inconnu.");
   }
+  if (!(await settleOrder(orderId, method as PaymentMethodName, reference, ctx.userId))) {
+    throw new ForbiddenError();
+  }
+  return true;
+}
 
+const METHODS = ["VIREMENT", "CARTE", "ESPECES", "CHEQUE", "EN_LIGNE"] as const;
+type PaymentMethodName = (typeof METHODS)[number];
+
+/**
+ * Encaisse une commande : c'est le seul endroit où elle devient PAYEE, que la
+ * confirmation vienne d'un admin (`actorUserId`) ou de la banque (null).
+ * Renvoie false si la commande n'était plus en attente — déjà réglée, par
+ * exemple quand le retour du client et la notification de la banque arrivent
+ * en même temps.
+ */
+async function settleOrder(
+  orderId: bigint,
+  method: PaymentMethodName,
+  reference: string | undefined,
+  actorUserId: bigint | null,
+): Promise<boolean> {
   const order = await prisma.order.findFirst({
     where: { id: orderId, status: "EN_ATTENTE_PAIEMENT" },
     include: { pack: true, client: true },
   });
-  if (!order) throw new ForbiddenError();
+  if (!order) return false;
 
-  await prisma.$transaction(async (tx) => {
+  const settled = await prisma.$transaction(async (tx) => {
+    // Prise de la commande : un seul appel concurrent passe, l'autre s'arrête
+    // ici sans créer une seconde facture.
+    const claim = await tx.order.updateMany({
+      where: { id: order.id, status: "EN_ATTENTE_PAIEMENT" },
+      data: { status: "PAYEE" },
+    });
+    if (claim.count === 0) return false;
+
     let projectId: bigint | null = null;
     let subscriptionId: bigint | null = null;
 
@@ -283,7 +314,7 @@ export async function confirmOrderPayment(
           projectId: order.projectId,
           oldStatus: "EN_ATTENTE_PAIEMENT",
           newStatus: "EN_ATTENTE",
-          changedByUserId: ctx.userId,
+          changedByUserId: actorUserId,
           comment: `Paiement confirmé : la prestation démarre.`,
         },
       });
@@ -302,7 +333,7 @@ export async function confirmOrderPayment(
           price: order.amount,
           status: "EN_ATTENTE",
           startDate: new Date(),
-          createdByUserId: ctx.userId,
+          createdByUserId: actorUserId,
         },
       });
       await tx.projectStep.createMany({
@@ -329,7 +360,7 @@ export async function confirmOrderPayment(
         vatAmount: new Prisma.Decimal(vat.toFixed(3)),
         total: order.amount,
         paidAt: new Date(),
-        createdByUserId: ctx.userId,
+        createdByUserId: actorUserId,
         lines: {
           create: [{
             description: order.pack.name,
@@ -344,7 +375,7 @@ export async function confirmOrderPayment(
       data: {
         invoiceId: invoice.id,
         amount: order.amount,
-        method: method as (typeof METHODS)[number],
+        method,
         reference: reference?.trim() || null,
       },
     });
@@ -353,10 +384,10 @@ export async function confirmOrderPayment(
       where: { id: order.id },
       data: {
         status: "PAYEE",
-        paymentMethod: method as (typeof METHODS)[number],
+        paymentMethod: method,
         paymentReference: reference?.trim() || null,
         paidAt: new Date(),
-        confirmedBy: ctx.userId,
+        confirmedBy: actorUserId,
         projectId,
         subscriptionId,
         invoiceId: invoice.id,
@@ -385,10 +416,106 @@ export async function confirmOrderPayment(
         })),
       });
     }
+    return true;
   });
+  if (!settled) return false;
 
   await prisma.auditLog.create({
-    data: { userId: ctx.userId, action: "ORDER_PAID", entityType: "order", entityId: orderId },
+    data: { userId: actorUserId, action: "ORDER_PAID", entityType: "order", entityId: orderId },
   });
   return true;
+}
+
+/* ------------------------------------------------- paiement en ligne (banque) */
+
+/** Chemins publics déclarés à la banque (fiche technique Attijari E-Payment). */
+export const PAYMENT_RETURN_PATH = "/api/paiement/retour";
+export const PAYMENT_FAIL_PATH = "/api/paiement/echec";
+
+/**
+ * Ouvre une transaction ClicToPay pour la commande en attente du client
+ * connecté et renvoie la page de saisie de carte de la banque.
+ * Le montant est celui de la commande en base, jamais celui du navigateur.
+ */
+export async function startOnlinePayment(ctx: Ctx): Promise<string> {
+  const clientId = clientScope(ctx);
+  const order = await prisma.order.findFirst({
+    where: { clientId, status: "EN_ATTENTE_PAIEMENT" },
+    orderBy: { createdAt: "desc" },
+    include: { pack: true },
+  });
+  if (!order) throw new ValidationError("Aucune commande en attente de paiement.");
+  if (order.currency !== "TND") throw new ValidationError("Devise non prise en charge en ligne.");
+
+  // La carte a peut-être déjà été débitée lors d'une tentative précédente dont
+  // le retour s'est perdu : on le vérifie avant d'en ouvrir une nouvelle.
+  if (order.gatewayOrderId && (await finalizeGatewayPayment(order.gatewayOrderId)) === "PAID") {
+    throw new ValidationError("Cette commande est déjà réglée.");
+  }
+
+  const base = stripPublicPort(process.env.APP_URL ?? "https://levelupia.app");
+  const { gatewayOrderId, formUrl } = await registerPayment({
+    // unique chez la banque : chaque tentative porte son propre numéro
+    orderNumber: `LU${order.id}-${Date.now().toString(36)}`,
+    amountMillimes: toMillimes(order.amount.toString()),
+    returnUrl: `${base}${PAYMENT_RETURN_PATH}`,
+    failUrl: `${base}${PAYMENT_FAIL_PATH}`,
+    description: order.pack.name,
+  });
+  await prisma.order.update({ where: { id: order.id }, data: { gatewayOrderId } });
+  return formUrl;
+}
+
+export type GatewayOutcome = "PAID" | "DECLINED" | "PENDING" | "UNKNOWN";
+
+/**
+ * Relit auprès de la banque le résultat d'une transaction et, si la carte a
+ * été débitée du bon montant, encaisse la commande. Appelée au retour du
+ * client ET par la notification de la banque : elle est sans effet la
+ * deuxième fois. L'identifiant vient d'une URL publique, donc rien d'autre
+ * que la réponse de la banque n'est pris en compte.
+ */
+export async function finalizeGatewayPayment(gatewayOrderId: string): Promise<GatewayOutcome> {
+  if (!/^[\w-]{8,64}$/.test(gatewayOrderId)) return "UNKNOWN";
+  const order = await prisma.order.findUnique({
+    where: { gatewayOrderId },
+    include: { pack: true, client: true },
+  });
+  if (!order) return "UNKNOWN";
+  if (order.status === "PAYEE") return "PAID";
+  if (order.status !== "EN_ATTENTE_PAIEMENT") return "DECLINED";
+
+  const status = await fetchPaymentStatus(gatewayOrderId);
+  if (!status.paid) return status.declined ? "DECLINED" : "PENDING";
+
+  if (status.amountMillimes !== toMillimes(order.amount.toString()) || status.currency !== TND_NUMERIC) {
+    console.error(
+      `[paiement] montant inattendu pour la commande ${order.id} : ${status.amountMillimes} ${status.currency}`,
+    );
+    return "UNKNOWN";
+  }
+
+  const reference = status.approvalCode ? `${gatewayOrderId} / ${status.approvalCode}` : gatewayOrderId;
+  if (await settleOrder(order.id, "EN_LIGNE", reference, null)) {
+    const amount = `${Number(order.amount).toFixed(3)} TND`;
+    const admins = await prisma.user.findMany({ where: { role: "ADMIN", isActive: true }, select: { id: true } });
+    if (admins.length > 0) {
+      await prisma.notification.createMany({
+        data: admins.map((a) => ({
+          userId: a.id,
+          type: "DEMANDE_PROJET" as const,
+          title: `Paiement en ligne reçu — ${order.pack.name}`,
+          body: `${order.client.companyName} a réglé ${amount} par carte.`,
+          entityType: "order",
+          entityId: order.id,
+        })),
+      });
+    }
+    notifyTeamByEmail(
+      `Paiement accepté — ${order.pack.name}`,
+      `${order.client.companyName} a réglé ${amount} par carte bancaire (commande n° ${order.id}). ` +
+        `Référence bancaire : ${reference}. L'accès du client, sa facture et son projet sont à jour.`,
+    );
+  }
+  return "PAID";
 }
