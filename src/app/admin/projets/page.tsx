@@ -6,6 +6,7 @@ import { listProjectRequests } from "@/server/services/adminActions";
 import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/ui";
 import { ProjectFormButton } from "@/components/admin/ProjectFormModal";
 import { RequestsCard } from "@/components/admin/RequestsCard";
+import { DeleteProjectButton } from "@/components/admin/DeleteProjectButton";
 import { formatDT, formatDateShort, PROJECT_STATUS_LABEL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +63,8 @@ export default async function AdminProjectsPage() {
                 <th className="px-4 py-2.5">Statut</th>
                 <th className="px-4 py-2.5">Assigné à</th>
                 <th className="px-4 py-2.5 text-right">Prix</th>
-                <th className="px-6 py-2.5 text-right">Échéance</th>
+                <th className="px-4 py-2.5 text-right">Échéance</th>
+                <th className="px-6 py-2.5"></th>
               </tr>
             </thead>
             <tbody>
@@ -83,8 +85,16 @@ export default async function AdminProjectsPage() {
                   </td>
                   <td className="px-4 py-3.5 text-[13px] text-ink/82">{project.assigneeName ?? "—"}</td>
                   <td className="px-4 py-3.5 text-right text-[13px] font-medium">{formatDT(project.price)}</td>
-                  <td className={`px-6 py-3.5 text-right text-[13px] font-medium ${project.overdue ? "text-red-500" : "text-ink/72"}`}>
+                  <td className={`px-4 py-3.5 text-right text-[13px] font-medium whitespace-nowrap ${project.overdue ? "text-red-500" : "text-ink/72"}`}>
                     {project.overdue ? "en retard" : formatDateShort(project.dueDate)}
+                  </td>
+                  <td className="px-6 py-3.5 text-right whitespace-nowrap">
+                    <DeleteProjectButton
+                      projectId={project.id}
+                      title={project.title}
+                      clientCompany={project.clientCompany}
+                      awaitingPayment={project.status === "EN_ATTENTE_PAIEMENT"}
+                    />
                   </td>
                 </tr>
               ))}

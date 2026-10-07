@@ -17,7 +17,7 @@ import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server
 import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
 import {
   createClient, updateClient, getClient, archiveClient, clientDeletionImpact,
-  restoreClient, purgeClient,
+  restoreClient, purgeClient, archiveProject,
   createProject, updateProjectStatus,
   reachProjectStep, createInvoice, markInvoicePaid,
   listProjectRequests, acceptProjectRequest, refuseProjectRequest,
@@ -85,6 +85,7 @@ const typeDefs = /* GraphQL */ `
     archiveClient(id: ID!): ArchivedClient!
     restoreClient(id: ID!): Boolean!
     purgeClient(id: ID!): Boolean!
+    archiveProject(id: ID!): Boolean!
     createProject(input: ProjectInput!): Created!
     updateProjectStatus(projectId: ID!, status: String!, comment: String): Boolean!
     reachProjectStep(projectId: ID!, position: Int!): Boolean!
@@ -315,6 +316,7 @@ export const schema = createSchema<GqlContext>({
       archiveClient: (_p, a: { id: string }, c) => wrap(() => archiveClient(auth(c), BigInt(a.id))),
       restoreClient: (_p, a: { id: string }, c) => wrap(() => restoreClient(auth(c), BigInt(a.id))),
       purgeClient: (_p, a: { id: string }, c) => wrap(() => purgeClient(auth(c), BigInt(a.id))),
+      archiveProject: (_p, a: { id: string }, c) => wrap(() => archiveProject(auth(c), BigInt(a.id))),
       createProject: (_p, a: { input: ProjectInput }, c) => wrap(() => createProject(auth(c), a.input)),
       updateProjectStatus: (_p, a: { projectId: string; status: string; comment?: string }, c) =>
         wrap(() => updateProjectStatus(auth(c), BigInt(a.projectId), a.status, a.comment)),

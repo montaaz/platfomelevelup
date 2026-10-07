@@ -153,6 +153,36 @@ export async function clientDeletionImpact(ctx: Ctx, clientId: bigint) {
   return { companyName: client.companyName, projects, invoices, accounts };
 }
 
+/**
+ * Supprime un projet : il disparaît de l'interface (admin et espace client),
+ * ses données restent en base — comme pour un client, et pour la même raison :
+ * les factures qui s'y rattachent se conservent.
+ *
+ * Une commande encore impayée liée à ce projet est annulée du même coup, sans
+ * quoi le client continuerait de voir un bouton « Payer » pour un projet qui
+ * n'existe plus. Une commande déjà payée n'est pas touchée.
+ */
+export async function archiveProject(ctx: Ctx, projectId: bigint) {
+  assertAdmin(ctx);
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!project) throw new ForbiddenError();
+
+  await prisma.$transaction(async (tx) => {
+    await tx.project.update({ where: { id: projectId }, data: { deletedAt: new Date() } });
+    await tx.order.updateMany({
+      where: { projectId, status: "EN_ATTENTE_PAIEMENT" },
+      data: { status: "ANNULEE" },
+    });
+    await tx.auditLog.create({
+      data: { userId: ctx.userId, action: "PROJECT_ARCHIVE", entityType: "project", entityId: projectId },
+    });
+  });
+  return true;
+}
+
 /** Même dossier que la route d'envoi des livrables (api/admin/upload). */
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
 

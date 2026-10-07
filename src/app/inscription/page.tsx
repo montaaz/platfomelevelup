@@ -181,6 +181,13 @@ function InscriptionForm() {
         </button>
 
         <GoogleButton label="S'inscrire avec Google" packCode={packCode} />
+        <p className={styles.hint} style={{ marginTop: 14, fontSize: 11.5, lineHeight: 1.5 }}>
+          En créant votre compte, vous acceptez les{" "}
+          <a href="https://levelupia.agency/fr/conditions" target="_blank" rel="noreferrer" style={{ color: "#0a5ff0", fontWeight: 600 }}>
+            conditions d&apos;utilisation et de vente
+          </a>
+          .
+        </p>
 
         <div className={styles.footer}>
           <span>Already have an account?</span>
