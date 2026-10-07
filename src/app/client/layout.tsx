@@ -41,6 +41,7 @@ export default async function ClientLayout({ children }: { children: React.React
     { href: "/client/factures", label: "Mes factures", short: "Factures", icon: "invoice" },
     { href: "/client/historique", label: "Historique", icon: "history" },
     { href: "/client/nouveau-projet", label: "Nouveau projet", short: "Nouveau", icon: "plus" },
+    { href: "/client/reclamations", label: "Réclamations", icon: "flag" },
     { href: "/client/profil", label: "Mon profil", icon: "user" },
   ];
 

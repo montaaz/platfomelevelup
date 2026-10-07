@@ -6,7 +6,8 @@ import {
   findOrCreateGoogleUser,
   googleConfigured,
 } from "@/server/services/googleAuth";
-import { buildRedirectUri, STATE_COOKIE, PACK_COOKIE } from "@/server/services/googleUrls";
+import { buildRedirectUri, STATE_COOKIE, PACK_COOKIE, TERMS_COOKIE } from "@/server/services/googleUrls";
+import { recordTermsAcceptance } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
 import { findPackByCode, createOrderForClient } from "@/server/services/orders";
 import { recordDetectedCountry } from "@/server/services/geo";
@@ -36,6 +37,8 @@ export async function GET(req: NextRequest) {
   // offre choisie sur le vitrine, mise de côté avant l'aller-retour Google
   const packCode = store.get(PACK_COOKIE)?.value ?? null;
   store.delete(PACK_COOKIE);
+  const termsAccepted = store.get(TERMS_COOKIE)?.value === "1";
+  store.delete(TERMS_COOKIE);
   if (!expected || expected !== state) return backToLogin(req, "google_state");
 
   try {
@@ -47,6 +50,7 @@ export async function GET(req: NextRequest) {
 
     const profile = await verifyGoogleIdToken(tokens.id_token);
     const user = await findOrCreateGoogleUser(profile);
+    if (termsAccepted && user.clientId) await recordTermsAcceptance(user.clientId);
 
     // Enregistre la commande si une offre a été choisie sur le vitrine.
     // Le prix est relu en base ; une offre inconnue n'empêche pas la connexion.

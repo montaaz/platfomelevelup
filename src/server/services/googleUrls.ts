@@ -4,6 +4,8 @@ import { publicOrigin, stripPublicPort } from "@/lib/publicUrl";
 export const STATE_COOKIE = "google_oauth_state";
 /** Offre choisie sur le vitrine, conservée pendant l'aller-retour Google. */
 export const PACK_COOKIE = "google_oauth_pack";
+/** Case CGU/CGV cochée sur la page d'inscription avant le départ chez Google. */
+export const TERMS_COOKIE = "google_oauth_terms";
 
 /**
  * Construit une URL absolue à partir de l'hôte réellement utilisé par le

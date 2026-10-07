@@ -34,6 +34,7 @@ function InscriptionForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,13 +50,17 @@ function InscriptionForm() {
       setError("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
+    if (!acceptTerms) {
+      setError("Merci d'accepter les conditions générales pour créer votre compte.");
+      return;
+    }
 
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password, confirmPassword, cartToken, packCode }),
+        body: JSON.stringify({ fullName, email, password, confirmPassword, cartToken, packCode, acceptTerms }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -174,20 +179,35 @@ function InscriptionForm() {
           <span className={styles.underline} />
         </div>
 
+        {/* Acceptation des CGU/CGV : obligatoire, pour le formulaire comme pour Google. */}
+        <label
+          htmlFor="acceptTerms"
+          style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 16, textAlign: "left", cursor: "pointer" }}
+        >
+          <input
+            id="acceptTerms"
+            type="checkbox"
+            required
+            checked={acceptTerms}
+            onChange={(e) => setAcceptTerms(e.target.checked)}
+            style={{ marginTop: 3, width: 16, height: 16, accentColor: "#0a5ff0", flexShrink: 0 }}
+          />
+          <span style={{ fontSize: 12.5, lineHeight: 1.5, color: "#4b5567" }}>
+            J&apos;ai lu et j&apos;accepte les{" "}
+            <a href="/conditions" target="_blank" rel="noreferrer" style={{ color: "#0a5ff0", fontWeight: 600 }}>
+              conditions générales d&apos;utilisation et de vente
+            </a>
+            .
+          </span>
+        </label>
+
         {error && <p className={styles.error} role="alert">{error}</p>}
 
         <button type="submit" className={styles.submit} disabled={loading}>
           {loading ? "CRÉATION…" : "CREATE ACCOUNT"}
         </button>
 
-        <GoogleButton label="S'inscrire avec Google" packCode={packCode} />
-        <p className={styles.hint} style={{ marginTop: 14, fontSize: 11.5, lineHeight: 1.5 }}>
-          En créant votre compte, vous acceptez les{" "}
-          <a href="https://levelupia.agency/fr/conditions" target="_blank" rel="noreferrer" style={{ color: "#0a5ff0", fontWeight: 600 }}>
-            conditions d&apos;utilisation et de vente
-          </a>
-          .
-        </p>
+        <GoogleButton label="S'inscrire avec Google" packCode={packCode} termsAccepted={acceptTerms} />
 
         <div className={styles.footer}>
           <span>Already have an account?</span>

@@ -5,6 +5,7 @@ import { createSession } from "@/lib/session";
 import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
 import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
+import { recordTermsAcceptance } from "@/server/services/signup";
 import { readCartToken, findPackByCode, createOrderForClient } from "@/server/services/orders";
 
 const SignupInput = z.object({
@@ -18,6 +19,8 @@ const SignupInput = z.object({
   // sans quoi toute inscription directe serait refusée.
   cartToken: z.string().max(2000).nullish(),   // jeton signé (?cart=)
   packCode: z.string().max(40).nullish(),      // code d'offre (?pack=)
+  // Case « J'accepte les conditions générales » : obligatoire (migration 014).
+  acceptTerms: z.boolean().optional(),
 });
 
 /** Message précis pour le premier champ fautif, plutôt qu'une phrase passe-partout. */
@@ -73,6 +76,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
+  if (parsed.data.acceptTerms !== true) {
+    return NextResponse.json(
+      { error: "Merci d'accepter les conditions générales d'utilisation et de vente." },
+      { status: 400 },
+    );
+  }
+
   try {
     // l'offre est validée AVANT de créer le compte : pas de compte orphelin.
     // Jeton signé (?cart=) ou simple code (?pack=) : dans les deux cas le prix
@@ -84,6 +94,7 @@ export async function POST(req: NextRequest) {
         : null;
 
     const user = await signupClient(parsed.data);
+    if (user.clientId) await recordTermsAcceptance(BigInt(user.clientId));
 
     // commande créée : l'accès reste fermé jusqu'à confirmation du paiement
     // — sauf si l'offre vient d'être payée depuis le panier du site vitrine :

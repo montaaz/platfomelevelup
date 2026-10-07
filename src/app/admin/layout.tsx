@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCtx } from "@/server/context";
 import { unreadTotal } from "@/server/services/messaging";
 import { listNotifications } from "@/server/services/notifications";
+import { openComplaintsCount } from "@/server/services/complaints";
 import { countriesOverview } from "@/server/services/geo";
 import { runMaintenanceSweep } from "@/server/maintenance";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -20,13 +21,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
   await runMaintenanceSweep(); // overdue invoices + subscription alerts (throttled)
 
-  const [projectCount, unread, unpaidCount, pendingOrders, notifications, countries] = await Promise.all([
+  const [projectCount, unread, unpaidCount, pendingOrders, notifications, countries, openComplaints] = await Promise.all([
     prisma.project.count({ where: { deletedAt: null, status: { notIn: ["CLOTURE"] } } }),
     unreadTotal(ctx),
     prisma.invoice.count({ where: { status: { in: ["EN_ATTENTE", "EN_RETARD"] } } }),
     prisma.order.count({ where: { status: "EN_ATTENTE_PAIEMENT" } }),
     listNotifications(ctx),
     countriesOverview(ctx),
+    openComplaintsCount(),
   ]);
 
   const nav = [
@@ -37,6 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/factures", label: "Factures", icon: "invoice", count: unpaidCount },
     { href: "/admin/commandes", label: "Commandes", short: "Commandes", icon: "repeat", count: pendingOrders },
     { href: "/admin/abonnements", label: "Abonnements", icon: "repeat" },
+    { href: "/admin/reclamations", label: "Réclamations", icon: "flag", count: openComplaints },
     { href: "/admin/equipe", label: "Équipe", icon: "team" },
   ];
 

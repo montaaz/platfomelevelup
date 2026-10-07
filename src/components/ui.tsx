@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import { initials } from "@/lib/format";
 import {
-  IconArrowRight, IconFolder, IconChat, IconInvoice, IconFile, IconClock, IconUsers, IconRepeat, IconPlus, IconGrid, IconTrend,
-} from "@/components/icons";
+  IconArrowRight, IconFolder, IconChat, IconInvoice, IconFile, IconClock, IconUsers, IconRepeat, IconPlus, IconGrid, IconTrend, IconFlag } from "@/components/icons";
 
 /* section icon derived from the title — one look everywhere, zero call-site changes */
 function headerIcon(title: string): { Icon: (p: { width?: number; height?: number }) => ReactNode; tone: string } {
@@ -16,6 +15,7 @@ function headerIcon(title: string): { Icon: (p: { width?: number; height?: numbe
   if (t.includes("client")) return { Icon: IconUsers, tone: "from-sky-400 to-brand-500" };
   if (t.includes("abonnement")) return { Icon: IconRepeat, tone: "from-amber-400 to-orange-500" };
   if (t.includes("demande")) return { Icon: IconPlus, tone: "from-pink-400 to-rose-500" };
+  if (t.includes("réclamation")) return { Icon: IconFlag, tone: "from-rose-400 to-red-500" };
   return { Icon: IconFolder, tone: "from-brand-400 to-violet-500" };
 }
 
@@ -83,6 +83,8 @@ const STATUS_STYLES: Record<string, string> = {
   ANNULEE: "bg-slate-100 text-ink/60",
   ACTIF: "bg-emerald-50 text-emerald-600",
   NOUVELLE: "bg-brand-50 text-brand-600",
+  RESOLUE: "bg-emerald-50 text-emerald-600",
+  CLOTUREE: "bg-slate-100 text-ink/60",
 };
 
 const STATUS_DOTS: Record<string, string> = {
@@ -98,6 +100,8 @@ const STATUS_DOTS: Record<string, string> = {
   ANNULEE: "bg-slate-300",
   ACTIF: "bg-emerald-500",
   NOUVELLE: "bg-brand-500",
+  RESOLUE: "bg-emerald-500",
+  CLOTUREE: "bg-slate-300",
 };
 
 export function StatusBadge({ status, label }: { status: string; label: string }) {

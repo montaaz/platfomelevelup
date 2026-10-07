@@ -77,7 +77,7 @@ export default async function PaiementDemoPage({
         </Link>
         <p className={styles.hint} style={{ marginTop: 14, fontSize: 11.5, lineHeight: 1.5 }}>
           Paiement soumis aux{" "}
-          <a href="https://levelupia.agency/fr/conditions" target="_blank" rel="noreferrer" style={{ color: "#0a5ff0", fontWeight: 600 }}>
+          <a href="/conditions" target="_blank" rel="noreferrer" style={{ color: "#0a5ff0", fontWeight: 600 }}>
             conditions de vente
           </a>{" "}
           · annulation sans frais avant le démarrage de la production.

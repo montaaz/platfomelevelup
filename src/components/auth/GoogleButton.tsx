@@ -19,16 +19,38 @@ function GoogleLogo() {
 export function GoogleButton({
   label = "Continuer avec Google",
   packCode,
+  termsAccepted,
 }: {
   label?: string;
   /** Offre choisie sur le site vitrine : suivie jusqu'à la création du compte. */
   packCode?: string | null;
+  /**
+   * Page d'inscription : la case CGU/CGV doit être cochée avant de partir
+   * chez Google ; l'acceptation est transmise et datée à la création du compte.
+   * Absent (page de connexion) : pas de condition.
+   */
+  termsAccepted?: boolean;
 }) {
-  const href = packCode ? `/api/auth/google?pack=${encodeURIComponent(packCode)}` : "/api/auth/google";
+  const params = new URLSearchParams();
+  if (packCode) params.set("pack", packCode);
+  if (termsAccepted) params.set("terms", "1");
+  const href = `/api/auth/google${params.size ? `?${params}` : ""}`;
+  const blocked = termsAccepted === false;
   return (
     <>
       <div className={styles.divider}>ou</div>
-      <a href={href} className={styles.googleBtn}>
+      {blocked && (
+        <p className={styles.hint} style={{ marginBottom: 8, fontSize: 11.5 }}>
+          Cochez la case des conditions générales pour continuer avec Google.
+        </p>
+      )}
+      <a
+        href={blocked ? undefined : href}
+        aria-disabled={blocked || undefined}
+        onClick={blocked ? (e) => e.preventDefault() : undefined}
+        className={styles.googleBtn}
+        style={blocked ? { opacity: 0.55, cursor: "not-allowed" } : undefined}
+      >
         <GoogleLogo />
         {label}
       </a>

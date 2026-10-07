@@ -133,6 +133,13 @@ export const IconPlus = (p: P) => (
   </svg>
 );
 
+export const IconFlag = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M5 21V4" />
+    <path d="M5 4h12l-2.5 4L17 12H5" />
+  </svg>
+);
+
 export const IconHistory = (p: P) => (
   <svg {...base(p)}>
     <path d="M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5" />

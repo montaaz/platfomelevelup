@@ -140,6 +140,8 @@ model Client {
   detectedCountry       String?   @map("detected_country") @db.VarChar(80)
   detectedAt            DateTime? @map("detected_at") @db.Timestamptz(6)
   detectedSource        String?   @map("detected_source") @db.VarChar(20)
+  /// Date d'acceptation des CGU/CGV à la création du compte (migration 014).
+  termsAcceptedAt       DateTime? @map("terms_accepted_at") @db.Timestamptz(6)
   accessGranted         Boolean   @default(true) @map("access_granted")
   accessGrantedAt       DateTime? @map("access_granted_at") @db.Timestamptz(6)
   isActive       Boolean   @default(true) @map("is_active")
@@ -153,6 +155,7 @@ model Client {
   subscriptions   Subscription[]
   projectRequests ProjectRequest[]
   orders          Order[]
+  complaints      Complaint[]
   assistantMessages AssistantMessage[]
 
   @@map("clients")
@@ -270,6 +273,8 @@ model Project {
   invoices        Invoice[]
   createdFromReqs ProjectRequest[]
   orders          Order[]
+
+  complaints Complaint[]
 
   @@map("projects")
 }
@@ -561,6 +566,30 @@ model Order {
   prepaidPayments PrepaidPayment[]
 
   @@map("orders")
+}
+
+/// Réclamation déposée par un client et traitée par l'équipe (migration 014).
+model Complaint {
+  id              BigInt    @id @default(autoincrement())
+  clientId        BigInt    @map("client_id")
+  createdByUserId BigInt?   @map("created_by_user_id")
+  projectId       BigInt?   @map("project_id")
+  category        String    @default("AUTRE") @db.VarChar(20)
+  subject         String    @db.VarChar(200)
+  message         String
+  status          String    @default("NOUVELLE") @db.VarChar(12)
+  adminReply      String?   @map("admin_reply")
+  handledByUserId BigInt?   @map("handled_by_user_id")
+  repliedAt       DateTime? @map("replied_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  client  Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([clientId], map: "idx_complaints_client")
+  @@index([status], map: "idx_complaints_status")
+  @@map("complaints")
 }
 
 /// Paiement en ligne reçu avant l'inscription (migration 013) : rattaché à un

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   IconGrid, IconUser, IconUsers, IconFolder, IconChat, IconInvoice,
-  IconRepeat, IconTeam, IconLogout, IconHistory, IconPlus,
+  IconRepeat, IconTeam, IconLogout, IconHistory, IconPlus, IconFlag,
 } from "@/components/icons";
 import { Avatar } from "@/components/ui";
 import { PasswordButton } from "@/components/layout/PasswordButton";
@@ -14,7 +14,7 @@ export type NavItem = { href: string; label: string; short?: string; icon: strin
 
 const ICONS: Record<string, (p: { width?: number; height?: number }) => ReactNode> = {
   grid: IconGrid, user: IconUser, users: IconUsers, folder: IconFolder, chat: IconChat,
-  invoice: IconInvoice, repeat: IconRepeat, team: IconTeam, history: IconHistory, plus: IconPlus,
+  invoice: IconInvoice, repeat: IconRepeat, team: IconTeam, history: IconHistory, plus: IconPlus, flag: IconFlag,
 };
 
 /* each icon box gets its own tint — like a set of 3D keycaps */

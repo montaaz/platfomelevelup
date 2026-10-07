@@ -15,6 +15,7 @@ import { listNotifications, markAllNotificationsRead } from "@/server/services/n
 import { globalSearch } from "@/server/services/search";
 import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server/services/onboarding";
 import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
+import { myComplaints, listComplaints, createComplaint, updateComplaint } from "@/server/services/complaints";
 import {
   createClient, updateClient, getClient, archiveClient, clientDeletionImpact,
   restoreClient, purgeClient, archiveProject,
@@ -65,6 +66,8 @@ const typeDefs = /* GraphQL */ `
     clientDetail(id: ID!): ClientDetail!
     clientDeletionImpact(id: ID!): DeletionImpact!
     projectRequests: [RequestRow!]!
+    myComplaints: [ComplaintRow!]!
+    complaints: [ComplaintRow!]!
     notifications: [NotificationRow!]!
     search(q: String!): [SearchHit!]!
     userAccounts: [UserAccountRow!]!
@@ -79,6 +82,8 @@ const typeDefs = /* GraphQL */ `
     approveDeliverable(fileId: ID!): Boolean!
     requestRevision(fileId: ID!, comment: String!): Boolean!
     createProjectRequest(title: String!, description: String!, serviceId: ID): CreatedRequest!
+    createComplaint(category: String!, subject: String!, message: String!, projectId: ID): Created!
+    updateComplaint(id: ID!, status: String, reply: String): Boolean!
     updateMyProfile(input: ProfileInput!): Boolean!
     createClient(input: ClientInput!): Created!
     updateClient(id: ID!, input: ClientInput!): Boolean!
@@ -105,6 +110,12 @@ const typeDefs = /* GraphQL */ `
 
   type ArchivedClient { companyName: String!, projects: Int!, invoices: Int! }
   type DeletionImpact { companyName: String!, projects: Int!, invoices: Int!, accounts: Int! }
+
+  type ComplaintRow {
+    id: ID!, clientId: ID!, clientCompany: String!, contactName: String!,
+    projectId: ID, projectTitle: String, category: String!, subject: String!, message: String!,
+    status: String!, adminReply: String, repliedAt: String, createdAt: String!
+  }
 
   type PackRow { id: ID!, code: String!, name: String!, description: String, price: Float!, isMonthly: Boolean! }
   type OrderRow {
@@ -282,6 +293,8 @@ export const schema = createSchema<GqlContext>({
       clientDeletionImpact: (_p, a: { id: string }, c) =>
         wrap(() => clientDeletionImpact(auth(c), BigInt(a.id))),
       projectRequests: (_p, _a, c) => wrap(() => listProjectRequests(auth(c))),
+      myComplaints: (_p, _a, c) => wrap(() => myComplaints(auth(c))),
+      complaints: (_p, _a, c) => wrap(() => listComplaints(auth(c))),
       notifications: (_p, _a, c) => wrap(() => listNotifications(auth(c))),
       search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
       userAccounts: (_p, _a, c) => wrap(() => listUserAccounts(auth(c))),
@@ -297,6 +310,10 @@ export const schema = createSchema<GqlContext>({
         wrap(() => approveDeliverable(auth(c), BigInt(a.fileId))),
       requestRevision: (_p, a: { fileId: string; comment: string }, c) =>
         wrap(() => requestRevision(auth(c), BigInt(a.fileId), a.comment)),
+      createComplaint: (_p, a: { category: string; subject: string; message: string; projectId?: string | null }, c) =>
+        wrap(() => createComplaint(auth(c), { ...a, projectId: a.projectId ? BigInt(a.projectId) : null })),
+      updateComplaint: (_p, a: { id: string; status?: string | null; reply?: string | null }, c) =>
+        wrap(() => updateComplaint(auth(c), BigInt(a.id), a)),
       createProjectRequest: (_p, a: { title: string; description: string; serviceId?: string }, c) =>
         wrap(() =>
           createProjectRequest(auth(c), {

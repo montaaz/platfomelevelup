@@ -68,3 +68,11 @@ export async function signupClient(input: SignupInput) {
     throw e;
   }
 }
+
+/** Date l'acceptation des CGU/CGV ; la première acceptation fait foi. */
+export async function recordTermsAcceptance(clientId: bigint) {
+  await prisma.client.updateMany({
+    where: { id: clientId, termsAcceptedAt: null },
+    data: { termsAcceptedAt: new Date() },
+  });
+}
