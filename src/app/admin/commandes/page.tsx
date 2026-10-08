@@ -3,6 +3,9 @@ import { requireCtx } from "@/server/context";
 import { listOrders, type OrderRow } from "@/server/services/orders";
 import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/ui";
 import { ConfirmPaymentButton } from "@/components/admin/ConfirmPaymentButton";
+import { TransferReview } from "@/components/admin/TransferReview";
+import { latestProofsByOrder } from "@/server/services/transfers";
+import { transferLabel } from "@/lib/bank";
 import { formatDT, formatDateFull } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +24,8 @@ const STATUS_TONE: Record<string, string> = {
 export default async function AdminCommandesPage() {
   const ctx = await requireCtx("ADMIN");
   const orders: OrderRow[] = await listOrders(ctx);
+  const proofs = await latestProofsByOrder(orders.filter((o) => o.status === "EN_ATTENTE_PAIEMENT").map((o) => BigInt(o.id)));
+  const toReview = orders.filter((o) => proofs.get(o.id)?.status === "EN_ATTENTE");
   const pending = orders.filter((o: OrderRow) => o.status === "EN_ATTENTE_PAIEMENT");
   const paid = orders.filter((o: OrderRow) => o.status === "PAYEE");
 
@@ -34,7 +39,12 @@ export default async function AdminCommandesPage() {
         <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-6">
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">À encaisser</p>
-            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{pending.length}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">
+              {pending.length}
+              {toReview.length > 0 && (
+                <span className="ml-2 align-middle text-[12px] font-semibold text-amber-200">{toReview.length} virement{toReview.length > 1 ? "s" : ""} à vérifier</span>
+              )}
+            </p>
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Montant en attente</p>
@@ -72,7 +82,19 @@ export default async function AdminCommandesPage() {
               <span className="text-[13.5px] font-semibold whitespace-nowrap">
                 {formatDT(o.amount)}{o.isMonthly ? "/mois" : ""}
               </span>
-              {o.status === "EN_ATTENTE_PAIEMENT" && (
+              {o.status === "EN_ATTENTE_PAIEMENT" && proofs.get(o.id)?.status === "EN_ATTENTE" && (
+                <TransferReview
+                  proofId={proofs.get(o.id)!.id}
+                  label={`${o.clientCompany} — ${o.packName} (${transferLabel(o.id)})`}
+                  amount={`${formatDT(o.amount)}${o.isMonthly ? "/mois" : ""}`}
+                  reference={proofs.get(o.id)!.reference}
+                  fileName={proofs.get(o.id)!.originalName}
+                />
+              )}
+              {o.status === "EN_ATTENTE_PAIEMENT" && proofs.get(o.id)?.status === "REFUSE" && (
+                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-medium text-red-600">justificatif refusé</span>
+              )}
+              {o.status === "EN_ATTENTE_PAIEMENT" && proofs.get(o.id)?.status !== "EN_ATTENTE" && (
                 <ConfirmPaymentButton
                   orderId={o.id}
                   label={`${o.clientCompany} — ${o.packName}`}

@@ -100,8 +100,10 @@ export async function POST(req: NextRequest) {
     // — sauf si l'offre vient d'être payée depuis le panier du site vitrine :
     // ce paiement devient alors la commande, déjà réglée.
     const prepaid = await claimPrepaidFromCookie(user.clientId);
+    let toPay = false;
     if (!prepaid && pack && user.clientId) {
       await createOrderForClient(BigInt(user.clientId), pack.code);
+      toPay = true;
     }
     // connexion immédiate après inscription
     await createSession({
@@ -114,7 +116,9 @@ export async function POST(req: NextRequest) {
     if (user.clientId) {
       await recordDetectedCountry(BigInt(user.clientId), req.headers, BigInt(user.id));
     }
-    return NextResponse.json({ redirect: "/client" });
+    // Une commande vient d'être créée : le client règle tout de suite (carte ou
+    // virement), puis entre dans son espace.
+    return NextResponse.json({ redirect: toPay ? "/paiement" : "/client" });
   } catch (e) {
     if (e instanceof ValidationError) {
       return NextResponse.json({ error: e.message }, { status: 400 });

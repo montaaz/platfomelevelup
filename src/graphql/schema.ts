@@ -16,6 +16,7 @@ import { globalSearch } from "@/server/services/search";
 import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server/services/onboarding";
 import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
 import { myComplaints, listComplaints, createComplaint, updateComplaint } from "@/server/services/complaints";
+import { reviewTransferProof } from "@/server/services/transfers";
 import {
   createClient, updateClient, getClient, archiveClient, clientDeletionImpact,
   restoreClient, purgeClient, archiveProject,
@@ -84,6 +85,7 @@ const typeDefs = /* GraphQL */ `
     createProjectRequest(title: String!, description: String!, serviceId: ID): CreatedRequest!
     createComplaint(category: String!, subject: String!, message: String!, projectId: ID): Created!
     updateComplaint(id: ID!, status: String, reply: String): Boolean!
+    reviewTransferProof(id: ID!, accept: Boolean!, note: String): Boolean!
     updateMyProfile(input: ProfileInput!): Boolean!
     createClient(input: ClientInput!): Created!
     updateClient(id: ID!, input: ClientInput!): Boolean!
@@ -312,6 +314,8 @@ export const schema = createSchema<GqlContext>({
         wrap(() => requestRevision(auth(c), BigInt(a.fileId), a.comment)),
       createComplaint: (_p, a: { category: string; subject: string; message: string; projectId?: string | null }, c) =>
         wrap(() => createComplaint(auth(c), { ...a, projectId: a.projectId ? BigInt(a.projectId) : null })),
+      reviewTransferProof: (_p, a: { id: string; accept: boolean; note?: string | null }, c) =>
+        wrap(() => reviewTransferProof(auth(c), BigInt(a.id), a.accept, a.note)),
       updateComplaint: (_p, a: { id: string; status?: string | null; reply?: string | null }, c) =>
         wrap(() => updateComplaint(auth(c), BigInt(a.id), a)),
       createProjectRequest: (_p, a: { title: string; description: string; serviceId?: string }, c) =>

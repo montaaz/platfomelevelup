@@ -22,7 +22,16 @@ function rateLimited(ip: string): boolean {
 
 /**
  * « Finaliser la commande » du panier du site vitrine : le visiteur arrive ici
- * avec un code d'offre et part directement sur la page de carte de la banque.
+ * avec un code d'offre et choisit son moyen de paiement (carte ou virement).
+ */
+export async function GET(req: NextRequest) {
+  const pack = req.nextUrl.searchParams.get("pack") ?? "";
+  if (!/^[A-Z0-9_]{2,40}$/.test(pack)) return to("/login");
+  return to(`/paiement/choisir?pack=${encodeURIComponent(pack)}`);
+}
+
+/**
+ * Carte bancaire choisie : départ direct sur la page de carte de la banque.
  * Le compte se crée APRÈS le paiement (voir services/prepaid).
  *
  * Tant que la passerelle bancaire n'est pas configurée, le visiteur voit un
@@ -30,8 +39,9 @@ function rateLimited(ip: string): boolean {
  * Si elle est configurée mais ne répond pas, on retombe sur l'ancien parcours :
  * connexion puis paiement dans l'espace.
  */
-export async function GET(req: NextRequest) {
-  const pack = req.nextUrl.searchParams.get("pack") ?? "";
+export async function POST(req: NextRequest) {
+  const raw = (await req.formData().catch(() => null))?.get("pack");
+  const pack = typeof raw === "string" ? raw : "";
   if (!/^[A-Z0-9_]{2,40}$/.test(pack)) return to("/login");
   const fallback = `/login?pack=${encodeURIComponent(pack)}`;
   if (!clictopayConfigured()) return to(`/paiement/demo?pack=${encodeURIComponent(pack)}`);

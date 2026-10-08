@@ -15,7 +15,7 @@ export const PUBLISHER = {
   platform: "https://levelupia.app",
   email: "contact@levelupia.agency",
   /* À compléter avec l'extrait RNE : raison sociale, forme, capital, siège, matricule fiscal. */
-  legalName: "LevelUp AI",
+  legalName: "STE LEVEL UP COMMUNICATION",
   address: "Tunisie",
 };
 

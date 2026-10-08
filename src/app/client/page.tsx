@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireCtx } from "@/server/context";
 import { clientHome } from "@/server/services/dashboard";
 import { myPendingOrders } from "@/server/services/orders";
+import { latestProofsByOrder } from "@/server/services/transfers";
 import { Card, CardHeader, StatusBadge, Avatar, ProgressBar, EmptyState } from "@/components/ui";
 import { DeliverableActions } from "@/components/client/DeliverableActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
@@ -18,6 +19,7 @@ function daysUntil(iso: string | null) {
 export default async function ClientHomePage() {
   const ctx = await requireCtx("CLIENT");
   const [data, pendingOrders] = await Promise.all([clientHome(ctx), myPendingOrders(ctx)]);
+  const proofs = await latestProofsByOrder(pendingOrders.map((o) => BigInt(o.id)));
   const orderOfProject = new Map(pendingOrders.flatMap((o) => (o.projectId ? [[o.projectId, o.id] as const] : [])));
   const featured = data.featured;
   const days = featured ? daysUntil(featured.dueDate) : null;
@@ -35,17 +37,23 @@ export default async function ClientHomePage() {
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-ink">
                 {pending.packName}
-                <span className="ml-2 text-[12px] font-medium text-amber-600">paiement en attente</span>
+                <span className="ml-2 text-[12px] font-medium text-amber-600">
+                  {proofs.get(pending.id)?.status === "EN_ATTENTE" ? "virement en cours de vérification" : "paiement en attente"}
+                </span>
               </p>
               <p className="mt-0.5 text-[12.5px] text-ink/72">
-                Commande enregistrée. Votre prestation démarre dès la confirmation du règlement.
+                {proofs.get(pending.id)?.status === "EN_ATTENTE"
+                  ? "Justificatif reçu : l'équipe vérifie le virement et valide votre commande sous peu."
+                  : proofs.get(pending.id)?.status === "REFUSE"
+                    ? `Justificatif refusé : ${proofs.get(pending.id)?.reviewNote ?? "déposez-en un nouveau."}`
+                    : "Commande enregistrée. Votre prestation démarre dès la confirmation du règlement."}
               </p>
             </div>
             <p className="text-[16px] font-bold whitespace-nowrap text-ink">
               {formatDT(pending.amount)}
               {pending.isMonthly ? "/mois" : ""}
             </p>
-            <PayOrderButton orderId={pending.id} />
+            {proofs.get(pending.id)?.status !== "EN_ATTENTE" && <PayOrderButton orderId={pending.id} />}
           </div>
         </Card>
       ))}

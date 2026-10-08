@@ -156,6 +156,7 @@ model Client {
   projectRequests ProjectRequest[]
   orders          Order[]
   complaints      Complaint[]
+  paymentProofs   PaymentProof[]
   assistantMessages AssistantMessage[]
 
   @@map("clients")
@@ -564,8 +565,34 @@ model Order {
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   invoice      Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   prepaidPayments PrepaidPayment[]
+  paymentProofs   PaymentProof[]
 
   @@map("orders")
+}
+
+/// Justificatif de virement déposé par le client pour une commande (migration 015).
+model PaymentProof {
+  id               BigInt    @id @default(autoincrement())
+  orderId          BigInt    @map("order_id")
+  clientId         BigInt    @map("client_id")
+  uploadedByUserId BigInt?   @map("uploaded_by_user_id")
+  originalName     String    @map("original_name") @db.VarChar(255)
+  storageKey       String    @unique @map("storage_key")
+  mimeType         String    @map("mime_type") @db.VarChar(120)
+  sizeBytes        BigInt    @map("size_bytes")
+  reference        String?   @db.VarChar(160)
+  status           String    @default("EN_ATTENTE") @db.VarChar(12)
+  reviewNote       String?   @map("review_note")
+  reviewedByUserId BigInt?   @map("reviewed_by_user_id")
+  reviewedAt       DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "idx_payment_proofs_order")
+  @@index([status], map: "idx_payment_proofs_status")
+  @@map("payment_proofs")
 }
 
 /// Réclamation déposée par un client et traitée par l'équipe (migration 014).
