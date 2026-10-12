@@ -1,4 +1,5 @@
 import styles from "@/styles/neu.module.css";
+import { alertTermsRequired } from "@/lib/alerts";
 
 /** Logo Google officiel (4 couleurs). */
 function GoogleLogo() {
@@ -39,17 +40,19 @@ export function GoogleButton({
   return (
     <>
       <div className={styles.divider}>ou</div>
-      {blocked && (
-        <p className={styles.hint} style={{ marginBottom: 8, fontSize: 11.5 }}>
-          Cochez la case des conditions générales pour continuer avec Google.
-        </p>
-      )}
       <a
         href={blocked ? undefined : href}
         aria-disabled={blocked || undefined}
-        onClick={blocked ? (e) => e.preventDefault() : undefined}
+        onClick={
+          blocked
+            ? (e) => {
+                e.preventDefault();
+                void alertTermsRequired();
+              }
+            : undefined
+        }
         className={styles.googleBtn}
-        style={blocked ? { opacity: 0.55, cursor: "not-allowed" } : undefined}
+        style={blocked ? { opacity: 0.7 } : undefined}
       >
         <GoogleLogo />
         {label}

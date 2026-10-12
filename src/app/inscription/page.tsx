@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "@/styles/neu.module.css";
 import { GoogleButton } from "@/components/auth/GoogleButton";
+import { alertTermsRequired } from "@/lib/alerts";
 
 /** Œil plein, comme la référence : l'iris se remplit quand le mot de passe est visible. */
 function EyeIcon({ open }: { open: boolean }) {
@@ -51,7 +52,7 @@ function InscriptionForm() {
       return;
     }
     if (!acceptTerms) {
-      setError("Merci d'accepter les conditions générales pour créer votre compte.");
+      void alertTermsRequired();
       return;
     }
 
