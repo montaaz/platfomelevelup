@@ -11,7 +11,7 @@ import { createHmac } from "node:crypto";
  *      résultat, scellé de la même façon : c'est là que la commande est encaissée ;
  *   4. le client revient sur url_retour_ok / url_retour_err (simple affichage).
  *
- *   MONETICO_TPE="XZ85771"            numéro de TPE (paiement immédiat)
+ *   MONETICO_TPE="XZ8577I"            numéro de TPE (paiement immédiat — se termine par la lettre I)
  *   MONETICO_SOCIETE="merchandis"     code société
  *   MONETICO_KEY="…"                  clé de sécurité (40 caractères hexadécimaux), téléchargée sur monetico.com
  *   MONETICO_ENV="test" | "prod"      https://p.monetico-services.com/test/paiement.cgi ou /paiement.cgi
