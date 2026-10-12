@@ -550,6 +550,9 @@ model Order {
   paymentReference String?        @map("payment_reference") @db.VarChar(160)
   /// Transaction ClicToPay en cours ou réglée (migration 012).
   gatewayOrderId   String?        @unique(map: "idx_orders_gateway_order") @map("gateway_order_id") @db.VarChar(64)
+  /// Montant et devise réellement passés à la banque (EUR via Monetico, TND via ClicToPay) — migration 019.
+  gatewayAmount    Decimal?       @map("gateway_amount") @db.Decimal(12, 2)
+  gatewayCurrency  String?        @map("gateway_currency") @db.Char(3)
   paidAt           DateTime?      @map("paid_at") @db.Timestamptz(6)
   confirmedBy      BigInt?        @map("confirmed_by")
   projectId        BigInt?        @map("project_id")
@@ -568,6 +571,34 @@ model Order {
   paymentProofs   PaymentProof[]
 
   @@map("orders")
+}
+
+/// Message entrant d'un réseau social ou d'un e-mail, traité par l'assistant (migration 016).
+model InboundLead {
+  id           BigInt   @id @default(autoincrement())
+  channel      String   @db.VarChar(20)
+  externalId   String?  @map("external_id") @db.VarChar(160)
+  displayName  String?  @map("display_name") @db.VarChar(160)
+  contact      String?  @db.VarChar(254)
+  message      String
+  reply        String?
+  answeredByAi Boolean  @default(true) @map("answered_by_ai")
+  lang         String?  @db.Char(2)
+  threadRef    String?  @map("thread_ref") @db.VarChar(160)
+  intent       String?  @db.VarChar(24)
+  score        Int      @default(0) @db.SmallInt
+  handoff      Boolean  @default(false)
+  status       String   @default("NOUVEAU") @db.VarChar(12)
+  packCode     String?  @map("pack_code") @db.VarChar(40)
+  summary      String?  @db.VarChar(200)
+  followedUpAt DateTime? @map("followed_up_at") @db.Timestamptz(6)
+  mediaKind    String?  @map("media_kind") @db.VarChar(10)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([channel, externalId, createdAt(sort: Desc)], map: "idx_inbound_leads_contact_time")
+  @@index([channel, createdAt(sort: Desc)], map: "idx_inbound_leads_channel")
+  @@index([channel, externalId], map: "idx_inbound_leads_external")
+  @@map("inbound_leads")
 }
 
 /// Justificatif de virement déposé par le client pour une commande (migration 015).
@@ -628,6 +659,8 @@ model PrepaidPayment {
   currency         String    @default("TND") @db.Char(3)
   status           String    @default("EN_ATTENTE") @db.VarChar(12)
   gatewayOrderId   String?   @unique @map("gateway_order_id") @db.VarChar(64)
+  gatewayAmount    Decimal?  @map("gateway_amount") @db.Decimal(12, 2)
+  gatewayCurrency  String?   @map("gateway_currency") @db.Char(3)
   paymentReference String?   @map("payment_reference") @db.VarChar(160)
   paidAt           DateTime? @map("paid_at") @db.Timestamptz(6)
   orderId          BigInt?   @map("order_id")

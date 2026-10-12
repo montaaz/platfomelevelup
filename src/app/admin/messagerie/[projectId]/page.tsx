@@ -15,6 +15,7 @@ export default async function AdminThreadPage({ params }: { params: Promise<{ pr
     return (
       <div className="pb-8">
         <ThreadView
+          suggest
           projectId={thread.projectId}
           projectTitle={thread.projectTitle}
           backHref="/admin/messagerie"

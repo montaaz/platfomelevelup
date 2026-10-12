@@ -20,16 +20,45 @@ export function ThreadView({
   projectTitle,
   backHref,
   messages,
+  suggest = false,
 }: {
   projectId: string;
   projectTitle: string;
   backHref: string;
   messages: ThreadMessageData[];
+  /** Admin : propose un brouillon rédigé par l'assistant à partir du dernier message du client. */
+  suggest?: boolean;
 }) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function suggestReply() {
+    setSuggesting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `query($projectId: ID!) { suggestReply(projectId: $projectId) { text enabled } }`,
+          variables: { projectId },
+        }),
+      });
+      const json = await res.json();
+      if (json.errors?.length) throw new Error(json.errors[0].message);
+      const { text, enabled } = json.data.suggestReply as { text: string | null; enabled: boolean };
+      if (!enabled) setError("Assistant désactivé (MESSAGING_AI).");
+      else if (!text) setError("L'assistant n'a pas de réponse sûre pour ce message : rédigez-la vous-même.");
+      else setBody(text);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Suggestion indisponible.");
+    } finally {
+      setSuggesting(false);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -91,7 +120,19 @@ export function ThreadView({
         ))}
       </div>
 
-      <form onSubmit={onSubmit} className="flex items-end gap-3 border-t border-ink/5 px-5 py-4 sm:px-6">
+      {suggest && (
+        <div className="flex justify-end border-t border-ink/5 px-5 pt-3 sm:px-6">
+          <button
+            type="button"
+            onClick={suggestReply}
+            disabled={suggesting || busy}
+            className="rounded-full bg-violet-50 px-3 py-1.5 text-[12.5px] font-medium text-violet-700 hover:bg-violet-100 disabled:opacity-60"
+          >
+            {suggesting ? "L'assistant rédige…" : "✨ Suggérer une réponse"}
+          </button>
+        </div>
+      )}
+      <form onSubmit={onSubmit} className={`flex items-end gap-3 px-5 py-4 sm:px-6 ${suggest ? "" : "border-t border-ink/5"}`}>
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}

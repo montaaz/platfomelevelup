@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import styles from "@/styles/neu.module.css";
+import { headers } from "next/headers";
 import { clictopayConfigured } from "@/lib/clictopay";
+import { moneticoAvailable } from "@/server/services/monetico";
+import { tndToEur } from "@/lib/monetico";
+import { requestIsTunisian } from "@/lib/region";
 import { formatDT } from "@/lib/format";
 import { findPackByCode } from "@/server/services/orders";
 
@@ -22,7 +26,8 @@ export default async function ChoisirPaiementPage({
   if (!/^[A-Z0-9_]{2,40}$/.test(code)) redirect("/login");
   const pack = await findPackByCode(code).catch(() => null);
   if (!pack) redirect("/login");
-  const cardAvailable = clictopayConfigured();
+  const tunisian = requestIsTunisian(await headers());
+  const cardProvider = tunisian ? (clictopayConfigured() ? "clictopay" : "demo") : moneticoAvailable() ? "monetico" : "demo";
 
   return (
     <main className={styles.page}>
@@ -39,22 +44,46 @@ export default async function ChoisirPaiementPage({
           </p>
         </div>
 
-        <form action="/api/paiement/panier" method="POST" style={{ marginTop: 16 }}>
-          <input type="hidden" name="pack" value={pack.code} />
-          <button type="submit" className={styles.submit} style={{ width: "100%", marginTop: 0 }}>
-            Payer par carte bancaire{cardAvailable ? "" : " (démonstration)"}
-          </button>
-        </form>
-        <p className={styles.hint} style={{ marginTop: 6 }}>
-          Page sécurisée de la banque · validation immédiate
-        </p>
+        {cardProvider === "monetico" && (
+          <>
+            <Link href={`/paiement/carte?pack=${encodeURIComponent(pack.code)}`} className={styles.submit} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 16, textDecoration: "none" }}>
+              Payer par carte bancaire ({tndToEur(Number(pack.price)).toFixed(2)} €)
+            </Link>
+            <p className={styles.hint} style={{ marginTop: 6 }}>Page sécurisée de notre banque (Monetico — Crédit Mutuel) · validation immédiate</p>
+          </>
+        )}
+        {cardProvider !== "monetico" && !tunisian && (
+          <>
+            <form action="/api/paiement/panier" method="POST" style={{ marginTop: 16 }}>
+              <input type="hidden" name="pack" value={pack.code} />
+              <button type="submit" className={styles.submit} style={{ width: "100%", marginTop: 0 }}>
+                Payer par carte bancaire{cardProvider === "demo" ? " (démonstration)" : ""}
+              </button>
+            </form>
+            <p className={styles.hint} style={{ marginTop: 6 }}>Page sécurisée de la banque · validation immédiate</p>
+          </>
+        )}
+        {tunisian && cardProvider === "clictopay" && (
+          <>
+            <form action="/api/paiement/panier" method="POST" style={{ marginTop: 16 }}>
+              <input type="hidden" name="pack" value={pack.code} />
+              <button type="submit" className={styles.submit} style={{ width: "100%", marginTop: 0 }}>Payer par carte bancaire</button>
+            </form>
+            <p className={styles.hint} style={{ marginTop: 6 }}>Page sécurisée de la banque · validation immédiate</p>
+          </>
+        )}
+        {tunisian && cardProvider === "demo" && (
+          <p className={styles.hint} style={{ marginTop: 14, lineHeight: 1.5 }}>
+            Pour la Tunisie, le règlement se fait par <strong>virement bancaire</strong> : vous créez votre compte, le RIB s&apos;affiche à copier, puis vous déposez votre justificatif. Votre projet démarre dès que l&apos;équipe constate le virement.
+          </p>
+        )}
 
         <Link
           href={`/inscription?pack=${encodeURIComponent(pack.code)}&mode=virement`}
           className={styles.back}
           style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14 }}
         >
-          Payer par virement bancaire
+          {tunisian ? "Continuer — payer par virement" : "Payer par virement bancaire"}
         </Link>
         <p className={styles.hint} style={{ marginTop: 6 }}>
           Vous créez votre compte, puis vous recevez le RIB et déposez votre justificatif.

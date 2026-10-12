@@ -1,12 +1,12 @@
 import { createSchema } from "graphql-yoga";
 import { GraphQLError } from "graphql";
 import type { Ctx } from "@/server/context";
-import { ForbiddenError, ValidationError } from "@/server/context";
+import { ForbiddenError, ValidationError, assertAdmin } from "@/server/context";
 import { adminDashboard, clientHome } from "@/server/services/dashboard";
 import {
   listClients, listProjects, listTeam, listInvoices, listSubscriptions, clientHistory,
 } from "@/server/services/directory";
-import { listThreads, getThread, sendMessage, unreadTotal } from "@/server/services/messaging";
+import { listThreads, getThread, sendMessage, unreadTotal, suggestReply } from "@/server/services/messaging";
 import {
   approveDeliverable, requestRevision, createProjectRequest,
   getMyProfile, updateMyProfile, listServicesPublic, changeMyPassword,
@@ -17,6 +17,7 @@ import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server
 import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
 import { myComplaints, listComplaints, createComplaint, updateComplaint } from "@/server/services/complaints";
 import { reviewTransferProof } from "@/server/services/transfers";
+import { updateLeadStatus } from "@/server/services/socialBrain";
 import {
   createClient, updateClient, getClient, archiveClient, clientDeletionImpact,
   restoreClient, purgeClient, archiveProject,
@@ -68,6 +69,7 @@ const typeDefs = /* GraphQL */ `
     clientDeletionImpact(id: ID!): DeletionImpact!
     projectRequests: [RequestRow!]!
     myComplaints: [ComplaintRow!]!
+    suggestReply(projectId: ID!): SuggestedReply!
     complaints: [ComplaintRow!]!
     notifications: [NotificationRow!]!
     search(q: String!): [SearchHit!]!
@@ -86,6 +88,7 @@ const typeDefs = /* GraphQL */ `
     createComplaint(category: String!, subject: String!, message: String!, projectId: ID): Created!
     updateComplaint(id: ID!, status: String, reply: String): Boolean!
     reviewTransferProof(id: ID!, accept: Boolean!, note: String): Boolean!
+    updateLeadStatus(id: ID!, status: String!): Boolean!
     updateMyProfile(input: ProfileInput!): Boolean!
     createClient(input: ClientInput!): Created!
     updateClient(id: ID!, input: ClientInput!): Boolean!
@@ -112,6 +115,8 @@ const typeDefs = /* GraphQL */ `
 
   type ArchivedClient { companyName: String!, projects: Int!, invoices: Int! }
   type DeletionImpact { companyName: String!, projects: Int!, invoices: Int!, accounts: Int! }
+
+  type SuggestedReply { text: String, enabled: Boolean! }
 
   type ComplaintRow {
     id: ID!, clientId: ID!, clientCompany: String!, contactName: String!,
@@ -296,6 +301,7 @@ export const schema = createSchema<GqlContext>({
         wrap(() => clientDeletionImpact(auth(c), BigInt(a.id))),
       projectRequests: (_p, _a, c) => wrap(() => listProjectRequests(auth(c))),
       myComplaints: (_p, _a, c) => wrap(() => myComplaints(auth(c))),
+      suggestReply: (_p, a: { projectId: string }, c) => wrap(() => suggestReply(auth(c), BigInt(a.projectId))),
       complaints: (_p, _a, c) => wrap(() => listComplaints(auth(c))),
       notifications: (_p, _a, c) => wrap(() => listNotifications(auth(c))),
       search: (_p, a: { q: string }, c) => wrap(() => globalSearch(auth(c), a.q)),
@@ -314,6 +320,10 @@ export const schema = createSchema<GqlContext>({
         wrap(() => requestRevision(auth(c), BigInt(a.fileId), a.comment)),
       createComplaint: (_p, a: { category: string; subject: string; message: string; projectId?: string | null }, c) =>
         wrap(() => createComplaint(auth(c), { ...a, projectId: a.projectId ? BigInt(a.projectId) : null })),
+      updateLeadStatus: (_p, a: { id: string; status: string }, c) => {
+        assertAdmin(auth(c));
+        return wrap(() => updateLeadStatus(BigInt(a.id), a.status));
+      },
       reviewTransferProof: (_p, a: { id: string; accept: boolean; note?: string | null }, c) =>
         wrap(() => reviewTransferProof(auth(c), BigInt(a.id), a.accept, a.note)),
       updateComplaint: (_p, a: { id: string; status?: string | null; reply?: string | null }, c) =>

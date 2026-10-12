@@ -16,6 +16,7 @@ function headerIcon(title: string): { Icon: (p: { width?: number; height?: numbe
   if (t.includes("abonnement")) return { Icon: IconRepeat, tone: "from-amber-400 to-orange-500" };
   if (t.includes("demande")) return { Icon: IconPlus, tone: "from-pink-400 to-rose-500" };
   if (t.includes("réclamation")) return { Icon: IconFlag, tone: "from-rose-400 to-red-500" };
+  if (t.includes("derniers messages") || t.includes("lead")) return { Icon: IconChat, tone: "from-sky-400 to-brand-500" };
   return { Icon: IconFolder, tone: "from-brand-400 to-violet-500" };
 }
 

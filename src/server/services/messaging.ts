@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { autoReplyLater, draftReply, messagingAIEnabled } from "@/server/services/messagingAI";
 import { mirrorNotificationEmails } from "@/lib/mail";
-import { ForbiddenError, ValidationError, type Ctx } from "@/server/context";
+import { ForbiddenError, ValidationError, type Ctx, assertAdmin } from "@/server/context";
 
 /** Throws unless the user may access this project (admin: all; client: own only). */
 export async function assertProjectAccess(ctx: Ctx, projectId: bigint) {
@@ -125,7 +126,26 @@ export async function sendMessage(ctx: Ctx, projectId: bigint, body: string) {
     mirrorNotificationEmails(recipients.map((r) => r.id), title, trimmed.slice(0, 200));
   }
 
+  // Un client écrit : l'assistant répond tout de suite si la messagerie IA est activée.
+  if (ctx.role === "CLIENT") autoReplyLater(projectId, trimmed);
+
   return { id: message.id.toString(), createdAt: message.createdAt.toISOString() };
+}
+
+/** Brouillon de réponse pour l'admin, à relire avant envoi. */
+export async function suggestReply(ctx: Ctx, projectId: bigint): Promise<{ text: string | null; enabled: boolean }> {
+  assertAdmin(ctx);
+  if (!messagingAIEnabled()) return { text: null, enabled: false };
+  const recent = await prisma.message.findMany({
+    where: { projectId },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    include: { sender: { select: { role: true } } },
+  });
+  const lastClient = recent.find((m) => m.sender.role === "CLIENT");
+  if (!lastClient) return { text: null, enabled: true };
+  const history = recent.reverse().filter((m) => m.id !== lastClient.id).map((m) => ({ fromClient: m.sender.role === "CLIENT", body: m.body }));
+  return { text: await draftReply(projectId, lastClient.body, history), enabled: true };
 }
 
 export async function unreadTotal(ctx: Ctx) {

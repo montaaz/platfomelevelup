@@ -11,6 +11,16 @@
  *   OLLAMA_URL=http://127.0.0.1:11434      (défaut)
  *   BUDDY_AI_MODEL=qwen2.5:3b              (défaut)
  *   BUDDY_EMBED_MODEL=bge-m3               (défaut ; "off" pour s'en passer)
+ *
+ * Second fournisseur : l'API Baarcha (https://baarcha.tn, modèle Hannibal —
+ * français, anglais et tunisien), compatible OpenAI. Même interface, même
+ * garde-fou (guard.ts) : seul le moteur change. Pas d'embeddings chez Baarcha,
+ * la recherche d'extraits se fait alors par mots.
+ *
+ *   BUDDY_AI=baarcha
+ *   BAARCHA_API_KEY=pk_live_…
+ *   BAARCHA_API_URL=https://baarcha.tn/api/v1   (défaut)
+ *   BAARCHA_MODEL=hannibal                      (défaut)
  */
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
@@ -30,8 +40,31 @@ export interface LocalModel {
 }
 
 export type AIConfig = { url: string; chatModel: string; embedModel: string | null };
+export type BaarchaConfig = { url: string; apiKey: string; chatModel: string };
 
 const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
+
+/** Configuration Baarcha, ou null si BUDDY_AI ne la désigne pas ou si la clé manque. */
+export function readBaarchaConfig(env: Record<string, string | undefined> = process.env): BaarchaConfig | null {
+  if (!/^baarcha$/i.test(env.BUDDY_AI ?? "")) return null;
+  const apiKey = (env.BAARCHA_API_KEY ?? "").trim();
+  if (!apiKey) {
+    console.error("[buddy-ai] BAARCHA_API_KEY manquante : IA désactivée.");
+    return null;
+  }
+  let url: URL;
+  try {
+    url = new URL(env.BAARCHA_API_URL || "https://baarcha.tn/api/v1");
+  } catch {
+    console.error("[buddy-ai] BAARCHA_API_URL invalide : IA désactivée.");
+    return null;
+  }
+  if (url.protocol !== "https:") {
+    console.error("[buddy-ai] BAARCHA_API_URL doit être en https : IA désactivée.");
+    return null;
+  }
+  return { url: url.toString().replace(/\/+$/, ""), apiKey, chatModel: (env.BAARCHA_MODEL || "hannibal").trim() };
+}
 
 export function readAIConfig(env: Record<string, string | undefined> = process.env): AIConfig | null {
   if (!/^(1|on|true|yes|ollama)$/i.test(env.BUDDY_AI ?? "")) return null;
@@ -103,14 +136,78 @@ export function ollamaModel(cfg: AIConfig): LocalModel {
   };
 }
 
+/**
+ * Baarcha : API « chat/completions » compatible OpenAI. La sortie JSON n'y est
+ * pas contrainte par une grammaire comme chez Ollama : on la demande dans les
+ * consignes et on extrait le premier objet JSON de la réponse ; l'appelant
+ * vérifie de toute façon que la valeur appartient à sa liste.
+ */
+export function baarchaModel(cfg: BaarchaConfig): LocalModel {
+  let pausedUntil = 0;
+
+  return {
+    async chat(messages, opts) {
+      if (Date.now() < pausedUntil) throw new Error("Baarcha en pause après une panne");
+      const wantJson = !!opts.json;
+      const sent: ChatMessage[] = wantJson
+        ? messages.map((m, i) =>
+            i === 0 && m.role === "system"
+              ? { ...m, content: `${m.content}\nRéponds uniquement par un objet JSON, sans texte autour.` }
+              : m,
+          )
+        : messages;
+      let res: Response;
+      try {
+        res = await fetch(`${cfg.url}/chat/completions`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${cfg.apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: cfg.chatModel,
+            messages: sent,
+            stream: false,
+            max_tokens: opts.maxTokens,
+            temperature: opts.temperature ?? 0,
+          }),
+          signal: AbortSignal.timeout(opts.timeoutMs),
+          cache: "no-store",
+        });
+      } catch (e) {
+        if (!(e instanceof Error && e.name === "TimeoutError")) pausedUntil = Date.now() + PAUSE_MS;
+        throw e;
+      }
+      if (res.status === 429) throw new Error("Baarcha : limite de requêtes atteinte");
+      if (!res.ok) {
+        // 401/403 : clé invalide — inutile de réessayer à chaque message.
+        if (res.status === 401 || res.status === 403 || res.status >= 500) pausedUntil = Date.now() + PAUSE_MS;
+        throw new Error(`Baarcha ${res.status}`);
+      }
+      const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+      const text = data.choices?.[0]?.message?.content ?? "";
+      if (!wantJson) return text;
+      const match = text.match(/\{[\s\S]*\}/);
+      return match ? match[0] : text;
+    },
+    // Pas de modèle d'embeddings chez Baarcha : la recherche d'extraits reste lexicale.
+    async embed() {
+      return null;
+    },
+  };
+}
+
 let shared: LocalModel | null | undefined;
 
 /** Le modèle configuré pour ce process, ou null si l'IA est désactivée. */
 export function configuredModel(): LocalModel | null {
   if (shared === undefined) {
-    const cfg = readAIConfig();
-    shared = cfg ? ollamaModel(cfg) : null;
-    if (cfg) console.info(`[buddy-ai] modèle local ${cfg.chatModel} sur ${cfg.url}${cfg.embedModel ? ` · recherche ${cfg.embedModel}` : ""}`);
+    const baarcha = readBaarchaConfig();
+    if (baarcha) {
+      shared = baarchaModel(baarcha);
+      console.info(`[buddy-ai] modèle Baarcha ${baarcha.chatModel} (${baarcha.url})`);
+    } else {
+      const cfg = readAIConfig();
+      shared = cfg ? ollamaModel(cfg) : null;
+      if (cfg) console.info(`[buddy-ai] modèle local ${cfg.chatModel} sur ${cfg.url}${cfg.embedModel ? ` · recherche ${cfg.embedModel}` : ""}`);
+    }
   }
   return shared;
 }

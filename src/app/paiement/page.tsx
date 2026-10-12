@@ -6,6 +6,10 @@ import { myAccessState, myPendingOrders } from "@/server/services/orders";
 import { latestProofsByOrder } from "@/server/services/transfers";
 import { formatDT } from "@/lib/format";
 import { clictopayConfigured } from "@/lib/clictopay";
+import { moneticoAvailable } from "@/server/services/monetico";
+import { tndToEur } from "@/lib/monetico";
+import { clientIsTunisian } from "@/lib/region";
+import { prisma } from "@/lib/prisma";
 import { BANK_ACCOUNT, transferLabel } from "@/lib/bank";
 import { TransferPayment } from "@/components/client/TransferPayment";
 
@@ -33,7 +37,11 @@ export default async function PaiementPage({
   if (!order && access.accessGranted) redirect("/client");
   const proofs = order ? await latestProofsByOrder([BigInt(order.id)]) : new Map();
   const proof = order ? (proofs.get(order.id) ?? null) : null;
-  const cardAvailable = clictopayConfigured();
+  const client = await prisma.client.findUnique({ where: { id: ctx.clientId! }, select: { country: true, detectedCountryCode: true } });
+  const tunisian = clientIsTunisian(client ?? {});
+  // Tunisie : carte en dinars (ClicToPay) quand la banque l'ouvrira ; ailleurs : carte en euros (Monetico).
+  const cardProvider = tunisian ? (clictopayConfigured() ? "clictopay" : null) : moneticoAvailable() ? "monetico" : null;
+  const cardAvailable = cardProvider !== null;
 
   return (
     <main className={styles.page} style={{ alignItems: "flex-start", paddingTop: 36, paddingBottom: 48 }}>
@@ -66,23 +74,32 @@ export default async function PaiementPage({
               )}
             </div>
 
-            {/* ------------------------------------------------ carte bancaire */}
-            <div className={styles.choice} style={{ marginTop: 14, cursor: "default", display: "block", textAlign: "left" }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#26303f" }}>Carte bancaire</p>
-              <p style={{ marginTop: 4, fontSize: 12.5, color: "#6b7689", fontWeight: 400, lineHeight: 1.5 }}>
-                {cardAvailable
-                  ? "Paiement immédiat sur la page sécurisée de la banque (ClicToPay). Votre commande est validée tout de suite."
-                  : "Le paiement par carte sera bientôt disponible. En attendant, réglez par virement ci-dessous."}
-              </p>
-              {cardAvailable && (
-                <form action="/api/paiement/demarrer" method="POST" style={{ marginTop: 12 }}>
-                  <input type="hidden" name="orderId" value={order.id} />
-                  <button type="submit" className={styles.submit} style={{ width: "100%", marginTop: 0, height: 48 }}>
-                    Payer par carte
-                  </button>
-                </form>
-              )}
-            </div>
+            {/* ------------------------------------------------ carte bancaire (hors Tunisie, ou ClicToPay quand ouvert) */}
+            {(cardAvailable || !tunisian) && (
+              <div className={styles.choice} style={{ marginTop: 14, cursor: "default", display: "block", textAlign: "left" }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#26303f" }}>Carte bancaire</p>
+                <p style={{ marginTop: 4, fontSize: 12.5, color: "#6b7689", fontWeight: 400, lineHeight: 1.5 }}>
+                  {cardProvider === "monetico"
+                    ? `Paiement immédiat en euros (${tndToEur(order.amount).toFixed(2)} €) sur la page sécurisée de notre banque (Monetico — Crédit Mutuel). Votre commande est validée tout de suite.`
+                    : cardProvider === "clictopay"
+                      ? "Paiement immédiat sur la page sécurisée de la banque (ClicToPay). Votre commande est validée tout de suite."
+                      : "Le paiement par carte sera bientôt disponible. En attendant, réglez par virement ci-dessous."}
+                </p>
+                {cardProvider === "monetico" && (
+                  <Link href={`/paiement/carte?commande=${order.id}`} className={styles.submit} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 12, height: 48, textDecoration: "none" }}>
+                    Payer par carte ({tndToEur(order.amount).toFixed(2)} €)
+                  </Link>
+                )}
+                {cardProvider === "clictopay" && (
+                  <form action="/api/paiement/demarrer" method="POST" style={{ marginTop: 12 }}>
+                    <input type="hidden" name="orderId" value={order.id} />
+                    <button type="submit" className={styles.submit} style={{ width: "100%", marginTop: 0, height: 48 }}>
+                      Payer par carte
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
 
             {/* ------------------------------------------------ virement */}
             <TransferPayment

@@ -35,7 +35,7 @@ export function numbersIn(text: string): Set<string> {
 }
 
 /** Noms toujours permis : la marque elle-même. */
-const OWN_NAMES = new Set(["level", "up", "ia", "ai", "levelup"]);
+const OWN_NAMES = new Set(["level", "up", "ia", "ai", "levelup", "pack", "packs"]);
 
 /** Mots à majuscule hors début de phrase : « basés à Tunis » → ["Tunis"]. */
 export function properNounsIn(text: string): string[] {
