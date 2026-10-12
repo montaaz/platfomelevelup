@@ -4,10 +4,9 @@ import styles from "@/styles/neu.module.css";
 import { ctxOrNull } from "@/server/context";
 import { myAccessState, myPendingOrders } from "@/server/services/orders";
 import { latestProofsByOrder } from "@/server/services/transfers";
-import { formatDT } from "@/lib/format";
+import { formatDT, formatMoney } from "@/lib/format";
 import { clictopayConfigured } from "@/lib/clictopay";
 import { moneticoAvailable } from "@/server/services/monetico";
-import { tndToEur } from "@/lib/monetico";
 import { clientIsTunisian } from "@/lib/region";
 import { prisma } from "@/lib/prisma";
 import { BANK_ACCOUNT, transferLabel } from "@/lib/bank";
@@ -57,7 +56,7 @@ export default async function PaiementPage({
             <div className={styles.choice} style={{ marginTop: 18, cursor: "default", display: "block" }}>
               <p style={{ fontSize: 15, fontWeight: 800, color: "#26303f" }}>{order.packName}</p>
               <p style={{ marginTop: 6, fontSize: 22, fontWeight: 800, color: "#0a5ff0" }}>
-                {formatDT(order.amount)}
+                {formatMoney(order.amount, order.currency)}
                 {order.isMonthly ? " / mois" : ""}
               </p>
               {pendingOrders.length > 1 && (
@@ -80,14 +79,14 @@ export default async function PaiementPage({
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#26303f" }}>Carte bancaire</p>
                 <p style={{ marginTop: 4, fontSize: 12.5, color: "#6b7689", fontWeight: 400, lineHeight: 1.5 }}>
                   {cardProvider === "monetico"
-                    ? `Paiement immédiat en euros (${tndToEur(order.amount).toFixed(2)} €) sur la page sécurisée de notre banque (Monetico — Crédit Mutuel). Votre commande est validée tout de suite.`
+                    ? "Paiement immédiat sur la page sécurisée de notre banque (Monetico — Crédit Mutuel). Votre commande est validée tout de suite."
                     : cardProvider === "clictopay"
                       ? "Paiement immédiat sur la page sécurisée de la banque (ClicToPay). Votre commande est validée tout de suite."
                       : "Le paiement par carte sera bientôt disponible. En attendant, réglez par virement ci-dessous."}
                 </p>
                 {cardProvider === "monetico" && (
                   <Link href={`/paiement/carte?commande=${order.id}`} className={styles.submit} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 12, height: 48, textDecoration: "none" }}>
-                    Payer par carte ({tndToEur(order.amount).toFixed(2)} €)
+                    Payer par carte
                   </Link>
                 )}
                 {cardProvider === "clictopay" && (
@@ -104,7 +103,7 @@ export default async function PaiementPage({
             {/* ------------------------------------------------ virement */}
             <TransferPayment
               orderId={order.id}
-              amount={`${formatDT(order.amount)}${order.isMonthly ? " / mois" : ""}`}
+              amount={`${formatMoney(order.amount, order.currency)}${order.isMonthly ? " / mois" : ""}`}
               label={transferLabel(order.id)}
               bank={BANK_ACCOUNT}
               proof={proof}

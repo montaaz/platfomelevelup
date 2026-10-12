@@ -1,5 +1,11 @@
 /** Shared display helpers — French interface, DT currency (3 decimals in DB, 0–2 shown). */
 
+/** Montant dans sa devise : « 890 DT » en Tunisie, « 890 € » pour un client hors Tunisie. */
+export function formatMoney(value: number | string, currency?: string | null, opts: { decimals?: number } = {}) {
+  if (currency === "EUR") return formatDT(value, opts).replace(/\s*DT$/, " €");
+  return formatDT(value, opts);
+}
+
 export function formatDT(value: number | string, opts: { decimals?: number } = {}) {
   const n = typeof value === "string" ? parseFloat(value) : value;
   const decimals = opts.decimals ?? (Number.isInteger(n) ? 0 : 2);

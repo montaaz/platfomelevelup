@@ -5,6 +5,7 @@ import { assertAdmin, clientScope, ForbiddenError, ValidationError, type Ctx } f
 import { fetchPaymentStatus, registerPayment, toMillimes, TND_NUMERIC } from "@/lib/clictopay";
 import { notifyTeamByEmail } from "@/lib/mail";
 import { stripPublicPort } from "@/lib/publicUrl";
+import { clientIsTunisian } from "@/lib/region";
 
 /**
  * Commandes issues du site vitrine (levelupia.agency) vers la plateforme
@@ -82,9 +83,13 @@ export async function createOrderForClient(
   packCode: string,
   /** Montant déjà encaissé en ligne avant l'inscription : c'est lui qui fait foi. */
   prepaidAmount?: Prisma.Decimal,
+  /** Devise imposée (paiement déjà fait) ; sinon : dinars en Tunisie, euros ailleurs — même nombre. */
+  currencyOverride?: string | null,
 ) {
   const pack = await prisma.pack.findFirst({ where: { code: packCode, isActive: true } });
   if (!pack) throw new ValidationError("Cette offre n'est plus disponible.");
+  const owner = await prisma.client.findUnique({ where: { id: clientId }, select: { country: true, detectedCountryCode: true } });
+  const currency = currencyOverride ?? (owner && !clientIsTunisian(owner) ? "EUR" : pack.currency);
 
   const order = await prisma.$transaction(async (tx) => {
     // Le projet existe dès la commande : le client le voit dans « Mes projets »
@@ -147,7 +152,7 @@ export async function createOrderForClient(
         clientId,
         packId: pack.id,
         amount: prepaidAmount ?? pack.price, // prix serveur, jamais celui du navigateur
-        currency: pack.currency,
+        currency,
         status: "EN_ATTENTE_PAIEMENT",
         projectId,
       },
@@ -166,8 +171,8 @@ export async function createOrderForClient(
         type: "DEMANDE_PROJET" as const,
         title: prepaidAmount ? `Commande payée en ligne — ${pack.name}` : `Commande à encaisser — ${pack.name}`,
         body: prepaidAmount
-          ? `${client?.companyName ?? "Un client"} a réglé ${Number(prepaidAmount).toFixed(0)} TND par carte avant de créer son compte.`
-          : `${client?.companyName ?? "Un client"} attend la confirmation du paiement (${Number(pack.price).toFixed(0)} TND).`,
+          ? `${client?.companyName ?? "Un client"} a réglé ${Number(prepaidAmount).toFixed(0)} ${currency} par carte avant de créer son compte.`
+          : `${client?.companyName ?? "Un client"} attend la confirmation du paiement (${Number(pack.price).toFixed(0)} ${currency}).`,
         entityType: "order",
         entityId: order.id,
       })),
@@ -193,6 +198,7 @@ export async function myPendingOrders(ctx: Ctx) {
     projectId: o.projectId?.toString() ?? null,
     packName: o.pack.name,
     amount: Number(o.amount),
+    currency: o.currency,
     isMonthly: o.pack.isMonthly,
   }));
 }
@@ -233,6 +239,7 @@ export type OrderRow = {
   packName: string;
   isMonthly: boolean;
   amount: number;
+  currency: string;
   status: string;
   paidAt: string | null;
   createdAt: string;
@@ -251,6 +258,7 @@ export async function listOrders(ctx: Ctx): Promise<OrderRow[]> {
     packName: o.pack.name,
     isMonthly: o.pack.isMonthly,
     amount: Number(o.amount),
+    currency: o.currency,
     status: o.status,
     paidAt: o.paidAt?.toISOString() ?? null,
     createdAt: o.createdAt.toISOString(),
@@ -379,6 +387,7 @@ export async function settleOrder(
     const invoice = await tx.invoice.create({
       data: {
         invoiceNumber: rows[0]!.n,
+        currency: order.currency,
         clientId: order.clientId,
         projectId,
         status: "PAYEE",

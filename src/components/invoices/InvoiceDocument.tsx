@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui";
 import { PrintButton } from "@/components/invoices/PrintButton";
-import { formatDT, formatDateFull, INVOICE_STATUS_LABEL } from "@/lib/format";
+import { formatMoney, formatDateFull, INVOICE_STATUS_LABEL } from "@/lib/format";
 import type { getInvoice } from "@/server/services/directory";
 
 export type InvoiceDetail = Awaited<ReturnType<typeof getInvoice>>;
@@ -95,8 +95,8 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
               <tr key={i} className="border-b border-ink/5">
                 <td className="py-3 pr-4 text-[13.5px] text-ink">{line.description}</td>
                 <td className="py-3 pr-4 text-right text-[13.5px] text-ink/82">{line.quantity}</td>
-                <td className="py-3 pr-4 text-right text-[13.5px] whitespace-nowrap text-ink/82">{formatDT(line.unitPrice, { decimals: 3 })}</td>
-                <td className="py-3 text-right text-[13.5px] font-medium whitespace-nowrap text-ink">{formatDT(line.lineTotal, { decimals: 3 })}</td>
+                <td className="py-3 pr-4 text-right text-[13.5px] whitespace-nowrap text-ink/82">{formatMoney(line.unitPrice, invoice.currency, { decimals: 3 })}</td>
+                <td className="py-3 text-right text-[13.5px] font-medium whitespace-nowrap text-ink">{formatMoney(line.lineTotal, invoice.currency, { decimals: 3 })}</td>
               </tr>
             ))}
           </tbody>
@@ -109,9 +109,9 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
               <p className="text-[13.5px] font-medium text-ink">{line.description}</p>
               <div className="mt-1 flex items-baseline justify-between gap-3">
                 <p className="text-[12px] text-ink/60">
-                  {line.quantity} × {formatDT(line.unitPrice, { decimals: 3 })}
+                  {line.quantity} × {formatMoney(line.unitPrice, invoice.currency, { decimals: 3 })}
                 </p>
-                <p className="text-[13.5px] font-semibold whitespace-nowrap text-ink">{formatDT(line.lineTotal, { decimals: 3 })}</p>
+                <p className="text-[13.5px] font-semibold whitespace-nowrap text-ink">{formatMoney(line.lineTotal, invoice.currency, { decimals: 3 })}</p>
               </div>
             </div>
           ))}
@@ -121,15 +121,15 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
         <div className="mt-6 w-full space-y-1.5 text-[13.5px] sm:ml-auto sm:max-w-64">
           <div className="flex justify-between text-ink/72">
             <span>Sous-total HT</span>
-            <span>{formatDT(invoice.subtotal, { decimals: 3 })}</span>
+            <span>{formatMoney(invoice.subtotal, invoice.currency, { decimals: 3 })}</span>
           </div>
           <div className="flex justify-between text-ink/72">
             <span>TVA {invoice.vatRate} %</span>
-            <span>{formatDT(invoice.vatAmount, { decimals: 3 })}</span>
+            <span>{formatMoney(invoice.vatAmount, invoice.currency, { decimals: 3 })}</span>
           </div>
           <div className="flex justify-between border-t border-ink/10 pt-2 text-[15px] font-bold text-ink">
             <span>Total TTC</span>
-            <span>{formatDT(invoice.total, { decimals: 3 })}</span>
+            <span>{formatMoney(invoice.total, invoice.currency, { decimals: 3 })}</span>
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
             <p className="text-[12.5px] font-semibold text-emerald-700">Paiement reçu</p>
             {invoice.payments.map((p, i) => (
               <p key={i} className="mt-1 text-[12.5px] text-emerald-700/90">
-                {formatDT(p.amount, { decimals: 2 })} — {METHOD_LABEL[p.method] ?? p.method}
+                {formatMoney(p.amount, invoice.currency, { decimals: 2 })} — {METHOD_LABEL[p.method] ?? p.method}
                 {p.reference ? ` (réf. ${p.reference})` : ""}, le {formatDateFull(p.paidAt)}
               </p>
             ))}

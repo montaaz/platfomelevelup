@@ -42,7 +42,7 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
         <div className={styles.badge} aria-hidden="true">💳</div>
         <h1 className={styles.title}>Vers le paiement sécurisé</h1>
         <p className={styles.subtitle}>
-          {form.label} — {form.amountEur.toFixed(2)} € <span style={{ color: "#8a93a6" }}>({formatDT(form.amountTnd)})</span>
+          {form.label} — {form.amountEur.toFixed(2)} €{form.amountEur !== form.amountTnd ? <span style={{ color: "#8a93a6" }}> ({formatDT(form.amountTnd)})</span> : null}
         </p>
         <p className={styles.hint} style={{ marginTop: 12 }}>
           Vous allez être redirigé vers la page de paiement de notre banque (Monetico — Crédit Mutuel). Si rien ne se passe, cliquez sur le bouton.

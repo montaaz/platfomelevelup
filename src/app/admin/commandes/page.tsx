@@ -6,7 +6,7 @@ import { ConfirmPaymentButton } from "@/components/admin/ConfirmPaymentButton";
 import { TransferReview } from "@/components/admin/TransferReview";
 import { latestProofsByOrder } from "@/server/services/transfers";
 import { transferLabel } from "@/lib/bank";
-import { formatDT, formatDateFull } from "@/lib/format";
+import { formatMoney, formatDT, formatDateFull } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -80,13 +80,13 @@ export default async function AdminCommandesPage() {
               </div>
               <StatusBadge status={STATUS_TONE[o.status] ?? "EN_ATTENTE"} label={STATUS_LABEL[o.status] ?? o.status} />
               <span className="text-[13.5px] font-semibold whitespace-nowrap">
-                {formatDT(o.amount)}{o.isMonthly ? "/mois" : ""}
+                {formatMoney(o.amount, o.currency)}{o.isMonthly ? "/mois" : ""}
               </span>
               {o.status === "EN_ATTENTE_PAIEMENT" && proofs.get(o.id)?.status === "EN_ATTENTE" && (
                 <TransferReview
                   proofId={proofs.get(o.id)!.id}
                   label={`${o.clientCompany} — ${o.packName} (${transferLabel(o.id)})`}
-                  amount={`${formatDT(o.amount)}${o.isMonthly ? "/mois" : ""}`}
+                  amount={`${formatMoney(o.amount, o.currency)}${o.isMonthly ? "/mois" : ""}`}
                   reference={proofs.get(o.id)!.reference}
                   fileName={proofs.get(o.id)!.originalName}
                 />
@@ -98,7 +98,7 @@ export default async function AdminCommandesPage() {
                 <ConfirmPaymentButton
                   orderId={o.id}
                   label={`${o.clientCompany} — ${o.packName}`}
-                  amount={`${formatDT(o.amount)}${o.isMonthly ? "/mois" : ""}`}
+                  amount={`${formatMoney(o.amount, o.currency)}${o.isMonthly ? "/mois" : ""}`}
                 />
               )}
             </div>

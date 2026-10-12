@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/ui";
 import { MarkPaidButton } from "@/components/admin/MarkPaidButton";
-import { formatDT, formatDateFull, INVOICE_STATUS_LABEL } from "@/lib/format";
+import { formatMoney, formatDT, formatDateFull, INVOICE_STATUS_LABEL } from "@/lib/format";
 
 export type InvoiceRowData = {
   id: string;
@@ -13,6 +13,7 @@ export type InvoiceRowData = {
   issueDate: string;
   dueDate: string | null;
   total: number;
+  currency?: string | null;
 };
 
 export function InvoiceTable({
@@ -69,7 +70,7 @@ export function InvoiceTable({
                 <td className="px-4 py-3.5">
                   <StatusBadge status={invoice.status} label={INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status} />
                 </td>
-                <td className="px-6 py-3.5 text-right text-[13.5px] font-semibold">{formatDT(invoice.total, { decimals: 2 })}</td>
+                <td className="px-6 py-3.5 text-right text-[13.5px] font-semibold">{formatMoney(invoice.total, invoice.currency, { decimals: 2 })}</td>
                 {withActions && (
                   <td className="px-6 py-3.5 text-right">
                     {(invoice.status === "EN_ATTENTE" || invoice.status === "EN_RETARD") && (

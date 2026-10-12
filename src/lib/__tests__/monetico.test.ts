@@ -22,7 +22,7 @@ describe("monetico", () => {
 
   it("convertit les dinars en euros avec le taux configuré", () => {
     expect(tndToEur("890.000", { TND_EUR_RATE: "0.29" })).toBe(258.1);
-    expect(tndToEur(1890, {})).toBe(548.1);
+    expect(tndToEur(1890, {})).toBe(1890);
   });
 
   it("scelle les champs triés et joints par *", () => {

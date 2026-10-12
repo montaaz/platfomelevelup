@@ -15,7 +15,7 @@ import { createHmac } from "node:crypto";
  *   MONETICO_SOCIETE="merchandis"     code société
  *   MONETICO_KEY="…"                  clé de sécurité (40 caractères hexadécimaux), téléchargée sur monetico.com
  *   MONETICO_ENV="test" | "prod"      https://p.monetico-services.com/test/paiement.cgi ou /paiement.cgi
- *   TND_EUR_RATE="0.29"               taux de conversion appliqué aux prix en dinars
+ *   TND_EUR_RATE="1"                  prix hors Tunisie : même nombre, en euros (890 DT → 890 €), comme sur le site vitrine
  */
 
 export const MONETICO_VERSION = "3.0";
@@ -40,10 +40,14 @@ export function moneticoConfigured(): boolean {
   return readMoneticoConfig() !== null;
 }
 
-/** Taux dinar → euro (prix affichés en TND, carte débitée en EUR). */
+/**
+ * Prix en euros pour un client hors Tunisie : le MÊME nombre que le prix en
+ * dinars (890 DT → 890 €), décision commerciale reprise du site vitrine.
+ * TND_EUR_RATE permet d'appliquer un vrai taux si cette décision change.
+ */
 export function tndToEur(amountTnd: number | string, env: Record<string, string | undefined> = process.env): number {
-  const rate = Number(env.TND_EUR_RATE ?? "0.29");
-  return Math.round(Number(amountTnd) * (Number.isFinite(rate) && rate > 0 ? rate : 0.29) * 100) / 100;
+  const rate = Number(env.TND_EUR_RATE ?? "1");
+  return Math.round(Number(amountTnd) * (Number.isFinite(rate) && rate > 0 ? rate : 1) * 100) / 100;
 }
 
 /**

@@ -105,7 +105,7 @@ export async function claimPrepaidPayment(clientId: bigint, prepaidId: string): 
 
   try {
     const row = await prisma.prepaidPayment.findUniqueOrThrow({ where: { id }, include: { pack: true } });
-    const order = await createOrderForClient(clientId, row.pack.code, row.amount);
+    const order = await createOrderForClient(clientId, row.pack.code, row.amount, row.gatewayCurrency ?? null);
     await prisma.prepaidPayment.update({ where: { id }, data: { orderId: order.id } });
     await settleOrder(order.id, "EN_LIGNE", row.paymentReference ?? undefined, null);
     return true;

@@ -6,7 +6,7 @@ import { clictopayConfigured } from "@/lib/clictopay";
 import { moneticoAvailable } from "@/server/services/monetico";
 import { tndToEur } from "@/lib/monetico";
 import { requestIsTunisian } from "@/lib/region";
-import { formatDT } from "@/lib/format";
+import { formatDT, formatMoney } from "@/lib/format";
 import { findPackByCode } from "@/server/services/orders";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ export default async function ChoisirPaiementPage({
         <div className={styles.choice} style={{ marginTop: 18, cursor: "default", display: "block" }}>
           <p style={{ fontSize: 15, fontWeight: 800, color: "#26303f" }}>{pack.name}</p>
           <p style={{ marginTop: 6, fontSize: 22, fontWeight: 800, color: "#0a5ff0" }}>
-            {formatDT(Number(pack.price))}
+            {tunisian ? formatDT(Number(pack.price)) : formatMoney(tndToEur(Number(pack.price)), "EUR")}
             {pack.isMonthly ? " / mois" : ""}
           </p>
         </div>
@@ -47,7 +47,7 @@ export default async function ChoisirPaiementPage({
         {cardProvider === "monetico" && (
           <>
             <Link href={`/paiement/carte?pack=${encodeURIComponent(pack.code)}`} className={styles.submit} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 16, textDecoration: "none" }}>
-              Payer par carte bancaire ({tndToEur(Number(pack.price)).toFixed(2)} €)
+              Payer par carte bancaire
             </Link>
             <p className={styles.hint} style={{ marginTop: 6 }}>Page sécurisée de notre banque (Monetico — Crédit Mutuel) · validation immédiate</p>
           </>

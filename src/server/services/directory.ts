@@ -103,6 +103,7 @@ export async function listInvoices(ctx: Ctx) {
   return invoices.map((i) => ({
     id: i.id.toString(),
     number: i.invoiceNumber,
+    currency: i.currency,
     clientCompany: i.client.companyName,
     projectTitle: i.project?.title ?? null,
     serviceName: i.project?.service.name ?? null,
@@ -136,6 +137,7 @@ export async function getInvoice(ctx: Ctx, invoiceId: bigint) {
   return {
     id: invoice.id.toString(),
     number: invoice.invoiceNumber,
+    currency: invoice.currency,
     status: invoice.status,
     issueDate: invoice.issueDate.toISOString(),
     dueDate: invoice.dueDate?.toISOString() ?? null,

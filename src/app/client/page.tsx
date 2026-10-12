@@ -7,7 +7,7 @@ import { Card, CardHeader, StatusBadge, Avatar, ProgressBar, EmptyState } from "
 import { DeliverableActions } from "@/components/client/DeliverableActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
 import { PayOrderButton } from "@/components/client/PayOrderButton";
-import { formatDT, formatDateShort, formatBytes, relativeTime, PROJECT_STATUS_LABEL } from "@/lib/format";
+import { formatMoney, formatDT, formatDateShort, formatBytes, relativeTime, PROJECT_STATUS_LABEL } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +50,7 @@ export default async function ClientHomePage() {
               </p>
             </div>
             <p className="text-[16px] font-bold whitespace-nowrap text-ink">
-              {formatDT(pending.amount)}
+              {formatMoney(pending.amount, pending.currency)}
               {pending.isMonthly ? "/mois" : ""}
             </p>
             {proofs.get(pending.id)?.status !== "EN_ATTENTE" && <PayOrderButton orderId={pending.id} />}
