@@ -91,7 +91,7 @@ const SUGGESTIONS: Record<Lang, string[]> = {
 
 /** « Bonjour » jusqu'à 18 h (heure de Tunis), « Bonsoir » ensuite. */
 export function salutation(lang: Lang, now = new Date()): string {
-  const hour = Number(new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Tunis", hour: "2-digit", hour12: false }).format(now));
+  const hour = parseInt(new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Tunis", hour: "numeric", hour12: false }).format(now), 10) % 24;
   if (lang === "en") return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   return hour < 18 ? "Bonjour" : "Bonsoir";
 }
