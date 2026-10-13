@@ -89,12 +89,18 @@ const SUGGESTIONS: Record<Lang, string[]> = {
   en: ["What are your packs and prices?", "How does a project go?", "How do I order?"],
 };
 
+/** « Bonjour » jusqu'à 18 h (heure de Tunis), « Bonsoir » ensuite. */
+export function salutation(lang: Lang, now = new Date()): string {
+  const hour = Number(new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Tunis", hour: "2-digit", hour12: false }).format(now));
+  if (lang === "en") return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return hour < 18 ? "Bonjour" : "Bonsoir";
+}
+
 const T = {
   fr: {
-    welcome: (n: string | null) =>
-      `Bonjour${n ? ` ${n}` : ""} ! Bienvenue chez Level Up IA, agence de marketing digital propulsée par l'IA. Sites web, vidéos commerciales IA, automatisations, réseaux sociaux : dites-moi ce que vous souhaitez, je vous oriente vers la bonne offre.`,
+    welcome: (n: string | null) => `${salutation("fr")}${n ? ` ${n}` : ""} ! Dites-nous comment nous pouvons vous aider.`,
     fallback: (n: string | null) =>
-      `Bonjour${n ? ` ${n}` : ""} ! Merci pour votre message. Je suis l'assistant de Level Up IA : je réponds aux questions sur nos sites web, vidéos IA, automatisations, packs et tarifs. Pour tout le reste, l'équipe vous répond directement à contact@levelupia.agency. Nos offres : ${SITE}/fr`,
+      `${salutation("fr")}${n ? ` ${n}` : ""} ! Merci pour votre message. Je suis l'assistant de Level Up IA : je réponds aux questions sur nos sites web, vidéos IA, automatisations, packs et tarifs. Pour tout le reste, l'équipe vous répond directement à contact@levelupia.agency. Nos offres : ${SITE}/fr`,
     handoff: `Je transmets votre demande à l'équipe Level Up IA, qui vous répond personnellement dans la journée (jours ouvrés). Vous pouvez aussi nous écrire à contact@levelupia.agency.`,
     complaint: `Je suis désolé pour ce désagrément. Votre réclamation est transmise à l'équipe, qui en accuse réception sous 2 jours ouvrés et vous répond sous 7 jours ouvrés : ${SITE}/fr/reclamations`,
     meeting: `Avec plaisir : l'équipe vous propose un créneau par retour de message. Pour aller plus vite, indiquez vos disponibilités et le sujet (site, vidéo, automatisation).`,
@@ -102,10 +108,9 @@ const T = {
     offers: `👉 Toutes nos offres : ${SITE}/fr#packs`,
   },
   en: {
-    welcome: (n: string | null) =>
-      `Hello${n ? ` ${n}` : ""}! Welcome to Level Up IA, an AI-powered digital marketing agency. Websites, AI commercial videos, automations, social media: tell me what you need and I'll point you to the right offer.`,
+    welcome: (n: string | null) => `${salutation("en")}${n ? ` ${n}` : ""}! Tell us how we can help you.`,
     fallback: (n: string | null) =>
-      `Hello${n ? ` ${n}` : ""}! Thanks for your message. I'm the Level Up IA assistant: I answer questions about our websites, AI videos, automations, packs and prices. For anything else, the team replies directly at contact@levelupia.agency. Our offers: ${SITE}/en`,
+      `${salutation("en")}${n ? ` ${n}` : ""}! Thanks for your message. I'm the Level Up IA assistant: I answer questions about our websites, AI videos, automations, packs and prices. For anything else, the team replies directly at contact@levelupia.agency. Our offers: ${SITE}/en`,
     handoff: `I'm passing your request to the Level Up IA team, who will answer you personally within the day (working days). You can also write to contact@levelupia.agency.`,
     complaint: `I'm sorry about this. Your complaint is forwarded to the team: acknowledgement within 2 working days, answer within 7 working days: ${SITE}/en/reclamations`,
     meeting: `Gladly: the team will propose a slot by return message. To speed things up, share your availability and the topic (website, video, automation).`,
@@ -336,7 +341,11 @@ async function answerSocialOnce(input: BrainInput): Promise<BrainOutput> {
   }
   if (!reply) {
     reply = handoffReason ? t.handoff : t.fallback(name);
-  } else if (handoffReason && intent !== "RECLAMATION" && intent !== "RENDEZ_VOUS") {
+  } else if (memory.count === 0 && ai && !/^(bonjour|bonsoir|salut|hello|hi|good (morning|afternoon|evening))\b/i.test(reply)) {
+    // Premier contact : un seul mot d'accueil, adapté à l'heure, devant la réponse.
+    reply = `${salutation(lang)}${name ? ` ${name}` : ""} ! ${reply}`;
+  }
+  if (reply && handoffReason && intent !== "RECLAMATION" && intent !== "RENDEZ_VOUS" && !reply.includes(t.handoff)) {
     reply = `${reply}\n\n${t.handoff}`;
   }
 
