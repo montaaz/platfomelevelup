@@ -13,7 +13,7 @@ import {
 } from "@/server/services/clientActions";
 import { listNotifications, markAllNotificationsRead } from "@/server/services/notifications";
 import { globalSearch } from "@/server/services/search";
-import { onboardingStatus, saveOnboarding, type OnboardingInput } from "@/server/services/onboarding";
+import { onboardingStatus, saveOnboarding, saveNeeds, type OnboardingInput } from "@/server/services/onboarding";
 import { listPacks, listOrders, confirmOrderPayment, myAccessState } from "@/server/services/orders";
 import { myComplaints, listComplaints, createComplaint, updateComplaint } from "@/server/services/complaints";
 import { reviewTransferProof } from "@/server/services/transfers";
@@ -105,6 +105,7 @@ const typeDefs = /* GraphQL */ `
     refuseProjectRequest(requestId: ID!, note: String): Boolean!
     markNotificationsRead: Boolean!
     saveOnboarding(input: OnboardingInput!): Boolean!
+    saveNeeds(mainNeeds: [String!]!, needsDetails: String!): Boolean!
     confirmOrderPayment(orderId: ID!, method: String!, reference: String): Boolean!
     changeMyPassword(current: String!, next: String!): Boolean!
     createUserAccount(input: UserAccountInput!): Created!
@@ -136,7 +137,7 @@ const typeDefs = /* GraphQL */ `
   input OnboardingInput {
     contactName: String!, phoneCountry: String!, phone: String!, companyName: String!,
     industries: [String!]!, industryOther: String, contactRole: String!, contactRoleOther: String,
-    companySize: String!, mainMarket: String!, mainNeeds: [String!]!,
+    companySize: String!, mainMarket: String!, mainNeeds: [String!]!, needsDetails: String,
     heardFroms: [String!], heardFromOther: String
   }
 
@@ -362,6 +363,7 @@ export const schema = createSchema<GqlContext>({
         wrap(() => refuseProjectRequest(auth(c), BigInt(a.requestId), a.note)),
       markNotificationsRead: (_p, _a, c) => wrap(() => markAllNotificationsRead(auth(c))),
       saveOnboarding: (_p, a: { input: OnboardingInput }, c) => wrap(() => saveOnboarding(auth(c), a.input)),
+      saveNeeds: (_p, a: { mainNeeds: string[]; needsDetails: string }, c) => wrap(() => saveNeeds(auth(c), a.mainNeeds, a.needsDetails)),
       confirmOrderPayment: (_p, a: { orderId: string; method: string; reference?: string }, c) =>
         wrap(() => confirmOrderPayment(auth(c), BigInt(a.orderId), a.method, a.reference)),
       changeMyPassword: (_p, a: { current: string; next: string }, c) =>

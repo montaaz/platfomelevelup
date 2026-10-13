@@ -135,6 +135,8 @@ model Client {
   /// Origines cochées ; `heardFrom` reprend la première.
   heardFroms            String[]  @default([]) @map("heard_froms")
   heardFromOther        String?   @map("heard_from_other") @db.VarChar(160)
+  /// Détail de chaque besoin coché (migration 020) — voir src/lib/needs.ts.
+  needsDetails          Json      @default("{}") @map("needs_details")
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz(6)
   detectedCountryCode   String?   @map("detected_country_code") @db.Char(2)
   detectedCountry       String?   @map("detected_country") @db.VarChar(80)

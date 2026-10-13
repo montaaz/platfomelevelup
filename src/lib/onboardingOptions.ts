@@ -49,12 +49,13 @@ export const COMPANY_SIZES: Option[] = [
 ];
 
 export const MAIN_NEEDS: Option[] = [
-  { value: "SITE_WEB", label: "Créer un site web" },
-  { value: "SHOOTING", label: "Shooting produits" },
-  { value: "VIDEOS", label: "Vidéos pour réseaux sociaux" },
+  { value: "SITE_WEB", label: "Créer un site web (site vitrine)" },
+  { value: "SITE_MARCHAND", label: "Créer un site marchand" },
+  { value: "SHOOTING", label: "Shooting de produits" },
+  { value: "VIDEOS", label: "Vidéos pour les réseaux sociaux" },
   { value: "PUBLICITE", label: "Gestion de campagnes publicitaires" },
   { value: "IDENTITE", label: "Identité visuelle (logo, charte)" },
-  { value: "CHATBOT", label: "Chatbot / Automatisation" },
+  { value: "CHATBOT", label: "Assistant conversationnel / Automatisation" },
   { value: "CONSEIL", label: "Je ne sais pas encore / Besoin d'un conseil" },
 ];
 

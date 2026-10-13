@@ -4,6 +4,7 @@ import {
   INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, isValid, type Option,
 } from "@/lib/onboardingOptions";
 import { COUNTRIES } from "@/lib/countries";
+import { cleanNeedsDetails, type NeedDetails } from "@/lib/needs";
 
 export type OnboardingInput = {
   contactName: string;
@@ -19,6 +20,8 @@ export type OnboardingInput = {
   mainMarket: string;     // code pays ISO
   /** Besoins cochés : un client en veut souvent plusieurs. */
   mainNeeds: string[];
+  /** Détail de chaque besoin (JSON, voir lib/needs.ts). */
+  needsDetails?: string | null;
   /** Origines cochées (facultatif). */
   heardFroms?: string[];
   heardFromOther?: string;
@@ -71,6 +74,49 @@ const need = (v: string | undefined, label: string, max = 160) => {
   return s;
 };
 
+function parseDetails(raw: string | null | undefined): unknown {
+  if (!raw) return {};
+  if (raw.length > 60_000) throw new ValidationError("Détail des besoins trop long.");
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new ValidationError("Détail des besoins illisible.");
+  }
+}
+
+/** Besoins et paramétrage du client connecté. */
+export async function clientNeeds(ctx: Ctx): Promise<{ mainNeeds: string[]; details: NeedDetails }> {
+  const clientId = clientScope(ctx);
+  const c = await prisma.client.findUniqueOrThrow({ where: { id: clientId }, select: { mainNeeds: true, needsDetails: true } });
+  return { mainNeeds: c.mainNeeds, details: (c.needsDetails && typeof c.needsDetails === "object" ? c.needsDetails : {}) as NeedDetails };
+}
+
+/** Le client modifie son paramétrage après l'accueil ; l'équipe est prévenue. */
+export async function saveNeeds(ctx: Ctx, rawNeeds: string[], rawDetails: string) {
+  const clientId = clientScope(ctx);
+  const mainNeeds = cleanChoices(rawNeeds, MAIN_NEEDS, "Besoin", true);
+  const needsDetails = cleanNeedsDetails(mainNeeds, parseDetails(rawDetails));
+  const client = await prisma.client.update({
+    where: { id: clientId },
+    data: { mainNeed: mainNeeds[0]!, mainNeeds, needsDetails },
+    select: { companyName: true },
+  });
+  const admins = await prisma.user.findMany({ where: { role: "ADMIN", isActive: true }, select: { id: true } });
+  if (admins.length > 0) {
+    await prisma.notification.createMany({
+      data: admins.map((a) => ({
+        userId: a.id,
+        type: "DEMANDE_PROJET" as const,
+        title: `Paramétrage mis à jour — ${client.companyName}`,
+        body: "Le client a modifié la description de ses besoins.",
+        entityType: "client",
+        entityId: clientId,
+      })),
+    });
+  }
+  return true;
+}
+
 /** Enregistre les réponses. Toutes les valeurs sont validées côté serveur. */
 export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
   const clientId = clientScope(ctx);
@@ -89,6 +135,7 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
 
   const industries = cleanChoices(input.industries, INDUSTRIES, "Secteur d'activité", true);
   const mainNeeds = cleanChoices(input.mainNeeds, MAIN_NEEDS, "Besoin", true);
+  const needsDetails = cleanNeedsDetails(mainNeeds, parseDetails(input.needsDetails));
   const heardFroms = cleanChoices(input.heardFroms, HEARD_FROM, "Origine", false);
   if (!isValid(CONTACT_ROLES, input.contactRole)) throw new ValidationError("Fonction invalide.");
   if (!isValid(COMPANY_SIZES, input.companySize)) throw new ValidationError("Taille d'entreprise invalide.");
@@ -122,6 +169,7 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
       // Valeur principale conservée : tout ce qui la lit déjà continue de marcher.
       mainNeed: mainNeeds[0]!,
       mainNeeds,
+      needsDetails,
       heardFrom: heardFroms[0] ?? null,
       heardFroms,
       heardFromOther,

@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import styles from "@/styles/neu.module.css";
 import { gql } from "@/lib/gqlClient";
 import {
-  INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, type Option,
+  INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, HEARD_FROM, type Option,
 } from "@/lib/onboardingOptions";
 import { COUNTRIES, searchCountries } from "@/lib/countries";
+import { NeedsForm } from "@/components/client/NeedsForm";
+import { NEED_SPECS, type NeedDetails } from "@/lib/needs";
 
 type Answers = {
   contactName: string;
@@ -21,6 +23,7 @@ type Answers = {
   companySize: string;
   mainMarket: string;
   mainNeeds: string[];
+  needsDetails: NeedDetails;
   heardFroms: string[];
   heardFromOther: string;
 };
@@ -115,6 +118,7 @@ export function OnboardingWizard({
     companySize: "",
     mainMarket: "TN",
     mainNeeds: [],
+    needsDetails: {},
     heardFroms: [],
     heardFromOther: "",
   });
@@ -141,7 +145,13 @@ export function OnboardingWizard({
       case 4:
         return a.mainMarket !== "";
       case 5:
-        return a.mainNeeds.length > 0;
+        // Chaque besoin coché doit avoir ses champs obligatoires remplis.
+        return (
+          a.mainNeeds.length > 0 &&
+          a.mainNeeds.every((need) =>
+            (NEED_SPECS[need]?.fields ?? []).every((f) => !("required" in f && f.required) || String(a.needsDetails[need]?.[f.key] ?? "").trim().length > 0),
+          )
+        );
       case 6:
         // Facultative : on peut terminer sans rien cocher.
         return !a.heardFroms.includes("AUTRE") || a.heardFromOther.trim().length >= 2;
@@ -167,6 +177,7 @@ export function OnboardingWizard({
           companySize: a.companySize,
           mainMarket: a.mainMarket,
           mainNeeds: a.mainNeeds,
+          needsDetails: JSON.stringify(a.needsDetails),
           heardFroms: a.heardFroms,
           heardFromOther: a.heardFromOther || null,
         },
@@ -362,12 +373,10 @@ export function OnboardingWizard({
           <p className={styles.hint}>
             Plusieurs réponses possibles — cochez tout ce qui vous intéresse.
           </p>
-          <MultiChoices
-            options={MAIN_NEEDS}
-            values={a.mainNeeds}
-            onToggle={(v) =>
-              set("mainNeeds", a.mainNeeds.includes(v) ? a.mainNeeds.filter((x) => x !== v) : [...a.mainNeeds, v])
-            }
+          <NeedsForm
+            mainNeeds={a.mainNeeds}
+            details={a.needsDetails}
+            onChange={(mainNeeds, needsDetails) => setA((p) => ({ ...p, mainNeeds, needsDetails }))}
           />
         </>
       )}

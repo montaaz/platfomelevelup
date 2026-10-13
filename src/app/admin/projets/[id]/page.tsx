@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCtx, ForbiddenError } from "@/server/context";
 import { adminProjectDetail } from "@/server/services/adminActions";
+import { prisma } from "@/lib/prisma";
+import { NeedsSummary } from "@/components/NeedsSummary";
 import { Card, CardHeader, StatusBadge, EmptyState } from "@/components/ui";
 import { StatusChanger, ReachStepButton, UploadForm } from "@/components/admin/ProjectDetailActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
@@ -22,6 +24,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
     throw e;
   }
 
+  const needs = await prisma.client.findUnique({ where: { id: BigInt(p.clientId) }, select: { mainNeeds: true, needsDetails: true } });
   return (
     <div className="space-y-5 pb-8">
       <section data-tilt className="hero-gradient rounded-3xl p-6 text-white shadow-hero sm:p-7">
@@ -56,6 +59,11 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
 
       <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
         <div className="space-y-5">
+          <Card>
+            <CardHeader title="Paramétrage du client" subtitle="Besoins et préférences décrits par le client — à lire avant de démarrer" action={{ label: "Fiche client", href: `/admin/clients/${p.clientId}` }} />
+            <NeedsSummary mainNeeds={needs?.mainNeeds ?? []} details={needs?.needsDetails ?? {}} />
+          </Card>
+
           <Card>
             <CardHeader title="Fichiers du projet" subtitle="Livrables visibles côté client dès le dépôt" />
             <div className="divide-y divide-ink/4">

@@ -1,3 +1,4 @@
+import { NeedsSummary } from "@/components/NeedsSummary";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCtx, ForbiddenError } from "@/server/context";
@@ -126,6 +127,12 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
             ) : (
               <EmptyState message="Le client verra le questionnaire à sa prochaine connexion." />
             )}
+          </Card>
+
+          {/* Paramétrage décrit par le client */}
+          <Card>
+            <CardHeader title="Paramétrage du projet" subtitle="Ce que le client a décrit pour chaque besoin (pages, couleurs, style, mood…)" />
+            <NeedsSummary mainNeeds={ob.mainNeeds} details={ob.needsDetails} />
           </Card>
 
           {/* Projets */}

@@ -3,6 +3,8 @@ import { requireCtx } from "@/server/context";
 import { clientHome } from "@/server/services/dashboard";
 import { myPendingOrders } from "@/server/services/orders";
 import { latestProofsByOrder } from "@/server/services/transfers";
+import { clientNeeds } from "@/server/services/onboarding";
+import { NeedsSummary } from "@/components/NeedsSummary";
 import { Card, CardHeader, StatusBadge, Avatar, ProgressBar, EmptyState } from "@/components/ui";
 import { DeliverableActions } from "@/components/client/DeliverableActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
@@ -20,6 +22,7 @@ export default async function ClientHomePage() {
   const ctx = await requireCtx("CLIENT");
   const [data, pendingOrders] = await Promise.all([clientHome(ctx), myPendingOrders(ctx)]);
   const proofs = await latestProofsByOrder(pendingOrders.map((o) => BigInt(o.id)));
+  const needs = await clientNeeds(ctx);
   const orderOfProject = new Map(pendingOrders.flatMap((o) => (o.projectId ? [[o.projectId, o.id] as const] : [])));
   const featured = data.featured;
   const days = featured ? daysUntil(featured.dueDate) : null;
@@ -107,6 +110,12 @@ export default async function ClientHomePage() {
               </div>
             </div>
           </section>
+
+          {/* ============================== Paramétrage décrit par le client */}
+          <Card>
+            <CardHeader title="Paramétrage de votre projet" subtitle="Vos besoins et préférences, tels que l'équipe les voit" action={{ label: "Modifier", href: "/client/besoins" }} />
+            <NeedsSummary mainNeeds={needs.mainNeeds} details={needs.details} />
+          </Card>
 
           {/* ============================== Livrables + avancement */}
           <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
