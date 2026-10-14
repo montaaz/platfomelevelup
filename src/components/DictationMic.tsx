@@ -46,6 +46,10 @@ export function DictationMic({
   const [supported, setSupported] = useState(true);
   const base = useRef("");
   const heard = useRef("");
+  /** Phrases finalisées par le navigateur : chacune est corrigée en arrière-plan dès qu'elle est complète. */
+  const segments = useRef<{ raw: string; text: string; pending: boolean }[]>([]);
+  const interim = useRef("");
+  const pendingCount = useRef(0);
   const rec = useRef<Rec | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
@@ -56,6 +60,40 @@ export function DictationMic({
   useEffect(() => {
     setSupported(!!speechRecognition() || (typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia));
   }, []);
+
+  function render() {
+    const parts = segments.current.map((sg) => sg.text).filter(Boolean);
+    if (interim.current) parts.push(interim.current);
+    onChange(appendDictation(base.current, parts.join(" ")));
+  }
+
+  /** Correction d'une phrase en arrière-plan : le champ se met à jour quand la réponse arrive. */
+  async function correctSegment(index: number) {
+    const seg = segments.current[index];
+    if (!seg || !seg.raw.trim()) return;
+    pendingCount.current += 1;
+    setMessage("Correction par l'IA…");
+    try {
+      const form = new FormData();
+      form.set("hint", seg.raw);
+      form.set("context", context ?? "");
+      form.set("lang", lang);
+      const res = await fetch("/api/dictee", { method: "POST", body: form });
+      const data = (await res.json()) as { text?: string; corrected?: boolean };
+      if (res.ok && data.text) seg.text = data.text;
+    } catch {
+      /* on garde le texte brut */
+    } finally {
+      seg.pending = false;
+      pendingCount.current -= 1;
+      render();
+      if (pendingCount.current === 0) {
+        if (status !== "listening") setStatus("idle");
+        setMessage("Texte corrigé par l'IA ✓");
+        setTimeout(() => setMessage((m) => (m === "Texte corrigé par l'IA ✓" ? null : m)), 3000);
+      }
+    }
+  }
 
   async function finish(audio: Blob | null) {
     setStatus("thinking");
@@ -90,6 +128,8 @@ export function DictationMic({
     setMessage(null);
     base.current = latestValue.current;
     heard.current = "";
+    segments.current = [];
+    interim.current = "";
     stopping.current = false;
     const SR = speechRecognition();
 
@@ -136,16 +176,21 @@ export function DictationMic({
       r.continuous = true;
       r.interimResults = true;
       r.onresult = (e) => {
-        let final = "";
-        let interim = "";
+        let live = "";
         for (let i = 0; i < e.results.length; i++) {
           const res = e.results[i]!;
-          const t = res[0]?.transcript ?? "";
-          if (res.isFinal) final += `${t} `;
-          else interim += t;
+          const t = (res[0]?.transcript ?? "").trim();
+          if (!t) continue;
+          if (res.isFinal) {
+            if (i >= segments.current.length) {
+              segments.current.push({ raw: t, text: t, pending: true });
+              void correctSegment(segments.current.length - 1);
+            }
+          } else live += `${t} `;
         }
-        heard.current = final.trim();
-        onChange(appendDictation(base.current, `${final}${interim}`.trim()));
+        heard.current = segments.current.map((sg) => sg.raw).join(" ");
+        interim.current = live.trim();
+        render();
       };
       r.onerror = (e) => {
         if (e.error === "not-allowed") setMessage("Micro refusé : autorisez le microphone.");
@@ -166,11 +211,27 @@ export function DictationMic({
 
   function stop() {
     stopping.current = true;
+    const hadRecognition = !!rec.current;
     try { rec.current?.stop(); } catch { /* ignore */ }
     rec.current = null;
-    if (recorder.current && recorder.current.state === "recording") recorder.current.stop();
-    else void finish(null);
+    const mr = recorder.current;
     recorder.current = null;
+    if (hadRecognition) {
+      // Les phrases sont déjà dans le champ et leurs corrections arrivent en arrière-plan :
+      // le texte provisoire restant est envoyé tel quel en correction, sans bloquer le micro.
+      if (mr && mr.state === "recording") { mr.onstop = () => mr.stream.getTracks().forEach((t) => t.stop()); mr.stop(); }
+      if (interim.current) {
+        segments.current.push({ raw: interim.current, text: interim.current, pending: true });
+        interim.current = "";
+        void correctSegment(segments.current.length - 1);
+      }
+      render();
+      setStatus(pendingCount.current > 0 ? "thinking" : "idle");
+      if (pendingCount.current === 0) setMessage("Texte ajouté ✓");
+      return;
+    }
+    if (mr && mr.state === "recording") mr.stop();
+    else void finish(null);
   }
 
   if (!supported) return null;
@@ -180,7 +241,7 @@ export function DictationMic({
       <button
         type="button"
         onClick={() => (listening ? stop() : void start())}
-        disabled={status === "thinking"}
+        disabled={status === "thinking" && !speechRecognition()}
         aria-pressed={listening}
         aria-label={listening ? "Arrêter la dictée" : "Dicter ce champ au micro"}
         title={listening ? "Arrêter la dictée" : "Dicter au micro (IA Baarcha)"}
