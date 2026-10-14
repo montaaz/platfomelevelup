@@ -8,7 +8,7 @@ import type { NeedDetails } from "@/lib/needs";
 import styles from "@/styles/neu.module.css";
 
 /** Modification du paramétrage après l'accueil : même formulaire, enregistrement à part. */
-export function NeedsEditor({ mainNeeds: initialNeeds, details: initialDetails }: { mainNeeds: string[]; details: NeedDetails }) {
+export function NeedsEditor({ mainNeeds: initialNeeds, details: initialDetails, allowed = null }: { mainNeeds: string[]; details: NeedDetails; allowed?: string[] | null }) {
   const router = useRouter();
   const [mainNeeds, setNeeds] = useState(initialNeeds);
   const [details, setDetails] = useState<NeedDetails>(initialDetails);
@@ -31,7 +31,7 @@ export function NeedsEditor({ mainNeeds: initialNeeds, details: initialDetails }
 
   return (
     <div className="p-4 sm:p-6">
-      <NeedsForm mainNeeds={mainNeeds} details={details} onChange={(n, d) => { setNeeds(n); setDetails(d); }} />
+      <NeedsForm mainNeeds={mainNeeds} details={details} allowed={allowed} onChange={(n, d) => { setNeeds(n); setDetails(d); }} />
       {msg && <p className={`mt-3 text-[13px] ${msg.ok ? "text-emerald-600" : "text-red-600"}`}>{msg.text}</p>}
       <button type="button" onClick={save} disabled={busy || mainNeeds.length === 0} className={styles.submit} style={{ width: "100%", marginTop: 16, height: 50 }}>
         {busy ? "ENREGISTREMENT…" : "ENREGISTRER MON PARAMÉTRAGE"}

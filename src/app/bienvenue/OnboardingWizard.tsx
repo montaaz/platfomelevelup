@@ -96,9 +96,12 @@ function MultiChoices({
 export function OnboardingWizard({
   defaultName,
   defaultCompany,
+  allowedNeeds = null,
 }: {
   defaultName: string;
   defaultCompany: string;
+  /** Besoins ouverts par le pack commandé ; null = tous. */
+  allowedNeeds?: string[] | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -371,11 +374,16 @@ export function OnboardingWizard({
         <>
           <h2 className={styles.question}>Vos besoins</h2>
           <p className={styles.hint}>
-            Plusieurs réponses possibles — cochez tout ce qui vous intéresse.
+            {allowedNeeds
+              ? allowedNeeds.length === 1
+                ? "Décrivez le projet compris dans votre pack."
+                : "Selon votre pack — cochez ce que vous souhaitez décrire."
+              : "Plusieurs réponses possibles — cochez tout ce qui vous intéresse."}
           </p>
           <NeedsForm
             mainNeeds={a.mainNeeds}
             details={a.needsDetails}
+            allowed={allowedNeeds}
             onChange={(mainNeeds, needsDetails) => setA((p) => ({ ...p, mainNeeds, needsDetails }))}
           />
         </>

@@ -176,3 +176,30 @@ export function needsSummary(mainNeeds: string[], details: unknown, needLabel: (
 }
 
 export const CONTACT_MAILTO = "mailto:contact@levelupia.agency?subject=" + encodeURIComponent("Détails de mon projet — Level Up IA");
+
+/**
+ * Besoins proposés selon le pack commandé (l'étape « Vos besoins » et le
+ * paramétrage ne montrent que ce qui correspond à l'offre payée). Un pack
+ * inconnu ou un client sans commande : tous les besoins restent proposés.
+ */
+export const PACK_NEEDS: Record<string, string[]> = {
+  PACK_DECOUVERTE: ["SITE_WEB", "SITE_MARCHAND"],
+  PACK_LANCEMENT: ["SITE_WEB", "SHOOTING", "VIDEOS"],
+  PACK_CROISSANCE: ["SITE_WEB", "SHOOTING", "VIDEOS"],
+  PACK_PRO_MAX: ["SITE_WEB", "SHOOTING", "VIDEOS"],
+  ABO_STARTER: ["SHOOTING", "VIDEOS"],
+  ABO_PRO: ["SHOOTING", "VIDEOS"],
+  ABO_SOCIAL: ["PUBLICITE", "VIDEOS"],
+  AVATAR_VOIX: ["VIDEOS"],
+  IDENTITE_EXPRESS: ["IDENTITE"],
+  AUTOMATISATION_N1: ["CHATBOT"],
+  SEO_STARTER: ["SITE_WEB"],
+  SEO_BUSINESS: ["SITE_WEB"],
+};
+
+/** Union des besoins des packs donnés, ou null si aucun pack connu (pas de restriction). */
+export function needsForPacks(packCodes: string[]): string[] | null {
+  const out: string[] = [];
+  for (const code of packCodes) for (const need of PACK_NEEDS[code] ?? []) if (!out.includes(need)) out.push(need);
+  return out.length ? out : null;
+}

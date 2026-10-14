@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import styles from "@/styles/neu.module.css";
 import { MAIN_NEEDS } from "@/lib/onboardingOptions";
 import { CONTACT_MAILTO, NEED_SPECS, PAGES, PALETTES, STYLES, type NeedDetails } from "@/lib/needs";
@@ -13,11 +14,24 @@ export function NeedsForm({
   mainNeeds,
   details,
   onChange,
+  allowed = null,
 }: {
   mainNeeds: string[];
   details: NeedDetails;
   onChange: (mainNeeds: string[], details: NeedDetails) => void;
+  /** Besoins ouverts par le pack commandé (voir PACK_NEEDS) ; null = tous. */
+  allowed?: string[] | null;
 }) {
+  const options = allowed ? MAIN_NEEDS.filter((o) => allowed.includes(o.value)) : MAIN_NEEDS;
+
+  // Avec un pack : les besoins hors pack sont retirés, et un besoin unique est coché d'office.
+  useEffect(() => {
+    if (!allowed) return;
+    const kept = mainNeeds.filter((n) => allowed.includes(n));
+    if (kept.length === 0 && allowed.length === 1) onChange([allowed[0]!], details);
+    else if (kept.length !== mainNeeds.length) onChange(kept, details);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allowed, mainNeeds]);
   const toggleNeed = (v: string) =>
     onChange(mainNeeds.includes(v) ? mainNeeds.filter((x) => x !== v) : [...mainNeeds, v], details);
   const setField = (need: string, key: string, value: string | string[] | boolean) =>
@@ -29,7 +43,7 @@ export function NeedsForm({
 
   return (
     <div className={styles.choices}>
-      {MAIN_NEEDS.map((o) => {
+      {options.map((o) => {
         const on = mainNeeds.includes(o.value);
         const spec = NEED_SPECS[o.value];
         const d = details[o.value] ?? {};

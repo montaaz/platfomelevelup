@@ -4,7 +4,7 @@ import {
   INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, isValid, type Option,
 } from "@/lib/onboardingOptions";
 import { COUNTRIES } from "@/lib/countries";
-import { cleanNeedsDetails, type NeedDetails } from "@/lib/needs";
+import { cleanNeedsDetails, needsForPacks, type NeedDetails } from "@/lib/needs";
 
 export type OnboardingInput = {
   contactName: string;
@@ -82,6 +82,16 @@ function parseDetails(raw: string | null | undefined): unknown {
   } catch {
     throw new ValidationError("Détail des besoins illisible.");
   }
+}
+
+/** Besoins à proposer au client selon les packs qu'il a commandés (null : tous). */
+export async function clientAllowedNeeds(ctx: Ctx): Promise<string[] | null> {
+  const clientId = clientScope(ctx);
+  const orders = await prisma.order.findMany({
+    where: { clientId, status: { not: "ANNULEE" } },
+    select: { pack: { select: { code: true } } },
+  });
+  return needsForPacks(orders.map((o) => o.pack.code));
 }
 
 /** Besoins et paramétrage du client connecté. */
