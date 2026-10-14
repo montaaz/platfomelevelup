@@ -41,7 +41,11 @@ for (const lang of ["fr", "en"]) {
     `${(d.hero?.proof ?? [])[0] ?? ""}. ${fr ? "Exemples de secteurs" : "Sample sectors"} : ${sectors.join(", ")}. ` +
     `${fr ? "Exemples de publicités IA réalisées" : "Sample AI commercials produced"} : ${ads.join(", ")}. ${d.carousel?.lead ?? ""}`);
   add(lang, "services-lead", d.services?.title ?? "Services", d.services?.lead);
-  for (const [i, s] of (d.pricing?.aiServices ?? []).entries()) add(lang, `service-${i}`, s.title, s.copy);
+  // Revue des services et tarifs (13 octobre 2026) : prix et paliers (automatisation, SEO) dans le texte.
+  for (const [i, s] of (d.pricing?.aiServices ?? []).entries()) {
+    const tiers = (s.tiers ?? []).map((t) => `${[t.level, t.name].filter(Boolean).join(" ")}${t.audience ? ` (${t.audience})` : ""} : ${[t.copy, (t.items ?? []).join(", ")].filter(Boolean).join(" ")} — ${t.price}.`);
+    add(lang, `service-${i}`, s.title, [s.copy, s.price ? `${s.price}.` : "", ...tiers].filter(Boolean).join(" "));
+  }
   for (const [i, f] of (d.fit?.items ?? []).entries()) add(lang, `approach-${i}`, f.title, f.copy);
   const steps = (d.process?.steps ?? []).map((s, i) => `${i + 1}. ${s.title} : ${s.copy}`).join(" ");
   add(lang, "process", d.process?.title ?? "Process", `${d.process?.lead ?? ""} ${steps}`);
