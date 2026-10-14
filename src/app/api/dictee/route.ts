@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ctxOrNull } from "@/server/context";
 import { baarchaMediaAvailable, transcribeAudio } from "@/lib/baarchaMedia";
 import { baarchaModel, readBaarchaConfig } from "@/buddy/ai/model";
-import { acceptCorrection, correctionPrompt, MAX_DICTATION_CHARS, tidyTranscript } from "@/lib/dictation";
+import { acceptCorrection, correctionPrompt, guessLanguage, MAX_DICTATION_CHARS, tidyTranscript } from "@/lib/dictation";
 
 /**
  * Dictée vocale d'un champ de formulaire.
@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
   if (cfg) {
     try {
       const out = await baarchaModel(cfg).chat(
-        [{ role: "system", content: correctionPrompt(context, lang) }, { role: "user", content: heard }],
+        // Langue devinée sur le texte entendu : le modèle corrige en anglais un texte anglais, sans traduire.
+        [{ role: "system", content: correctionPrompt(context, lang === "auto" ? (guessLanguage(heard) ?? "auto") : lang) }, { role: "user", content: heard }],
         { maxTokens: Math.min(1200, Math.ceil(heard.length / 2) + 120), temperature: 0, timeoutMs: 25_000 },
       );
       const clean = out.trim().replace(/^["«\s]+|["»\s]+$/g, "");
