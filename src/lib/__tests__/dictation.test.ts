@@ -15,6 +15,12 @@ describe("dictée vocale", () => {
     expect(acceptCorrection(o, "Site.")).toBe(false); // trop court
   });
 
+  it("refuse une traduction (la langue dictée est conservée)", () => {
+    const en = "i want to to show my new sneakers collection for men and womens about 20 product";
+    expect(acceptCorrection(en, "Je souhaite présenter ma nouvelle collection de baskets pour hommes et femmes, environ 20 produits.")).toBe(false);
+    expect(acceptCorrection(en, "I want to show my new sneakers collection for men and women, about 20 products.")).toBe(true);
+  });
+
   it("ajoute la dictée à la suite du texte existant", () => {
     expect(appendDictation("", "Bonjour tout le monde")).toBe("Bonjour tout le monde");
     expect(appendDictation("Produits de beauté.", "Crèmes et parfums")).toBe("Produits de beauté. Crèmes et parfums");
