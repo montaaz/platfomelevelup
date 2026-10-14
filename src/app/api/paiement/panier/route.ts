@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { clictopayConfigured, GatewayError } from "@/lib/clictopay";
 import { ValidationError } from "@/server/context";
 import { startPrepaidPayment } from "@/server/services/prepaid";
+import { rememberChosenPack } from "@/lib/session";
 
 const to = (location: string) => new NextResponse(null, { status: 303, headers: { Location: location } });
 
@@ -27,6 +28,7 @@ function rateLimited(ip: string): boolean {
 export async function GET(req: NextRequest) {
   const pack = req.nextUrl.searchParams.get("pack") ?? "";
   if (!/^[A-Z0-9_]{2,40}$/.test(pack)) return to("/login");
+  await rememberChosenPack(pack); // retrouvée à l'inscription / connexion / accueil
   return to(`/paiement/choisir?pack=${encodeURIComponent(pack)}`);
 }
 
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest) {
   const raw = (await req.formData().catch(() => null))?.get("pack");
   const pack = typeof raw === "string" ? raw : "";
   if (!/^[A-Z0-9_]{2,40}$/.test(pack)) return to("/login");
+  await rememberChosenPack(pack);
   const fallback = `/login?pack=${encodeURIComponent(pack)}`;
   if (!clictopayConfigured()) return to(`/paiement/demo?pack=${encodeURIComponent(pack)}`);
 

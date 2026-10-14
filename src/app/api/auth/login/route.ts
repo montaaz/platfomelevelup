@@ -4,6 +4,8 @@ import { verifyLogin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { recordDetectedCountry } from "@/server/services/geo";
 import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
+import { readChosenPack, forgetChosenPack } from "@/lib/session";
+import { ensurePendingOrder, findPackByCode } from "@/server/services/orders";
 
 const LoginInput = z.object({
   email: z.string().email().max(254),
@@ -44,7 +46,18 @@ export async function POST(req: NextRequest) {
 
   // Paiement fait depuis le panier du site vitrine avant de se connecter :
   // il devient une commande payée de ce client.
-  await claimPrepaidFromCookie(result.user.clientId);
+  const prepaid = await claimPrepaidFromCookie(result.user.clientId);
+  // Client existant arrivé du panier du site vitrine : l'offre choisie devient sa commande.
+  const chosen = await readChosenPack();
+  if (!prepaid && chosen && result.user.clientId) {
+    try {
+      const pack = await findPackByCode(chosen);
+      await ensurePendingOrder(BigInt(result.user.clientId), pack.code);
+    } catch (e) {
+      console.error("[login] commande non créée:", e);
+    }
+  }
+  await forgetChosenPack();
 
   // Provenance relevée à chaque connexion : le client qui déménage est suivi.
   if (result.user.clientId) {

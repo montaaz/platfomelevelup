@@ -5,6 +5,7 @@ import {
 } from "@/lib/onboardingOptions";
 import { COUNTRIES } from "@/lib/countries";
 import { cleanNeedsDetails, needsForPacks, type NeedDetails } from "@/lib/needs";
+import { readChosenPack } from "@/lib/session";
 
 export type OnboardingInput = {
   contactName: string;
@@ -91,7 +92,13 @@ export async function clientAllowedNeeds(ctx: Ctx): Promise<string[] | null> {
     where: { clientId, status: { not: "ANNULEE" } },
     select: { pack: { select: { code: true } } },
   });
-  return needsForPacks(orders.map((o) => o.pack.code));
+  const codes = orders.map((o) => o.pack.code);
+  if (codes.length === 0) {
+    // Pas encore de commande : l'offre retenue à l'arrivée depuis le site vitrine.
+    const chosen = await readChosenPack();
+    if (chosen) codes.push(chosen);
+  }
+  return needsForPacks(codes);
 }
 
 /** Besoins et paramétrage du client connecté. */

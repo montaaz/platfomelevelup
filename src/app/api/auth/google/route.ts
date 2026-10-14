@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { googleConfigured, googleClientId } from "@/server/services/googleAuth";
 import { buildRedirectUri, STATE_COOKIE, PACK_COOKIE, TERMS_COOKIE } from "@/server/services/googleUrls";
+import { readChosenPack } from "@/lib/session";
 
 /** Démarre la connexion Google : redirige vers l'écran de consentement. */
 export async function GET(req: NextRequest) {
@@ -25,8 +26,8 @@ export async function GET(req: NextRequest) {
   });
 
   // l'offre choisie est mise de côté le temps de l'aller-retour Google
-  const pack = req.nextUrl.searchParams.get("pack");
-  if (pack && /^[A-Z_]{2,40}$/.test(pack)) {
+  const pack = req.nextUrl.searchParams.get("pack") || (await readChosenPack());
+  if (pack && /^[A-Z0-9_]{2,40}$/.test(pack)) {
     store.set(PACK_COOKIE, pack, {
       httpOnly: true,
       secure: buildRedirectUri(req, "/").startsWith("https://"),

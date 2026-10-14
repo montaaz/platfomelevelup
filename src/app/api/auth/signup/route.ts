@@ -5,6 +5,7 @@ import { createSession } from "@/lib/session";
 import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
 import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
+import { readChosenPack, forgetChosenPack } from "@/lib/session";
 import { recordTermsAcceptance } from "@/server/services/signup";
 import { readCartToken, findPackByCode, createOrderForClient } from "@/server/services/orders";
 
@@ -87,10 +88,12 @@ export async function POST(req: NextRequest) {
     // l'offre est validée AVANT de créer le compte : pas de compte orphelin.
     // Jeton signé (?cart=) ou simple code (?pack=) : dans les deux cas le prix
     // est relu en base, jamais transmis par le navigateur.
+    // Sans paramètre, l'offre retenue à l'arrivée depuis le site vitrine (cookie).
+    const packCode = parsed.data.packCode || (await readChosenPack());
     const pack = parsed.data.cartToken
       ? await readCartToken(parsed.data.cartToken)
-      : parsed.data.packCode
-        ? await findPackByCode(parsed.data.packCode)
+      : packCode
+        ? await findPackByCode(packCode).catch(() => null)
         : null;
 
     const user = await signupClient(parsed.data);
@@ -105,6 +108,7 @@ export async function POST(req: NextRequest) {
       await createOrderForClient(BigInt(user.clientId), pack.code);
       toPay = true;
     }
+    await forgetChosenPack();
     // connexion immédiate après inscription
     await createSession({
       userId: user.id,

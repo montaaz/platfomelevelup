@@ -118,3 +118,35 @@ export async function readPrepaidPayment(): Promise<string | null> {
 export async function forgetPrepaidPayment() {
   (await cookies()).delete(PREPAID_COOKIE);
 }
+
+/* ---------------------------------------------- offre choisie sur le site vitrine */
+
+const PACK_CHOICE_COOKIE = "levelup_pack";
+const PACK_CHOICE_DAYS = 7;
+const PACK_CODE = /^[A-Z0-9_]{2,40}$/;
+
+/**
+ * Le visiteur arrive du panier du site vitrine avec un code d'offre. Le code
+ * est gardé ici pour que l'inscription, la connexion (e-mail ou Google) et
+ * l'accueil retrouvent l'offre même si le paramètre ?pack= s'est perdu en route.
+ * Un simple code public : le prix est toujours relu en base.
+ */
+export async function rememberChosenPack(code: string) {
+  if (!PACK_CODE.test(code)) return;
+  (await cookies()).set(PACK_CHOICE_COOKIE, code, {
+    httpOnly: true,
+    secure: await isHttpsRequest(),
+    sameSite: "lax",
+    path: "/",
+    maxAge: PACK_CHOICE_DAYS * 86_400,
+  });
+}
+
+export async function readChosenPack(): Promise<string | null> {
+  const v = (await cookies()).get(PACK_CHOICE_COOKIE)?.value ?? "";
+  return PACK_CODE.test(v) ? v : null;
+}
+
+export async function forgetChosenPack() {
+  (await cookies()).delete(PACK_CHOICE_COOKIE);
+}

@@ -9,10 +9,11 @@ import {
 import { buildRedirectUri, STATE_COOKIE, PACK_COOKIE, TERMS_COOKIE } from "@/server/services/googleUrls";
 import { recordTermsAcceptance } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
-import { findPackByCode, createOrderForClient } from "@/server/services/orders";
+import { findPackByCode, ensurePendingOrder } from "@/server/services/orders";
 import { recordDetectedCountry } from "@/server/services/geo";
 import { ValidationError } from "@/server/context";
 import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
+import { readChosenPack, forgetChosenPack } from "@/lib/session";
 
 function backToLogin(req: NextRequest, code: string) {
   return NextResponse.redirect(`${buildRedirectUri(req, "/login")}?error=${code}`, 307);
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
   const expected = store.get(STATE_COOKIE)?.value;
   store.delete(STATE_COOKIE);
   // offre choisie sur le vitrine, mise de côté avant l'aller-retour Google
-  const packCode = store.get(PACK_COOKIE)?.value ?? null;
+  const packCode = store.get(PACK_COOKIE)?.value || (await readChosenPack());
   store.delete(PACK_COOKIE);
   const termsAccepted = store.get(TERMS_COOKIE)?.value === "1";
   store.delete(TERMS_COOKIE);
@@ -59,11 +60,12 @@ export async function GET(req: NextRequest) {
     if (!prepaid && packCode && user.clientId) {
       try {
         const pack = await findPackByCode(packCode);
-        await createOrderForClient(user.clientId, pack.code);
+        await ensurePendingOrder(BigInt(user.clientId), pack.code);
       } catch (e) {
         console.error("[google callback] commande non créée:", e);
       }
     }
+    await forgetChosenPack();
 
     await createSession({
       userId: user.id.toString(),

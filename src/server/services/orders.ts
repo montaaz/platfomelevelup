@@ -78,6 +78,19 @@ export async function listPacks() {
  * Crée la commande d'un client après son inscription.
  * L'accès à la plateforme reste fermé tant que le paiement n'est pas confirmé.
  */
+/**
+ * Client existant arrivé du panier du site vitrine : sa commande en attente
+ * pour cette offre est réutilisée si elle existe, sinon elle est créée.
+ */
+export async function ensurePendingOrder(clientId: bigint, packCode: string) {
+  const existing = await prisma.order.findFirst({
+    where: { clientId, status: "EN_ATTENTE_PAIEMENT", pack: { code: packCode } },
+    select: { id: true },
+  });
+  if (existing) return existing;
+  return createOrderForClient(clientId, packCode);
+}
+
 export async function createOrderForClient(
   clientId: bigint,
   packCode: string,
