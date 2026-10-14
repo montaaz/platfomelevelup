@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import styles from "@/styles/neu.module.css";
 import { MAIN_NEEDS } from "@/lib/onboardingOptions";
 import { CONTACT_MAILTO, NEED_SPECS, PAGES, PALETTES, STYLES, type NeedDetails } from "@/lib/needs";
+import { NeedFiles } from "./NeedFiles";
 
 /**
  * L'étape « Vos besoins » : la liste des besoins ; sous chaque besoin coché,
@@ -129,6 +130,7 @@ export function NeedsForm({
                   return null;
                 })}
 
+                <NeedFiles need={o.value} />
                 <p className={styles.note}>{spec.attachNote}</p>
                 <div className={styles.mailRow}>
                   <a href={CONTACT_MAILTO} className={styles.mailBtn}>✉ Nous contacter par e-mail</a>

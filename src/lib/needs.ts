@@ -54,7 +54,7 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "palette", kind: "palette", label: "Quelle palette de couleurs souhaitez-vous ?" },
       { key: "styles", kind: "styles", label: "Quel style ou quelle ambiance préférez-vous ?" },
     ],
-    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, envoyez-les-nous par e-mail.",
+    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, déposez-les ci-dessus ou envoyez-les-nous par e-mail.",
   },
   SITE_MARCHAND: {
     title: "Décrivez votre projet de site marchand",
@@ -66,7 +66,7 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "styles", kind: "styles", label: "Quel style ou quelle ambiance préférez-vous ?" },
       { key: "call", kind: "call", label: "Échange de 30 minutes", hint: "Un échange de 30 minutes est très important pour mieux comprendre votre activité. Vous pouvez aussi nous envoyer tous les détails de votre projet par e-mail." },
     ],
-    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, envoyez-les-nous par e-mail.",
+    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, déposez-les ci-dessus ou envoyez-les-nous par e-mail.",
   },
   SHOOTING: {
     title: "Votre projet de shooting de produits",
@@ -76,7 +76,7 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "expected", kind: "text", label: "Quel résultat souhaitez-vous obtenir ?", placeholder: "Décrivez le résultat attendu…" },
       { key: "mood", kind: "text", label: "Mood désiré", placeholder: "Exemple : naturel, élégant, coloré…" },
     ],
-    attachNote: "Photos ou références à partager ? Contactez-nous par e-mail pour nous les envoyer.",
+    attachNote: "Photos ou références à partager ? Déposez-les ci-dessus ou contactez-nous par e-mail.",
   },
   VIDEOS: {
     title: "Décrivez la vidéo que vous imaginez",

@@ -25,6 +25,7 @@ const TYPE_EMOJI: Record<string, string> = {
   ABONNEMENT_ECHEANCE: "⏰",
   DEMANDE_PROJET: "✨",
   PROFIL_INCOMPLET: "📍",
+  ALERTE_SECURITE: "🛡️",
 };
 
 export function NotificationsBell({ notifications }: { notifications: NotificationData[] }) {

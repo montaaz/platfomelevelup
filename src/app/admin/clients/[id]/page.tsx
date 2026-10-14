@@ -1,4 +1,5 @@
 import { NeedsSummary } from "@/components/NeedsSummary";
+import { ClientFilesList } from "@/components/admin/ClientFilesList";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCtx, ForbiddenError } from "@/server/context";
@@ -133,6 +134,12 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
           <Card>
             <CardHeader title="Paramétrage du projet" subtitle="Ce que le client a décrit pour chaque besoin (pages, couleurs, style, mood…)" />
             <NeedsSummary mainNeeds={ob.mainNeeds} details={ob.needsDetails} />
+          </Card>
+
+          {/* Fichiers déposés par le client (contrôlés et analysés au dépôt) */}
+          <Card>
+            <CardHeader title="Fichiers du client" subtitle="Logo, photos, PDF, documents déposés avec ses besoins — vérifiés et analysés avant conservation" />
+            <ClientFilesList ctx={ctx} clientId={BigInt(id)} />
           </Card>
 
           {/* Projets */}

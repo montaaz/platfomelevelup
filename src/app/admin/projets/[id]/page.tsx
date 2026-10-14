@@ -4,6 +4,7 @@ import { requireCtx, ForbiddenError } from "@/server/context";
 import { adminProjectDetail } from "@/server/services/adminActions";
 import { prisma } from "@/lib/prisma";
 import { NeedsSummary } from "@/components/NeedsSummary";
+import { ClientFilesList } from "@/components/admin/ClientFilesList";
 import { Card, CardHeader, StatusBadge, EmptyState } from "@/components/ui";
 import { StatusChanger, ReachStepButton, UploadForm } from "@/components/admin/ProjectDetailActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
@@ -62,6 +63,11 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
           <Card>
             <CardHeader title="Paramétrage du client" subtitle="Besoins et préférences décrits par le client — à lire avant de démarrer" action={{ label: "Fiche client", href: `/admin/clients/${p.clientId}` }} />
             <NeedsSummary mainNeeds={needs?.mainNeeds ?? []} details={needs?.needsDetails ?? {}} />
+          </Card>
+
+          <Card>
+            <CardHeader title="Fichiers déposés par le client" subtitle="Logo, photos, PDF, documents — vérifiés et analysés au dépôt" />
+            <ClientFilesList ctx={ctx} clientId={BigInt(p.clientId)} />
           </Card>
 
           <Card>

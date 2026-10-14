@@ -101,6 +101,7 @@ enum NotificationType {
   ABONNEMENT_ECHEANCE
   DEMANDE_PROJET
   PROFIL_INCOMPLET
+  ALERTE_SECURITE
 
   @@map("notification_type")
 }
@@ -108,17 +109,17 @@ enum NotificationType {
 // ---------------------------------------------------------------- models
 
 model Client {
-  id             BigInt    @id @default(autoincrement())
-  companyName    String    @map("company_name") @db.VarChar(160)
-  contactName    String    @map("contact_name") @db.VarChar(160)
-  email          String?   @db.Citext
-  phone          String?   @db.VarChar(40)
-  address        String?
-  city           String?   @db.VarChar(80)
-  country        String?   @db.VarChar(80)
-  taxId          String?   @map("tax_id") @db.VarChar(60)
-  billingAddress String?   @map("billing_address")
-  notes          String?
+  id                    BigInt    @id @default(autoincrement())
+  companyName           String    @map("company_name") @db.VarChar(160)
+  contactName           String    @map("contact_name") @db.VarChar(160)
+  email                 String?   @db.Citext
+  phone                 String?   @db.VarChar(40)
+  address               String?
+  city                  String?   @db.VarChar(80)
+  country               String?   @db.VarChar(80)
+  taxId                 String?   @map("tax_id") @db.VarChar(60)
+  billingAddress        String?   @map("billing_address")
+  notes                 String?
   phoneCountryCode      String?   @map("phone_country_code") @db.VarChar(8)
   industry              String?   @db.VarChar(60)
   /// Secteurs cochés ; `industry` reprend le premier.
@@ -146,20 +147,22 @@ model Client {
   termsAcceptedAt       DateTime? @map("terms_accepted_at") @db.Timestamptz(6)
   accessGranted         Boolean   @default(true) @map("access_granted")
   accessGrantedAt       DateTime? @map("access_granted_at") @db.Timestamptz(6)
-  isActive       Boolean   @default(true) @map("is_active")
-  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
-  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  isActive              Boolean   @default(true) @map("is_active")
+  deletedAt             DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  users           User[]
-  projects        Project[]
-  invoices        Invoice[]
-  subscriptions   Subscription[]
-  projectRequests ProjectRequest[]
-  orders          Order[]
-  complaints      Complaint[]
-  paymentProofs   PaymentProof[]
+  users             User[]
+  projects          Project[]
+  invoices          Invoice[]
+  subscriptions     Subscription[]
+  projectRequests   ProjectRequest[]
+  orders            Order[]
+  complaints        Complaint[]
+  paymentProofs     PaymentProof[]
   assistantMessages AssistantMessage[]
+  files             ClientFile[]
+  securityEvents    SecurityEvent[]
 
   @@map("clients")
 }
@@ -181,21 +184,23 @@ model User {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  client              Client?                @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  teamMember          TeamMember?
-  resetTokens         PasswordResetToken[]
-  messages            Message[]
-  messageReads        MessageRead[]
-  notifications       Notification[]
-  auditLogs           AuditLog[]
-  uploadedFiles       File[]
-  createdProjects     Project[]              @relation("ProjectCreatedBy")
-  statusChanges       ProjectStatusHistory[]
-  createdInvoices     Invoice[]
-  createdRequests     ProjectRequest[]
-  addedIpExceptions   IpException[]
-  confirmedOrders     Order[]
-  assistantMessages   AssistantMessage[]
+  client            Client?                @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  teamMember        TeamMember?
+  resetTokens       PasswordResetToken[]
+  messages          Message[]
+  messageReads      MessageRead[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  uploadedFiles     File[]
+  createdProjects   Project[]              @relation("ProjectCreatedBy")
+  statusChanges     ProjectStatusHistory[]
+  createdInvoices   Invoice[]
+  createdRequests   ProjectRequest[]
+  addedIpExceptions IpException[]
+  confirmedOrders   Order[]
+  assistantMessages AssistantMessage[]
+  clientFiles       ClientFile[]
+  securityEvents    SecurityEvent[]
 
   @@map("users")
 }
@@ -436,7 +441,7 @@ model Subscription {
   createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  client Client  @relation(fields: [clientId], references: [id], onDelete: Restrict)
   orders Order[]
 
   @@map("subscriptions")
@@ -534,8 +539,8 @@ model Pack {
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  service Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  orders  Order[]
+  service         Service?         @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  orders          Order[]
   prepaidPayments PrepaidPayment[]
 
   @@map("packs")
@@ -563,12 +568,12 @@ model Order {
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  client       Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  pack         Pack          @relation(fields: [packId], references: [id], onDelete: Restrict)
-  confirmedByUser User?      @relation(fields: [confirmedBy], references: [id], onDelete: SetNull)
-  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  invoice      Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  pack            Pack             @relation(fields: [packId], references: [id], onDelete: Restrict)
+  confirmedByUser User?            @relation(fields: [confirmedBy], references: [id], onDelete: SetNull)
+  project         Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  subscription    Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  invoice         Invoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   prepaidPayments PrepaidPayment[]
   paymentProofs   PaymentProof[]
 
@@ -577,25 +582,25 @@ model Order {
 
 /// Message entrant d'un réseau social ou d'un e-mail, traité par l'assistant (migration 016).
 model InboundLead {
-  id           BigInt   @id @default(autoincrement())
-  channel      String   @db.VarChar(20)
-  externalId   String?  @map("external_id") @db.VarChar(160)
-  displayName  String?  @map("display_name") @db.VarChar(160)
-  contact      String?  @db.VarChar(254)
+  id           BigInt    @id @default(autoincrement())
+  channel      String    @db.VarChar(20)
+  externalId   String?   @map("external_id") @db.VarChar(160)
+  displayName  String?   @map("display_name") @db.VarChar(160)
+  contact      String?   @db.VarChar(254)
   message      String
   reply        String?
-  answeredByAi Boolean  @default(true) @map("answered_by_ai")
-  lang         String?  @db.Char(2)
-  threadRef    String?  @map("thread_ref") @db.VarChar(160)
-  intent       String?  @db.VarChar(24)
-  score        Int      @default(0) @db.SmallInt
-  handoff      Boolean  @default(false)
-  status       String   @default("NOUVEAU") @db.VarChar(12)
-  packCode     String?  @map("pack_code") @db.VarChar(40)
-  summary      String?  @db.VarChar(200)
+  answeredByAi Boolean   @default(true) @map("answered_by_ai")
+  lang         String?   @db.Char(2)
+  threadRef    String?   @map("thread_ref") @db.VarChar(160)
+  intent       String?   @db.VarChar(24)
+  score        Int       @default(0) @db.SmallInt
+  handoff      Boolean   @default(false)
+  status       String    @default("NOUVEAU") @db.VarChar(12)
+  packCode     String?   @map("pack_code") @db.VarChar(40)
+  summary      String?   @db.VarChar(200)
   followedUpAt DateTime? @map("followed_up_at") @db.Timestamptz(6)
-  mediaKind    String?  @map("media_kind") @db.VarChar(10)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  mediaKind    String?   @map("media_kind") @db.VarChar(10)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([channel, externalId, createdAt(sort: Desc)], map: "idx_inbound_leads_contact_time")
   @@index([channel, createdAt(sort: Desc)], map: "idx_inbound_leads_channel")
@@ -694,4 +699,49 @@ model AssistantMessage {
   @@index([userId, createdAt(sort: Desc)])
   @@index([clientId, createdAt(sort: Desc)])
   @@map("assistant_messages")
+}
+
+/// Fichier déposé par un client pour décrire son besoin (logo, photos, PDF…).
+/// Stocké sur le disque sous storage/uploads/clients/<client>/<uuid>.<ext>, hors web.
+model ClientFile {
+  id               BigInt   @id @default(autoincrement())
+  clientId         BigInt   @map("client_id")
+  uploadedByUserId BigInt?  @map("uploaded_by_user_id")
+  need             String?  @db.VarChar(40)
+  originalName     String   @map("original_name") @db.VarChar(255)
+  storageKey       String   @unique @map("storage_key") @db.VarChar(255)
+  mimeType         String   @map("mime_type") @db.VarChar(120)
+  kind             String   @db.VarChar(12)
+  sizeBytes        BigInt   @map("size_bytes")
+  sha256           String   @db.Char(64)
+  scannedWith      String?  @map("scanned_with") @db.VarChar(60)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  client     Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  uploadedBy User?  @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([clientId, createdAt(sort: Desc)], map: "idx_client_files_client")
+  @@map("client_files")
+}
+
+/// Journal de sécurité : fichiers refusés ou suspects, antivirus, blocages.
+model SecurityEvent {
+  id        BigInt   @id @default(autoincrement())
+  clientId  BigInt?  @map("client_id")
+  userId    BigInt?  @map("user_id")
+  kind      String   @db.VarChar(40)
+  severity  String   @db.VarChar(10)
+  reason    String
+  fileName  String?  @map("file_name") @db.VarChar(255)
+  sha256    String?  @db.Char(64)
+  ip        String?  @db.VarChar(64)
+  userAgent String?  @map("user_agent") @db.VarChar(300)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc)], map: "idx_security_events_created")
+  @@index([clientId, createdAt(sort: Desc)], map: "idx_security_events_client")
+  @@map("security_events")
 }
