@@ -97,9 +97,22 @@ export function DictationMic({
     let stream: MediaStream | null = null;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
+    } catch (e) {
       setStatus("error");
-      setMessage("Micro refusé : autorisez le microphone dans votre navigateur.");
+      const name = (e as { name?: string })?.name ?? "";
+      if (name === "NotFoundError" || name === "OverconstrainedError") setMessage("Aucun microphone détecté sur cet appareil.");
+      else if (name === "NotReadableError") setMessage("Le micro est utilisé par une autre application.");
+      else if (name === "NotAllowedError" || name === "SecurityError") {
+        // Refus mémorisé par le navigateur : il ne redemande pas tant que le site n'est pas réautorisé.
+        let denied = false;
+        try {
+          const st = await navigator.permissions?.query({ name: "microphone" as PermissionName });
+          denied = st?.state === "denied";
+        } catch { /* API absente */ }
+        setMessage(denied
+          ? "Micro bloqué pour ce site : cliquez sur l'icône 🔒 (ou 🎤) à gauche de l'adresse, autorisez le microphone, puis réessayez."
+          : "Micro refusé : cliquez sur « Autoriser » quand le navigateur le demande.");
+      } else setMessage("Micro indisponible dans ce navigateur.");
       return;
     }
     chunks.current = [];
