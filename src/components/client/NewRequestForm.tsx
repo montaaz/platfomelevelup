@@ -1,5 +1,7 @@
 "use client";
 
+import { DictationMic } from "@/components/DictationMic";
+
 import { useState, type FormEvent } from "react";
 
 export function NewRequestForm({ services }: { services: { id: string; name: string }[] }) {
@@ -83,9 +85,12 @@ export function NewRequestForm({ services }: { services: { id: string; name: str
       </div>
 
       <div>
-        <label htmlFor="description" className="mb-1.5 block text-[13px] font-medium text-ink">
-          Décrivez votre besoin *
-        </label>
+        <div className="mb-1.5 flex items-center justify-between gap-3">
+          <label htmlFor="description" className="block text-[13px] font-medium text-ink">
+            Décrivez votre besoin *
+          </label>
+          <DictationMic value={description} onChange={setDescription} context="Décrivez votre besoin" />
+        </div>
         <textarea
           id="description"
           required

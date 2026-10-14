@@ -44,7 +44,7 @@ export async function transcribeAudio(bytes: Buffer, mimeType: string): Promise<
 }
 
 /** Texte → note vocale (opus, lisible comme vocal WhatsApp). */
-export async function synthesizeSpeech(text: string, voice = process.env.BAARCHA_VOICE || "female"): Promise<{ base64: string; mimeType: string } | null> {
+export async function synthesizeSpeech(text: string, voice = process.env.BAARCHA_VOICE || "dido"): Promise<{ base64: string; mimeType: string } | null> {
   const c = cfg();
   if (!c) return null;
   // Les liens et emojis ne se prononcent pas : on les retire de la version parlée.

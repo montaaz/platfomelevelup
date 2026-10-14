@@ -5,6 +5,7 @@ import styles from "@/styles/neu.module.css";
 import { MAIN_NEEDS } from "@/lib/onboardingOptions";
 import { CONTACT_MAILTO, NEED_SPECS, PAGES, PALETTES, STYLES, type NeedDetails } from "@/lib/needs";
 import { NeedFiles } from "./NeedFiles";
+import { DictationMic } from "@/components/DictationMic";
 
 /**
  * L'étape « Vos besoins » : la liste des besoins ; sous chaque besoin coché,
@@ -64,9 +65,12 @@ export function NeedsForm({
                   if (f.kind === "text") {
                     return (
                       <div key={f.key}>
-                        <label className={styles.fieldLabel} htmlFor={`${o.value}-${f.key}`}>
-                          {f.label}{f.required ? " *" : ""}
-                        </label>
+                        <div className={styles.labelRow}>
+                          <label className={styles.fieldLabel} htmlFor={`${o.value}-${f.key}`}>
+                            {f.label}{f.required ? " *" : ""}
+                          </label>
+                          <DictationMic value={(d[f.key] as string) ?? ""} onChange={(v) => setField(o.value, f.key, v)} context={f.label} />
+                        </div>
                         <textarea
                           id={`${o.value}-${f.key}`}
                           className={styles.textarea}

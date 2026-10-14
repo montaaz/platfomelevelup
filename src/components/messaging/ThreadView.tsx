@@ -1,5 +1,7 @@
 "use client";
 
+import { DictationMic } from "@/components/DictationMic";
+
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -146,6 +148,7 @@ export function ThreadView({
           placeholder="Écrire un message…"
           className="min-h-11 flex-1 resize-none rounded-xl border border-white/70 bg-white/55 backdrop-blur-md px-4 py-2.5 text-[13.5px] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
         />
+        <DictationMic value={body} onChange={setBody} context="Message à l'équipe" size={40} />
         <button
           type="submit"
           disabled={busy || !body.trim()}

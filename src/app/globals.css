@@ -472,3 +472,15 @@ body::before {
     box-shadow: none;
   }
 }
+
+/* Micro de dictée (IA Baarcha) sur les champs texte */
+.dictation-btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid #c9d3e6; background: #fff; color: #0a5ff0; cursor: pointer; transition: background .15s, color .15s, box-shadow .15s; flex: none; }
+.dictation-btn:hover { background: #eef3ff; }
+.dictation-btn:disabled { cursor: wait; opacity: .7; }
+.dictation-on { background: #e8262f; border-color: #e8262f; color: #fff; animation: dictation-pulse 1.2s ease-in-out infinite; }
+.dictation-busy { color: #6b7689; }
+.dictation-spin { animation: dictation-rotate .9s linear infinite; }
+.dictation-msg { font-size: 11.5px; font-weight: 600; color: #1c3f8a; }
+.dictation-err { color: #b42318; }
+@keyframes dictation-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(232, 38, 47, .45); } 50% { box-shadow: 0 0 0 8px rgba(232, 38, 47, 0); } }
+@keyframes dictation-rotate { to { transform: rotate(360deg); } }

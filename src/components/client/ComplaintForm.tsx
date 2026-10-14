@@ -1,5 +1,7 @@
 "use client";
 
+import { DictationMic } from "@/components/DictationMic";
+
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { gql } from "@/lib/gqlClient";
@@ -115,9 +117,12 @@ export function ComplaintForm({ projects }: { projects: { id: string; title: str
       </div>
 
       <div>
-        <label htmlFor="message" className="mb-1.5 block text-[13px] font-medium text-ink">
-          Décrivez le problème *
-        </label>
+        <div className="mb-1.5 flex items-center justify-between gap-3">
+          <label htmlFor="message" className="block text-[13px] font-medium text-ink">
+            Décrivez le problème *
+          </label>
+          <DictationMic value={message} onChange={setMessage} context="Décrivez le problème" />
+        </div>
         <textarea
           id="message"
           required

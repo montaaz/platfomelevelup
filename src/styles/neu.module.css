@@ -627,3 +627,6 @@
 .fileName { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #0a5ff0; font-weight: 600; text-decoration: none; }
 .fileMeta { color: #6b7689; font-size: 11.5px; }
 .fileDel { border: 0; background: none; color: #b42318; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+
+.labelRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.labelRow .fieldLabel { margin-bottom: 6px; }
