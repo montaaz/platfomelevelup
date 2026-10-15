@@ -28,6 +28,7 @@ export async function buddyTurn(ctx: Ctx, message: string, rawContext: unknown):
       message,
       products.map((p) => ({ code: p.code, name: p.name, price: p.price, isMonthly: p.isMonthly, position: p.position })),
       projects.map((p) => ({ id: p.id, title: p.title })),
+      result.lang,
     );
     if (detected?.kind === "proposal") {
       reply = { ...result, kind: "answer", text: proposalPrompt(detected.proposal, result.lang), proposal: detected.proposal, suggestions: undefined, actions: undefined };
@@ -36,7 +37,7 @@ export async function buddyTurn(ctx: Ctx, message: string, rawContext: unknown):
         ...result,
         kind: "answer",
         text: adminOnlyMessage(result.lang),
-        proposal: { action: "CREATE_REQUEST", title: message.slice(0, 80), description: message, label: "Transmettre à l'équipe", summary: "Votre demande sera transmise à l'équipe Level Up IA." },
+        proposal: { action: "CREATE_REQUEST", title: message.slice(0, 80), description: message, label: result.lang === "en" ? "Forward to the team" : "Transmettre à l'équipe", summary: result.lang === "en" ? "Your request will be forwarded to the Level Up IA team." : "Votre demande sera transmise à l'équipe Level Up IA." },
         suggestions: undefined,
         actions: undefined,
       };

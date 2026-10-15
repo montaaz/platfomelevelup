@@ -89,7 +89,8 @@ function money(p: ProductLite): string {
  * Lit la phrase du client et renvoie, s'il y a lieu, l'action à lui proposer.
  * `null` : simple question, l'assistant répond normalement.
  */
-export function detectProposal(text: string, products: ProductLite[], projects: ProjectLite[]): Detection {
+export function detectProposal(text: string, products: ProductLite[], projects: ProjectLite[], lang: "fr" | "en" = "fr"): Detection {
+  const en = lang === "en";
   const t = norm(text);
   if (!t) return null;
   if (ADMIN_ONLY.test(t)) return { kind: "admin-only", reason: "action réservée à l'équipe" };
@@ -103,8 +104,10 @@ export function detectProposal(text: string, products: ProductLite[], projects: 
         proposal: {
           action: "ADD_TO_CART",
           packCode: p.code,
-          label: `Ajouter ${p.name} au panier`,
-          summary: `${p.name} (${money(p)}) sera ajouté à vos commandes, en attente de paiement. Le règlement est ensuite vérifié par l'équipe.`,
+          label: en ? `Add ${p.name} to the cart` : `Ajouter ${p.name} au panier`,
+          summary: en
+            ? `${p.name} (${money(p)}) will be added to your orders, awaiting payment. The payment is then checked by the team.`
+            : `${p.name} (${money(p)}) sera ajouté à vos commandes, en attente de paiement. Le règlement est ensuite vérifié par l'équipe.`,
         },
       };
     }
@@ -127,8 +130,10 @@ export function detectProposal(text: string, products: ProductLite[], projects: 
         projectTitle: chosen?.title ?? null,
         body,
         choices: chosen ? undefined : projects,
-        label: "Envoyer ce message à l'équipe",
-        summary: chosen ? `Message sur le projet « ${chosen.title} » : « ${body} »` : `Message à l'équipe : « ${body} » — choisissez le projet concerné.`,
+        label: en ? "Send this message to the team" : "Envoyer ce message à l'équipe",
+        summary: en
+          ? (chosen ? `Message on project “${chosen.title}”: “${body}”.` : `Message to the team: “${body}” — choose the project.`)
+          : (chosen ? `Message sur le projet « ${chosen.title} » : « ${body} ».` : `Message à l'équipe : « ${body} » — choisissez le projet concerné.`),
       },
     };
   }
@@ -142,8 +147,10 @@ export function detectProposal(text: string, products: ProductLite[], projects: 
         action: "CREATE_REQUEST",
         title,
         description: text.trim().slice(0, 2000),
-        label: "Envoyer la demande à l'équipe",
-        summary: `Une demande de projet sera envoyée à l'équipe : « ${title} ». Elle vous répond avec une proposition.`,
+        label: en ? "Send the request to the team" : "Envoyer la demande à l'équipe",
+        summary: en
+          ? `A project request will be sent to the team: “${title}”. They will reply with a proposal.`
+          : `Une demande de projet sera envoyée à l'équipe : « ${title} ». Elle vous répond avec une proposition.`,
       },
     };
   }
