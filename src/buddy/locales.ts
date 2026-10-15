@@ -58,8 +58,8 @@ function build(lang: Lang) {
   };
 
   const intentLabel: Record<BuddyIntentId, string> = fr
-    ? { help: "Aide", summary: "Résumé", project: "Projets", deadline: "Échéances", deliverables: "Livrables", download: "Téléchargements", revision: "Révision", approve: "Validation", orders: "Commandes", products: "Offres", review: "À vérifier", threads: "Messages", tasks: "Tâches", invoices: "Factures", profile: "Profil", human: "Parler à l'équipe", newProject: "Nouveau projet" }
-    : { help: "Help", summary: "Summary", project: "Projects", deadline: "Deadlines", deliverables: "Deliverables", download: "Downloads", revision: "Revision", approve: "Approval", orders: "Orders", products: "Offers", review: "To review", threads: "Messages", tasks: "Tasks", invoices: "Invoices", profile: "Profile", human: "Talk to the team", newProject: "New project" };
+    ? { help: "Aide", summary: "Résumé", project: "Projets", deadline: "Échéances", deliverables: "Livrables", download: "Téléchargements", revision: "Révision", approve: "Validation", orders: "Commandes", products: "Offres", review: "À vérifier", threads: "Messages", tasks: "Tâches", invoices: "Factures", profile: "Profil", human: "Parler à l'équipe", newProject: "Nouveau projet", pay: "Régler ma commande" }
+    : { help: "Help", summary: "Summary", project: "Projects", deadline: "Deadlines", deliverables: "Deliverables", download: "Downloads", revision: "Revision", approve: "Approval", orders: "Orders", products: "Offers", review: "To review", threads: "Messages", tasks: "Tasks", invoices: "Invoices", profile: "Profile", human: "Talk to the team", newProject: "New project", pay: "Pay my order" };
 
   const intentQuestion: Record<BuddyIntentId, string> = fr
     ? { help: "Que sais-tu faire ?", summary: "Mon résumé", project: "Où en est mon projet ?", deadline: "Quand est-ce que ce sera prêt ?", deliverables: "Quels livrables sont disponibles ?", download: "Quels fichiers puis-je télécharger ?", revision: "Je veux demander une révision", approve: "Je veux approuver le livrable", orders: "Mes commandes", products: "Vos offres", review: "À vérifier", threads: "Messages de l'équipe", tasks: "Que dois-je faire ?", invoices: "Mes factures", profile: "Mon profil", human: "Parler à quelqu'un", newProject: "Nouveau projet" }
@@ -107,6 +107,22 @@ function build(lang: Lang) {
 
     unauthorized: fr ? "Vous ne pouvez consulter que les données de votre propre compte." : "You can only see the data of your own account.",
     noEvidence: fr ? "Aucune donnée ne correspond pour l'instant." : "No data matches for now.",
+    noInvoicesYet: (pending: { packName: string; amount: string }[]) => fr
+      ? (pending.length
+        ? `Vous n'avez pas encore de facture. ${pending.length === 1 ? `Votre commande ${pending[0]!.packName} (${pending[0]!.amount}) est` : `Vos ${pending.length} commandes sont`} en attente de paiement : la facture est émise dès que l'équipe confirme le règlement.`
+        : "Vous n'avez pas encore de facture : elle est émise à la confirmation du paiement d'une commande.")
+      : (pending.length
+        ? `You have no invoice yet. ${pending.length === 1 ? `Your order ${pending[0]!.packName} (${pending[0]!.amount}) is` : `Your ${pending.length} orders are`} awaiting payment: the invoice is issued once the team confirms the payment.`
+        : "You have no invoice yet: one is issued when an order's payment is confirmed."),
+    noOrdersYet: fr
+      ? "Vous n'avez pas encore de commande. Choisissez une offre sur le site, ou dites-moi par exemple « ajoute SEO Starter à mon panier »."
+      : "You have no order yet. Pick an offer on the website, or tell me for example “add SEO Starter to my cart”.",
+    snapshot: (s: { activeProjects: { title: string; status: string; nextStep: string | null; progress: number }[]; unpaidCount: number; pendingOrders: number; unread: number }, snippet: string) => {
+      const proj = s.activeProjects.slice(0, 3).map((p) => `${p.title} (${projectStatus[p.status] ?? p.status}${p.nextStep ? (fr ? `, prochaine étape : ${p.nextStep}` : `, next step: ${p.nextStep}`) : ""})`).join(" ; ");
+      return fr
+        ? `Je ne suis pas sûr de comprendre « ${snippet} ». Voici où vous en êtes : ${s.activeProjects.length ? `${s.activeProjects.length} projet${s.activeProjects.length > 1 ? "s" : ""} en cours — ${proj}` : "aucun projet en cours"} · ${s.pendingOrders} commande${s.pendingOrders > 1 ? "s" : ""} en attente de paiement · ${s.unpaidCount ? `${s.unpaidCount} facture${s.unpaidCount > 1 ? "s" : ""} à régler` : "aucune facture à régler"}${s.unread ? ` · ${s.unread} message${s.unread > 1 ? "s" : ""} non lu${s.unread > 1 ? "s" : ""}` : ""}. Dites-moi ce que vous cherchez, ou choisissez un sujet.`
+        : `I'm not sure I understood “${snippet}”. Here is where you stand: ${s.activeProjects.length ? `${s.activeProjects.length} project${s.activeProjects.length > 1 ? "s" : ""} in progress — ${proj}` : "no project in progress"} · ${s.pendingOrders} order${s.pendingOrders > 1 ? "s" : ""} awaiting payment · ${s.unpaidCount ? `${s.unpaidCount} invoice${s.unpaidCount > 1 ? "s" : ""} to pay` : "no invoice to pay"}${s.unread ? ` · ${s.unread} unread message${s.unread > 1 ? "s" : ""}` : ""}. Tell me what you're looking for, or pick a topic.`;
+    },
     noProjects: fr ? "Vous n'avez pas encore de projet. Vous pouvez en lancer un en décrivant votre besoin." : "You don't have a project yet. You can start one by describing your need.",
     noSuchItem: (rank: number, count: number) => fr ? `Il n'y a pas de ${rank}ᵉ élément : la liste précédente en compte ${count}.` : `There is no item #${rank}: the previous list has ${count}.`,
     ambiguous: (options: string[]) => fr ? `Vouliez-vous dire : ${options.join(" ou ")} ? Précisez et je vous réponds.` : `Did you mean: ${options.join(" or ")}? Tell me and I'll answer.`,

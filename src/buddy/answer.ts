@@ -16,7 +16,7 @@ import {
   renderInvoices, renderNewProject, renderOrderDetail, renderOrders, renderProjectStatus, renderProjects, renderReview,
   renderRevision, renderSummary, renderTasks, renderTeamMessages, renderThreadDetail, renderThreads, reviewFooter, type Action,
 } from "./templates";
-import type { BuddyCtx, BuddyDataSource, ProjectDTO, QueryFilter } from "./data/types";
+import type { BuddyCtx, BuddyDataSource, ProjectDTO, QueryFilter, SummaryDTO } from "./data/types";
 
 /**
  * Orchestrateur du Dashboard Buddy.
@@ -231,7 +231,7 @@ export async function answerBuddy(
         const r = await aiAnswer(ai, guess, t, ctx, message, source, now, previous, suggestions);
         if (r) return r;
       }
-      return fallback(t, message, u.partial.map((p) => p.id as BuddyIntentId), ctx.role, previous, lang);
+      return fallback(t, message, u.partial.map((p) => p.id as BuddyIntentId), ctx.role, previous, lang, ctx.role === "CLIENT" ? await source.summary(ctx).catch(() => null) : null);
     }
   }
 
@@ -354,16 +354,18 @@ function clarify(t: Strings, intent: BuddyIntentId, options: ProjectDTO[], lang:
 }
 
 /** Repli utile : dire ce qui n'est pas compris, proposer des pistes proches — jamais deux fois la même. */
-function fallback(t: Strings, message: string, partial: BuddyIntentId[], role: "ADMIN" | "CLIENT", previous: BuddyContext | undefined, lang: Lang): BuddyResult {
+function fallback(t: Strings, message: string, partial: BuddyIntentId[], role: "ADMIN" | "CLIENT", previous: BuddyContext | undefined, lang: Lang, summary: SummaryDTO | null = null): BuddyResult {
   const fallbacks = Math.min((previous?.fallbacks ?? 0) + 1, 5);
   const snippet = message.length > 60 ? `${message.slice(0, 60)}…` : message;
   const near = partial.map((id) => t.intentQuestion[id]).filter(Boolean);
   const suggestions = near.length ? near : t.suggestions(role).slice(0, 3);
   const human = role === "CLIENT" ? [{ label: t.actions.messages, href: "/client/messages" }] : undefined;
+  // Pour un client sans piste précise : une photo de son compte vaut mieux qu'un « pas compris ».
+  const snapshot = summary && summary.role === "CLIENT" && near.length === 0 && fallbacks === 1 ? t.snapshot(summary, snippet) : null;
   return {
     kind: "refusal",
     lang,
-    text: fallbacks === 1 ? t.notUnderstood(snippet, near.map((q) => q.replace(/[?？]$/, "").trim())) : t.notUnderstoodAgain,
+    text: snapshot ?? (fallbacks === 1 ? t.notUnderstood(snippet, near.map((q) => q.replace(/[?？]$/, "").trim())) : t.notUnderstoodAgain),
     suggestions,
     actions: fallbacks >= 2 ? human : undefined,
     context: { intent: previous?.intent ?? "help", projectId: previous?.projectId, lang, fallbacks },
@@ -433,7 +435,7 @@ async function render(
 
     case "orders": {
       const orders = await source.orders(ctx, filter);
-      if (orders.length === 0) return { kind: "refusal", text: t.noEvidence };
+      if (orders.length === 0) return ctx.role === "CLIENT" && !ordinal ? { kind: "answer", text: t.noOrdersYet } : { kind: "refusal", text: t.noEvidence };
       if (ordinal) {
         const one = pick(orders, ordinal);
         return one ? { kind: one.review.length ? "review" : "answer", text: renderOrderDetail(t, one, showCompany), reviewCount: one.review.length } : noItem(orders.length);
@@ -486,7 +488,12 @@ async function render(
           : { kind: "answer", text: t.noUnpaid };
       }
       const invoices = await source.invoices(ctx, filter);
-      if (invoices.length === 0) return { kind: "refusal", text: t.noEvidence };
+      if (invoices.length === 0) {
+        if (ctx.role !== "CLIENT" || filter.reference || ordinal) return { kind: "refusal", text: t.noEvidence };
+        // Pas encore de facture : dire pourquoi, avec la commande en attente s'il y en a une.
+        const pending = (await source.orders(ctx, { limit: 5 })).filter((o) => o.status === "EN_ATTENTE_PAIEMENT").map((o) => ({ packName: o.packName, amount: t.money(o.amount) }));
+        return { kind: "answer", text: t.noInvoicesYet(pending), actions: pending.length ? [{ label: t.actions.pay, href: "/paiement" }] : undefined };
+      }
       if (filter.reference || ordinal) {
         const one = ordinal ? pick(invoices, ordinal) : invoices[0];
         if (!one) return noItem(invoices.length);

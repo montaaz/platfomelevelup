@@ -47,7 +47,9 @@ export interface Understander {
 /** Implémentation par règles : la seule disponible aujourd'hui. */
 export const ruleBasedUnderstander: Understander = {
   understand(message, { intents, previousLang, now }) {
-    const lang = detectLanguage(message, previousLang ?? "fr");
+    // Un message très court (« ok », « my invoices », « non ») ne change pas la langue de la conversation.
+    const detected = detectLanguage(message, previousLang ?? "fr");
+    const lang = previousLang && detected !== previousLang && tokenize(message).length <= 3 ? previousLang : detected;
     return {
       lang,
       smallTalk: detectSmallTalk(message),
