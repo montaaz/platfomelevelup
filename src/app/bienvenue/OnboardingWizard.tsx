@@ -7,7 +7,7 @@ import { gql } from "@/lib/gqlClient";
 import {
   INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, HEARD_FROM, type Option,
 } from "@/lib/onboardingOptions";
-import { COUNTRIES, searchCountries } from "@/lib/countries";
+import { COUNTRIES, searchCountries, countryByCode } from "@/lib/countries";
 import { NeedsForm } from "@/components/client/NeedsForm";
 import { NEED_SPECS, type NeedDetails } from "@/lib/needs";
 
@@ -97,12 +97,16 @@ export function OnboardingWizard({
   defaultName,
   defaultCompany,
   allowedNeeds = null,
+  detectedCountry = null,
 }: {
   defaultName: string;
   defaultCompany: string;
   /** Besoins ouverts par le pack commandé ; null = tous. */
   allowedNeeds?: string[] | null;
+  /** Pays détecté à la connexion (code ISO) : indicatif et marché principal préremplis, modifiables. */
+  detectedCountry?: string | null;
 }) {
+  const startCountry = detectedCountry && countryByCode(detectedCountry) ? detectedCountry : "TN";
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -111,7 +115,7 @@ export function OnboardingWizard({
 
   const [a, setA] = useState<Answers>({
     contactName: defaultName,
-    phoneCountry: "TN",
+    phoneCountry: startCountry,
     phone: "",
     companyName: defaultCompany,
     industries: [],
@@ -119,7 +123,7 @@ export function OnboardingWizard({
     contactRole: "",
     contactRoleOther: "",
     companySize: "",
-    mainMarket: "TN",
+    mainMarket: startCountry,
     mainNeeds: [],
     needsDetails: {},
     heardFroms: [],
@@ -128,7 +132,12 @@ export function OnboardingWizard({
 
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((p) => ({ ...p, [k]: v }));
 
-  const countryResults = useMemo(() => searchCountries(countryQuery).slice(0, 60), [countryQuery]);
+  // Sans filtre, le pays sélectionné (détecté) est en tête de liste.
+  const countryResults = useMemo(() => {
+    const list = searchCountries(countryQuery);
+    const selected = !countryQuery.trim() ? list.find((c) => c.code === a.mainMarket) : undefined;
+    return (selected ? [selected, ...list.filter((c) => c.code !== selected.code)] : list).slice(0, 60);
+  }, [countryQuery, a.mainMarket]);
 
   /** L'étape courante est-elle complète ? (sinon le bouton reste désactivé) */
   function canContinue(): boolean {
@@ -337,7 +346,11 @@ export function OnboardingWizard({
       {step === 4 && (
         <>
           <h2 className={styles.question}>Votre marché principal</h2>
-          <p className={styles.hint}>Tapez les premières lettres pour filtrer.</p>
+          <p className={styles.hint}>
+            {detectedCountry && countryByCode(detectedCountry)
+              ? `Détecté depuis votre connexion : ${countryByCode(detectedCountry)!.name}. Changez-le si besoin, ou tapez les premières lettres pour filtrer.`
+              : "Tapez les premières lettres pour filtrer."}
+          </p>
           <div className={styles.searchWrap}>
             <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="7" />

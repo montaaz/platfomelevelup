@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
+import { detectCountryFromRequest } from "@/lib/countries";
 import styles from "@/styles/neu.module.css";
 import { ctxOrNull } from "@/server/context";
 import { clientAllowedNeeds, onboardingStatus } from "@/server/services/onboarding";
@@ -14,6 +17,10 @@ export default async function BienvenuePage() {
   if (status.completed) redirect("/client");
   // Étape « Vos besoins » : seulement les besoins du pack commandé.
   const allowedNeeds = await clientAllowedNeeds(ctx);
+  // Pays de connexion (Cloudflare), sinon celui mémorisé au profil : préremplit l'indicatif et le marché principal.
+  const hit = detectCountryFromRequest(await headers());
+  const stored = ctx.clientId ? await prisma.client.findUnique({ where: { id: ctx.clientId }, select: { detectedCountryCode: true } }) : null;
+  const detectedCountry = hit?.code ?? stored?.detectedCountryCode ?? null;
 
   return (
     <main className={styles.page}>
@@ -21,6 +28,7 @@ export default async function BienvenuePage() {
         defaultName={status.contactName || ctx.fullName}
         defaultCompany={status.companyName}
         allowedNeeds={allowedNeeds}
+        detectedCountry={detectedCountry}
       />
     </main>
   );
