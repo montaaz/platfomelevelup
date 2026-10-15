@@ -27,7 +27,7 @@ const HOW_ARE_YOU = /\b(comment (ca|ça|tu|vous|allez|vas)|ca va|ça va|how are 
 const WHO_ARE_YOU = /\b(qui (es|est|etes|êtes) ?(tu|vous)|t es qui|tu es qui|c est quoi (cet|cette|l )?assistant|who are you|what are you|chkoun enti|chkounek)\b/;
 const HELP = /\b(aide|aidez moi|help|que (peux|sais|pouvez|savez) ?(tu|vous) faire|qu est ce que tu (peux|sais) faire|what can you do|tu fais quoi|tu sers a quoi|a quoi tu sers|comment (ca|ça) marche|menu|options)\b/;
 
-const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[’'?!.,;:]/g, " ").replace(/\s+/g, " ").trim();
+const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[’'?!.,;:\-]/g, " ").replace(/\s+/g, " ").trim();
 
 export function detectSmallTalk(message: string): SmallTalk | null {
   const plain = norm(message);
