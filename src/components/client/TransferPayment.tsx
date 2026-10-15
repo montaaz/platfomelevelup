@@ -2,9 +2,10 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import styles from "@/styles/neu.module.css";
 
-type Proof = { id: string; status: string; reviewNote: string | null; originalName: string; createdAt: string };
+type Proof = { id: string; status: string; reviewNote: string | null; originalName: string | null; createdAt: string };
 
 function CopyRow({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);
@@ -37,10 +38,13 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+const GREEN = { background: "linear-gradient(135deg, #22c55e, #0a8f4e)", boxShadow: "6px 6px 14px rgba(10, 143, 78, .25), -4px -4px 12px #fff" } as const;
+
 /**
- * Paiement par virement : coordonnées bancaires à copier, libellé à indiquer,
- * puis dépôt du justificatif. L'état du dernier justificatif (en vérification,
- * refusé avec motif) s'affiche à la place du formulaire quand il y a lieu.
+ * Paiement par virement : le RIB à copier, le libellé à indiquer, puis le
+ * bouton vert « J'ai fait le virement » (référence facultative, aucun
+ * justificatif exigé). L'équipe vérifie le virement sur le compte et valide la
+ * commande ; le client est averti dans son espace et par e-mail.
  */
 export function TransferPayment({
   orderId,
@@ -48,34 +52,35 @@ export function TransferPayment({
   label,
   bank,
   proof,
+  /** "accueil" : dernière étape du questionnaire (avec le bouton « Entrer dans la plateforme »). */
+  variant = "page",
 }: {
   orderId: string;
   amount: string;
   label: string;
   bank: { holder: string; bank: string; rib: string; iban: string; bic: string };
   proof: Proof | null;
+  variant?: "page" | "accueil";
 }) {
   const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
   const [reference, setReference] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
-  async function onSubmit(e: FormEvent) {
+  async function declare(e: FormEvent) {
     e.preventDefault();
-    if (!file) return setError("Choisissez le fichier de votre justificatif.");
     setBusy(true);
     setError(null);
     const form = new FormData();
     form.set("orderId", orderId);
-    form.set("file", file);
     form.set("reference", reference);
     try {
       const res = await fetch("/api/paiement/virement", { method: "POST", body: form });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Envoi impossible.");
       setSent(true);
+      if (variant === "accueil") router.push("/client");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Envoi impossible.");
@@ -88,10 +93,10 @@ export function TransferPayment({
 
   return (
     <div className={styles.choice} style={{ marginTop: 14, cursor: "default", display: "block", textAlign: "left" }}>
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#26303f" }}>Virement bancaire</p>
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#26303f" }}>Virement bancaire — {amount}</p>
       <p style={{ marginTop: 4, fontSize: 12.5, color: "#6b7689", fontWeight: 400, lineHeight: 1.5 }}>
         Virez <strong style={{ color: "#26303f" }}>{amount}</strong> sur le compte ci-dessous en indiquant le libellé{" "}
-        <strong style={{ color: "#0a5ff0", userSelect: "all" }}>{label}</strong>, puis déposez votre justificatif.
+        <strong style={{ color: "#0a5ff0", userSelect: "all" }}>{label}</strong>, puis cliquez sur « J&apos;ai fait le virement ».
         Votre commande est validée dès que l&apos;équipe constate le virement.
       </p>
 
@@ -105,42 +110,39 @@ export function TransferPayment({
       </div>
 
       {waiting ? (
-        <p role="status" style={{ marginTop: 14, padding: "10px 12px", borderRadius: 12, background: "#fff7e6", color: "#8a5a00", fontSize: 12.5, fontWeight: 600, lineHeight: 1.5 }}>
-          ⏳ Justificatif reçu{proof?.originalName && !sent ? ` (${proof.originalName})` : ""} : l&apos;équipe vérifie le virement et
-          valide votre commande sous peu. Vous serez averti dans votre espace et par e-mail.
+        <p role="status" style={{ marginTop: 14, padding: "10px 12px", borderRadius: 12, background: "#e6f7ee", color: "#0a6b3c", fontSize: 12.5, fontWeight: 600, lineHeight: 1.5 }}>
+          ✓ Virement déclaré : l&apos;équipe vérifie la réception sur le compte et valide votre commande sous peu. Vous serez averti dans votre espace et par e-mail.
         </p>
       ) : (
-        <form onSubmit={onSubmit} style={{ marginTop: 14 }}>
+        <form onSubmit={declare} style={{ marginTop: 14 }}>
           {proof?.status === "REFUSE" && (
             <p role="alert" style={{ marginBottom: 10, padding: "10px 12px", borderRadius: 12, background: "#fdecec", color: "#b42318", fontSize: 12.5, fontWeight: 600, lineHeight: 1.5 }}>
-              Justificatif précédent refusé : {proof.reviewNote ?? "merci d'en déposer un nouveau."}
+              Virement non retrouvé : {proof.reviewNote ?? "vérifiez le montant et le libellé, puis déclarez-le à nouveau."}
             </p>
           )}
-          <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "#26303f" }}>
-            Justificatif de virement (PDF, JPG ou PNG, 10 Mo max.)
-            <input
-              type="file"
-              accept="application/pdf,image/jpeg,image/png,image/webp"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              style={{ display: "block", marginTop: 6, width: "100%", fontSize: 12.5, fontWeight: 400 }}
-            />
+          <label htmlFor={`ref-${orderId}`} style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "#26303f" }}>
+            Référence ou date du virement <span style={{ fontWeight: 500, color: "#8a93a6" }}>(facultatif)</span>
           </label>
-          <label style={{ display: "block", marginTop: 10, fontSize: 12.5, fontWeight: 700, color: "#26303f" }}>
-            Référence ou date du virement (facultatif)
-            <input
-              type="text"
-              maxLength={160}
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="Ex. : virement du 8 octobre, réf. 123456"
-              style={{ display: "block", marginTop: 6, width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #d9dfeb", fontSize: 13, fontWeight: 400 }}
-            />
-          </label>
-          {error && <p role="alert" style={{ marginTop: 10, fontSize: 12.5, color: "#b42318", fontWeight: 600 }}>{error}</p>}
-          <button type="submit" className={styles.submit} disabled={busy} style={{ width: "100%", marginTop: 14, height: 48 }}>
-            {busy ? "Envoi…" : "Envoyer le justificatif"}
+          <input
+            id={`ref-${orderId}`}
+            className={styles.textarea}
+            style={{ minHeight: 0, marginTop: 6 }}
+            placeholder="Ex. : virement du 8 octobre, réf. 123456"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            maxLength={160}
+          />
+          {error && <p className={styles.error} role="alert" style={{ marginTop: 8 }}>{error}</p>}
+          <button type="submit" className={styles.submit} disabled={busy} style={{ width: "100%", marginTop: 12, height: 50, ...GREEN }}>
+            {busy ? "ENVOI…" : "✓ J'AI FAIT LE VIREMENT"}
           </button>
         </form>
+      )}
+
+      {variant === "accueil" && (
+        <Link href="/client" className={styles.back} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 10, height: 48, textDecoration: "none", width: "100%" }}>
+          Entrer dans la plateforme
+        </Link>
       )}
     </div>
   );

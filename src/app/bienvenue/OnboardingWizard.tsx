@@ -10,6 +10,7 @@ import {
 import { COUNTRIES, searchCountries, countryByCode } from "@/lib/countries";
 import { NeedsForm } from "@/components/client/NeedsForm";
 import { NEED_SPECS, type NeedDetails } from "@/lib/needs";
+import { TransferPayment } from "@/components/client/TransferPayment";
 
 type Answers = {
   contactName: string;
@@ -28,7 +29,7 @@ type Answers = {
   heardFromOther: string;
 };
 
-const TOTAL_STEPS = 7;
+const QUESTION_STEPS = 7;
 
 /** Liste de choix réutilisable (hors du composant pour ne pas remonter à chaque frappe). */
 function Choices({
@@ -98,6 +99,7 @@ export function OnboardingWizard({
   defaultCompany,
   allowedNeeds = null,
   detectedCountry = null,
+  transfer = null,
 }: {
   defaultName: string;
   defaultCompany: string;
@@ -105,7 +107,15 @@ export function OnboardingWizard({
   allowedNeeds?: string[] | null;
   /** Pays détecté à la connexion (code ISO) : indicatif et marché principal préremplis, modifiables. */
   detectedCountry?: string | null;
+  /** Commande à régler par virement : affichée en dernière étape (RIB + « J'ai fait le virement »). */
+  transfer?: {
+    orderId: string; packName: string; amount: string; label: string;
+    bank: { holder: string; bank: string; rib: string; iban: string; bic: string };
+    proof: { id: string; status: string; reviewNote: string | null; originalName: string | null; createdAt: string } | null;
+  } | null;
 }) {
+  // 7 étapes de questionnaire, plus l'étape « Votre règlement » si une commande attend un virement.
+  const TOTAL_STEPS = QUESTION_STEPS + (transfer ? 1 : 0);
   const startCountry = detectedCountry && countryByCode(detectedCountry) ? detectedCountry : "TN";
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -194,6 +204,12 @@ export function OnboardingWizard({
           heardFromOther: a.heardFromOther || null,
         },
       });
+      if (transfer) {
+        // Questionnaire enregistré : place au règlement (RIB), puis à la plateforme.
+        setSaving(false);
+        setStep(QUESTION_STEPS);
+        return;
+      }
       router.push("/client");
       router.refresh();
     } catch (e) {
@@ -203,7 +219,7 @@ export function OnboardingWizard({
   }
 
   function next() {
-    if (step < TOTAL_STEPS - 1) setStep((s) => s + 1);
+    if (step < QUESTION_STEPS - 1) setStep((s) => s + 1);
     else void submit();
   }
 
@@ -433,8 +449,21 @@ export function OnboardingWizard({
         </>
       )}
 
+      {/* 8 — règlement par virement : RIB à copier, « J'ai fait le virement », entrée dans la plateforme */}
+      {transfer && step === QUESTION_STEPS && (
+        <>
+          <h2 className={styles.question}>Votre règlement</h2>
+          <p className={styles.hint}>
+            {transfer.packName} — copiez le RIB, faites le virement avec le libellé indiqué, puis cliquez sur le bouton vert.
+            Vous pouvez aussi entrer dans la plateforme et le faire plus tard depuis « Régler ma commande ».
+          </p>
+          <TransferPayment orderId={transfer.orderId} amount={transfer.amount} label={transfer.label} bank={transfer.bank} proof={transfer.proof} variant="accueil" />
+        </>
+      )}
+
       {error && <p className={styles.error} role="alert">{error}</p>}
 
+      {step < QUESTION_STEPS && (
       <div className={styles.actions}>
         {step > 0 && (
           <button type="button" className={styles.back} onClick={() => setStep((s) => s - 1)} disabled={saving}>
@@ -447,9 +476,10 @@ export function OnboardingWizard({
           onClick={next}
           disabled={!canContinue() || saving}
         >
-          {saving ? "ENREGISTREMENT…" : step === TOTAL_STEPS - 1 ? "TERMINER" : "CONTINUER"}
+          {saving ? "ENREGISTREMENT…" : step === QUESTION_STEPS - 1 ? "TERMINER" : "CONTINUER"}
         </button>
       </div>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export function TransferReview({
   label: string;
   amount: string;
   reference: string | null;
-  fileName: string;
+  fileName: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState<null | "accept" | "refuse">(null);
@@ -48,15 +48,21 @@ export function TransferReview({
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      <a
-        href={`/api/paiement/justificatif/${proofId}`}
-        target="_blank"
-        rel="noreferrer"
-        className="rounded-full bg-amber-50 px-2.5 py-1 text-[12px] font-medium text-amber-700 hover:bg-amber-100"
-        title={fileName}
-      >
-        Voir le justificatif
-      </a>
+      {fileName ? (
+        <a
+          href={`/api/paiement/justificatif/${proofId}`}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-full bg-amber-50 px-2.5 py-1 text-[12px] font-medium text-amber-700 hover:bg-amber-100"
+          title={fileName}
+        >
+          Voir le justificatif
+        </a>
+      ) : (
+        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[12px] font-medium text-amber-700" title="Le client a cliqué « J'ai fait le virement » : vérifier la réception sur le compte">
+          Virement déclaré — à vérifier sur le compte
+        </span>
+      )}
       <button type="button" onClick={() => setOpen("accept")} className={`${primaryBtnCls} !px-3.5 !py-1.5 !text-[12.5px]`}>
         Valider le virement
       </button>
@@ -64,7 +70,7 @@ export function TransferReview({
         Refuser
       </button>
 
-      <Modal title={open === "accept" ? "Valider le virement ?" : "Refuser le justificatif ?"} open={open !== null} onClose={() => !busy && setOpen(null)}>
+      <Modal title={open === "accept" ? "Valider le virement ?" : "Virement non retrouvé ?"} open={open !== null} onClose={() => !busy && setOpen(null)}>
         <div className="space-y-4 text-left whitespace-normal">
           <p className="text-[13.5px] text-ink/80">
             <span className="font-semibold text-ink">{label}</span> — {amount}

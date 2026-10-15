@@ -26,14 +26,14 @@ export type ProofRow = {
   id: string;
   status: string;
   reference: string | null;
-  originalName: string;
+  originalName: string | null;
   reviewNote: string | null;
   createdAt: string;
   reviewedAt: string | null;
 };
 
 const toRow = (p: {
-  id: bigint; status: string; reference: string | null; originalName: string;
+  id: bigint; status: string; reference: string | null; originalName: string | null;
   reviewNote: string | null; createdAt: Date; reviewedAt: Date | null;
 }): ProofRow => ({
   id: p.id.toString(),
@@ -60,11 +60,15 @@ export async function latestProofsByOrder(orderIds: bigint[]): Promise<Map<strin
   return map;
 }
 
-/** Le client dépose le justificatif de son virement pour une commande en attente. */
+/**
+ * Le client déclare avoir fait son virement (« J'ai fait le virement »), avec
+ * une référence facultative et, s'il le souhaite, un justificatif. L'équipe
+ * vérifie sur le compte bancaire puis valide la commande dans Commandes.
+ */
 export async function submitTransferProof(
   ctx: Ctx,
   orderId: bigint,
-  file: File,
+  file: File | null,
   reference: string | null,
 ) {
   const clientId = clientScope(ctx);
@@ -74,31 +78,29 @@ export async function submitTransferProof(
   });
   if (!order) throw new ValidationError("Cette commande n'attend plus de paiement.");
 
-  if (!file || file.size === 0 || file.size > MAX_SIZE) {
-    throw new ValidationError("Fichier vide ou supérieur à 10 Mo.");
-  }
-  const mime = file.type || "application/octet-stream";
-  if (!ALLOWED_MIME.has(mime)) throw new ValidationError("Format accepté : PDF, JPG, PNG ou WebP.");
-
-  // Un justificatif déjà en cours de vérification suffit : pas de doublon.
+  // Une déclaration déjà en cours de vérification suffit : pas de doublon.
   const pending = await prisma.paymentProof.findFirst({ where: { orderId, status: "EN_ATTENTE" } });
-  if (pending) throw new ValidationError("Votre justificatif est déjà en cours de vérification.");
+  if (pending) throw new ValidationError("Votre virement est déjà en cours de vérification par l'équipe.");
 
-  const originalName = path.basename(file.name).slice(0, 255) || "justificatif";
-  const storageKey = `transfers/${orderId}/${crypto.randomUUID()}${path.extname(originalName).slice(0, 12)}`;
-  const filePath = path.join(STORAGE_ROOT, storageKey);
-  await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, Buffer.from(await file.arrayBuffer()));
+  let fileData: { originalName: string; storageKey: string; mimeType: string; sizeBytes: bigint } | null = null;
+  if (file && file.size > 0) {
+    if (file.size > MAX_SIZE) throw new ValidationError("Fichier supérieur à 10 Mo.");
+    const mime = file.type || "application/octet-stream";
+    if (!ALLOWED_MIME.has(mime)) throw new ValidationError("Format accepté : PDF, JPG, PNG ou WebP.");
+    const originalName = path.basename(file.name).slice(0, 255) || "justificatif";
+    const storageKey = `transfers/${orderId}/${crypto.randomUUID()}${path.extname(originalName).slice(0, 12)}`;
+    const filePath = path.join(STORAGE_ROOT, storageKey);
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, Buffer.from(await file.arrayBuffer()));
+    fileData = { originalName, storageKey, mimeType: mime, sizeBytes: BigInt(file.size) };
+  }
 
   const proof = await prisma.paymentProof.create({
     data: {
       orderId,
       clientId,
       uploadedByUserId: ctx.userId,
-      originalName,
-      storageKey,
-      mimeType: mime,
-      sizeBytes: BigInt(file.size),
+      ...(fileData ?? {}),
       reference: reference?.trim().slice(0, 160) || null,
     },
   });
@@ -123,7 +125,7 @@ export async function submitTransferProof(
     mirrorNotificationEmails(admins.map((a) => a.id), title, body);
   }
   notifyTeamByEmail(
-    `Justificatif de virement reçu — ${order.client.companyName}`,
+    `Virement déclaré — ${order.client.companyName}`,
     `${order.pack.name} · ${amount}. Libellé attendu : ${transferLabel(orderId)}` +
       (proof.reference ? ` · référence indiquée : ${proof.reference}` : "") +
       `. À vérifier sur le compte puis à valider dans Commandes.`,
@@ -137,9 +139,10 @@ export async function proofFileFor(ctx: Ctx, proofId: bigint) {
     where: { id: proofId, ...(ctx.role === "CLIENT" ? { clientId: clientScope(ctx) } : {}) },
   });
   if (!proof) throw new ForbiddenError();
+  if (!proof.storageKey || !proof.mimeType) throw new ValidationError("Virement déclaré sans justificatif : rien à télécharger.");
   const filePath = path.resolve(STORAGE_ROOT, proof.storageKey);
   if (!filePath.startsWith(STORAGE_ROOT + path.sep)) throw new ForbiddenError();
-  return { filePath, mimeType: proof.mimeType, originalName: proof.originalName };
+  return { filePath, mimeType: proof.mimeType, originalName: proof.originalName ?? "justificatif" };
 }
 
 /**

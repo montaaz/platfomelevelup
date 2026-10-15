@@ -74,7 +74,7 @@ export default async function ChoisirPaiementPage({
         )}
         {tunisian && cardProvider === "demo" && (
           <p className={styles.hint} style={{ marginTop: 14, lineHeight: 1.5 }}>
-            Pour la Tunisie, le règlement se fait par <strong>virement bancaire</strong> : vous créez votre compte, le RIB s&apos;affiche à copier, puis vous déposez votre justificatif. Votre projet démarre dès que l&apos;équipe constate le virement.
+            Pour la Tunisie, le règlement se fait par <strong>virement bancaire</strong> : vous créez votre compte, le RIB s&apos;affiche à copier, puis vous cliquez sur « J&apos;ai fait le virement ». Votre projet démarre dès que l&apos;équipe constate le virement.
           </p>
         )}
 
@@ -86,7 +86,7 @@ export default async function ChoisirPaiementPage({
           {tunisian ? "Continuer — payer par virement" : "Payer par virement bancaire"}
         </Link>
         <p className={styles.hint} style={{ marginTop: 6 }}>
-          Vous créez votre compte, puis vous recevez le RIB et déposez votre justificatif.
+          Vous créez votre compte, puis le RIB s&apos;affiche à copier ; un clic sur « J&apos;ai fait le virement » prévient l&apos;équipe.
         </p>
 
         <p className={styles.hint} style={{ marginTop: 16, fontSize: 11.5 }}>

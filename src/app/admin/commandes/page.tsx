@@ -92,7 +92,7 @@ export default async function AdminCommandesPage() {
                 />
               )}
               {o.status === "EN_ATTENTE_PAIEMENT" && proofs.get(o.id)?.status === "REFUSE" && (
-                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-medium text-red-600">justificatif refusé</span>
+                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-medium text-red-600">virement non retrouvé</span>
               )}
               {o.status === "EN_ATTENTE_PAIEMENT" && proofs.get(o.id)?.status !== "EN_ATTENTE" && (
                 <ConfirmPaymentButton

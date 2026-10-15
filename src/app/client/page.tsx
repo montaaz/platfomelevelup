@@ -46,9 +46,9 @@ export default async function ClientHomePage() {
               </p>
               <p className="mt-0.5 text-[12.5px] text-ink/72">
                 {proofs.get(pending.id)?.status === "EN_ATTENTE"
-                  ? "Justificatif reçu : l'équipe vérifie le virement et valide votre commande sous peu."
+                  ? "Virement déclaré : l'équipe vérifie la réception sur le compte et valide votre commande sous peu."
                   : proofs.get(pending.id)?.status === "REFUSE"
-                    ? `Justificatif refusé : ${proofs.get(pending.id)?.reviewNote ?? "déposez-en un nouveau."}`
+                    ? `Virement non retrouvé : ${proofs.get(pending.id)?.reviewNote ?? "vérifiez le montant et le libellé, puis déclarez-le à nouveau."}`
                     : "Commande enregistrée. Votre prestation démarre dès la confirmation du règlement."}
               </p>
             </div>
