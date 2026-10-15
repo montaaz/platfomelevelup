@@ -39,7 +39,19 @@ const ADMIN_ONLY =
 
 const ADD_VERBS = /\b(ajoute[rz]?|rajoute[rz]?|mets?|mettre|commande[rz]?|achete[rz]?|acheter|prend(re|s)?|je veux|je voudrais|souhaite|panier|add|order|buy|take|want)\b/;
 const REQUEST_WORDS = /\b(nouveau projet|nouvelle demande|demande de projet|demande de devis|un devis|devis pour|besoin d un devis|new project|a quote|request a quote|quote for)\b/;
-const MESSAGE_WORDS = /\b((dis|dites|envoie|envoyer|envoies|ecris|ecrire|transmets|transmettre|previens|prevenir|signale|signaler)( un| le)?( message)?( a| à)?( l| l )?( equipe)?|message (a |pour )?l equipe|tell the team|message the team|send (a )?message|write to the team)\b/;
+/** Destinataires : l'équipe sous tous ses noms. */
+const TEAM = "(l ?equipe|l ?admin|l ?administrateur|l ?administratrice|les admins|le responsable|la responsable|le staff|l ?agence|level ?up|the team|the admin|the administrator|the staff|the agency|them|support|le support)";
+const MESSAGE_WORDS = new RegExp(
+  "\\b(" +
+    // verbe de communication + destinataire : « dis à l'équipe », « tell the admin », « préviens le responsable »
+    "(dis|dites|dire|envoie|envoyer|envoies|ecris|ecrire|transmets|transmettre|previens|prevenir|previens|informe|informer|informez|signale|signaler|signalez|demande|demander|demandez|rappelle|rappeler|explique|expliquer|fais savoir|faites savoir|tell|inform|notify|remind|ask|let|message|write to|send)" +
+    "( un| une| le| la| lui| leur| moi| svp| please| s il te plait| s il vous plait)?( message| mot| mail| e mail| note| word)?( a| à| au| aux| pour| to)?( que)? ?" + TEAM +
+    "( know| savoir)?" +
+  "|message (a |pour |to )?" + TEAM +
+  "|(tell|inform|notify) (them|him|her)" +
+  "|(contacte|contactez|contact|joindre|joins) " + TEAM +
+  ")\\b",
+);
 
 export function isConfirmation(text: string): boolean {
   return /^(oui|ok|okay|d accord|daccord|confirme|confirmer|je confirme|vas y|allez y|go|yes|yep|yeah|sure|c est bon|valide|parfait|exact|tout a fait)\b/.test(norm(text));
@@ -101,8 +113,10 @@ export function detectProposal(text: string, products: ProductLite[], projects: 
   // 2. Message à l'équipe sur un projet
   const m = t.match(MESSAGE_WORDS);
   if (m) {
-    const after = t.slice((m.index ?? 0) + m[0].length).replace(/^[\s:,]*(que|qu|de|that)\s+/, "").trim();
-    const body = (after.length >= 3 ? text.slice(text.length - after.length) : text).trim();
+    // Le message transmis est la phrase complète du client (son intention est claire ainsi), sans la formule d'adresse si elle commence la phrase.
+    const lead = (m.index ?? 0) === 0 ? m[0].length : 0;
+    const after = t.slice(lead).replace(/^[\s:,]*(que|qu|de|that|to)\s+/, "").trim();
+    const body = (lead && after.length >= 8 ? text.trim().slice(text.trim().length - after.length) : text).trim();
     const named = projects.find((p) => t.includes(norm(p.title)));
     const chosen = named ?? (projects.length === 1 ? projects[0]! : null);
     return {

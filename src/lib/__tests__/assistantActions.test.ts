@@ -38,6 +38,23 @@ describe("actions proposées par l'assistant", () => {
     }
   });
 
+  it("reconnaît un message adressé à l'admin ou à l'équipe, en anglais comme en français", () => {
+    for (const phrase of [
+      "tell the admin i am waiting the verification please",
+      "Please inform the team that I sent the transfer this morning",
+      "Préviens le responsable que j'attends la vérification",
+      "Informez l'administrateur : j'ai fait le virement",
+      "let the team know I changed my logo colors",
+    ]) {
+      const d = detectProposal(phrase, products, projects);
+      expect(d?.kind, phrase).toBe("proposal");
+      if (d?.kind === "proposal") {
+        expect(d.proposal.action, phrase).toBe("SEND_MESSAGE");
+        if (d.proposal.action === "SEND_MESSAGE") expect(d.proposal.body.length, phrase).toBeGreaterThan(8);
+      }
+    }
+  });
+
   it("propose une demande de projet pour un devis", () => {
     const d = detectProposal("Je voudrais un devis pour une boutique en ligne de 200 produits", products, projects);
     expect(d?.kind).toBe("proposal");
