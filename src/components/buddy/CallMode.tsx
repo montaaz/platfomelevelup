@@ -44,7 +44,6 @@ export function CallMode({
   const [projectChoice, setProjectChoice] = useState<string>("");
   const [longPauses, setLongPauses] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [supported] = useState(() => !!speechRecognition());
   const rec = useRef<Rec | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -53,8 +52,6 @@ export function CallMode({
   const phaseRef = useRef<Phase>("listening");
   const ctxRef = useRef(context);
   const proposalRef = useRef<Proposal | null>(null);
-  const recorder = useRef<MediaRecorder | null>(null);
-  const chunks = useRef<Blob[]>([]);
   const longRef = useRef(false);
   longRef.current = longPauses;
   ctxRef.current = context;
@@ -102,6 +99,7 @@ export function CallMode({
     busy.current = true;
     setLive("");
     setPh("thinking");
+    if (timer.current) clearTimeout(timer.current);
 
     // Confirmation / refus à l'oral d'une action proposée.
     const pending = proposalRef.current;
@@ -183,12 +181,107 @@ export function CallMode({
     }
   }
 
-  /* ---------------- écoute ---------------- */
-  function armTimer(text: string) {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      if (text.trim() && phaseRef.current === "listening") void send(text);
-    }, longRef.current ? 2600 : 1300);
+  /* ---------------- écoute : détection de voix (toujours) + reconnaissance navigateur (si elle répond) ---------------- */
+  const srText = useRef("");          // phrases finales reçues du navigateur depuis le dernier envoi
+  const srSeen = useRef(0);           // nombre de résultats déjà pris en compte
+  const srWorks = useRef(false);      // le navigateur a livré au moins un résultat (Chrome, Edge, Safari)
+  const stream = useRef<MediaStream | null>(null);
+  const audioCtx = useRef<AudioContext | null>(null);
+  const vadTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const seg = useRef<{ rec: MediaRecorder | null; chunks: Blob[]; startedAt: number; lastVoice: number; active: boolean }>({ rec: null, chunks: [], startedAt: 0, lastVoice: 0, active: false });
+  const noise = useRef(0.004);
+  const [mode, setMode] = useState<"navigateur" | "baarcha">("baarcha");
+
+  function pauseMs() { return longRef.current ? 2600 : 1300; }
+
+  /** Fin d'un segment de parole : texte du navigateur s'il en a donné, sinon l'audio part à Baarcha. */
+  function closeSegment() {
+    const sg = seg.current;
+    if (!sg.active) return;
+    sg.active = false;
+    const text = srText.current.trim();
+    srText.current = "";
+    const rec = sg.rec;
+    sg.rec = null;
+    if (text) {
+      try { rec?.stop(); } catch { /* ignore */ }
+      void send(text);
+      return;
+    }
+    if (rec && rec.state === "recording") {
+      rec.onstop = () => {
+        const blob = new Blob(sg.chunks, { type: rec.mimeType || "audio/webm" });
+        sg.chunks = [];
+        if (blob.size > 2000) void send("", blob);
+      };
+      rec.stop();
+    }
+  }
+
+  function openSegment() {
+    const sg = seg.current;
+    if (sg.active || !stream.current) return;
+    stopSpeaking(); // le client prend la parole : l'assistant se tait
+    const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : MediaRecorder.isTypeSupported("audio/ogg;codecs=opus") ? "audio/ogg;codecs=opus" : "";
+    try {
+      const rec = new MediaRecorder(stream.current, mime ? { mimeType: mime } : undefined);
+      sg.chunks = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) sg.chunks.push(e.data); };
+      rec.start(250);
+      sg.rec = rec;
+    } catch {
+      sg.rec = null;
+    }
+    sg.active = true;
+    sg.startedAt = Date.now();
+    sg.lastVoice = Date.now();
+    srText.current = "";
+    if (phaseRef.current === "speaking") setPh("listening");
+  }
+
+  async function startListening() {
+    if (!active.current) return;
+    try {
+      stream.current = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (e) {
+      const name = (e as { name?: string })?.name ?? "";
+      setNotice(name === "NotFoundError" ? "Aucun microphone détecté." : "Micro refusé : autorisez le microphone (icône 🔒 à gauche de l'adresse), puis relancez l'appel.");
+      return;
+    }
+    // Détection de voix : niveau sonore mesuré 20 fois par seconde, seuil adapté au bruit ambiant.
+    const AC = (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)!;
+    const ac = new AC();
+    audioCtx.current = ac;
+    const source = ac.createMediaStreamSource(stream.current);
+    const analyser = ac.createAnalyser();
+    analyser.fftSize = 1024;
+    source.connect(analyser);
+    const buf = new Float32Array(analyser.fftSize);
+    vadTimer.current = setInterval(() => {
+      if (!active.current || phaseRef.current === "muted") return;
+      analyser.getFloatTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) sum += buf[i]! * buf[i]!;
+      const rms = Math.sqrt(sum / buf.length);
+      const sg = seg.current;
+      if (!sg.active) noise.current = noise.current * 0.95 + rms * 0.05; // bruit de fond, mis à jour hors parole
+      const threshold = Math.max(0.012, noise.current * 3) * (phaseRef.current === "speaking" ? 2.2 : 1);
+      const now = Date.now();
+      if (rms > threshold) {
+        if (phaseRef.current === "thinking") return; // réponse en cours : on attend
+        if (!sg.active) openSegment();
+        sg.lastVoice = now;
+        if (now - sg.startedAt > 300) setLive((v) => v || "…");
+      } else if (sg.active && now - sg.lastVoice > pauseMs()) {
+        if (now - sg.startedAt < 600) { // trop court : un bruit, pas une phrase
+          sg.active = false;
+          try { sg.rec?.stop(); } catch { /* ignore */ }
+          sg.rec = null;
+          setLive("");
+        } else closeSegment();
+      } else if (sg.active && now - sg.startedAt > 60_000) closeSegment(); // au plus une minute par prise de parole
+    }, 50);
+    startRecognition();
   }
 
   function startRecognition() {
@@ -199,43 +292,60 @@ export function CallMode({
     r.lang = lang === "en" ? "en-US" : "fr-FR";
     r.continuous = true;
     r.interimResults = true;
-    let finalText = "";
+    srSeen.current = 0;
     r.onresult = (e) => {
+      let finals = "";
       let interim = "";
-      finalText = "";
       for (let i = 0; i < e.results.length; i++) {
         const res = e.results[i]!;
-        const t = res[0]?.transcript ?? "";
-        if (res.isFinal) finalText += `${t} `;
-        else interim += t;
+        const t = (res[0]?.transcript ?? "").trim();
+        if (!t) continue;
+        if (res.isFinal) { if (i >= srSeen.current) { finals += `${t} `; } }
+        else interim += `${t} `;
       }
-      const all = `${finalText}${interim}`.trim();
-      if (all && phaseRef.current === "speaking") stopSpeaking(); // le client coupe l'assistant
-      if (phaseRef.current === "thinking") return; // on attend la réponse en cours
-      setLive(all);
-      if (phaseRef.current !== "listening") setPh("listening");
-      armTimer(finalText || all);
+      if (finals) { srText.current = `${srText.current} ${finals}`.trim(); srSeen.current = e.results.length; }
+      if (!srWorks.current) { srWorks.current = true; setMode("navigateur"); }
+      const shown = `${srText.current} ${interim}`.trim();
+      if (shown) setLive(shown);
+      if (phaseRef.current === "speaking") stopSpeaking();
+      if (!seg.current.active && shown) openSegment(); // micro trop discret pour la détection : la reconnaissance suffit
+      seg.current.lastVoice = Date.now();
     };
     r.onerror = (e) => {
       if (e.error === "not-allowed") setNotice("Micro refusé : autorisez le microphone (icône 🔒 à gauche de l'adresse).");
+      // "network" / "service-not-allowed" (Brave, Firefox…) : la détection de voix + Baarcha prennent le relais.
     };
     r.onend = () => {
-      // Chrome coupe l'écoute après un silence : on la relance tant que l'appel dure.
-      if (active.current && phaseRef.current !== "muted") setTimeout(() => { try { r.start(); } catch { startRecognition(); } }, 150);
+      if (active.current && phaseRef.current !== "muted") setTimeout(() => { try { r.start(); } catch { /* fin */ } }, 200);
     };
     try { r.start(); } catch { /* déjà démarré */ }
     rec.current = r;
   }
 
+  function stopListening() {
+    try { rec.current?.abort(); } catch { /* ignore */ }
+    rec.current = null;
+    if (vadTimer.current) clearInterval(vadTimer.current);
+    vadTimer.current = null;
+    const sg = seg.current;
+    sg.active = false;
+    try { sg.rec?.stop(); } catch { /* ignore */ }
+    sg.rec = null;
+    stream.current?.getTracks().forEach((t) => t.stop());
+    stream.current = null;
+    void audioCtx.current?.close().catch(() => undefined);
+    audioCtx.current = null;
+  }
+
   useEffect(() => {
     active.current = true;
-    if (supported) startRecognition();
+    void startListening();
     const hello = lang === "en" ? "Hello, I'm listening. Tell me what you need." : "Bonjour, je vous écoute. Dites-moi ce dont vous avez besoin.";
     push({ role: "bot", text: hello });
     void speak(hello);
     return () => {
       active.current = false;
-      try { rec.current?.abort(); } catch { /* ignore */ }
+      stopListening();
       stopSpeaking();
       if (timer.current) clearTimeout(timer.current);
     };
@@ -245,33 +355,11 @@ export function CallMode({
   function toggleMute() {
     if (phase === "muted") {
       setPh("listening");
-      startRecognition();
+      void startListening();
     } else {
-      try { rec.current?.abort(); } catch { /* ignore */ }
-      rec.current = null;
+      stopListening();
       setPh("muted");
     }
-  }
-
-  /* ---------------- sans reconnaissance navigateur : parler en maintenant le bouton ---------------- */
-  async function pushToTalkStart() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      chunks.current = [];
-      const mr = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "" });
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
-      mr.onstop = () => { stream.getTracks().forEach((t) => t.stop()); void send("", new Blob(chunks.current, { type: mr.mimeType || "audio/webm" })); };
-      mr.start(400);
-      recorder.current = mr;
-      stopSpeaking();
-      setPh("listening");
-    } catch {
-      setNotice("Micro refusé : autorisez le microphone.");
-    }
-  }
-  function pushToTalkStop() {
-    if (recorder.current?.state === "recording") recorder.current.stop();
-    recorder.current = null;
   }
 
   const status =
@@ -286,10 +374,8 @@ export function CallMode({
         <div className="call-head"><span className="call-brand">LEVEL UP IA</span><span className="call-tag">Appel en direct</span></div>
         <div className={`call-orb call-orb-${phase}`} aria-hidden="true"><span /><span /><span /><span /><span /></div>
         <p className="call-status">{status}</p>
-        <p className="call-hint">{supported ? "Parlez naturellement. Une pause envoie. Vous pouvez interrompre à tout moment." : "Maintenez le bouton « Parler » enfoncé, puis relâchez pour envoyer (transcription Baarcha)."}</p>
-        {supported && (
-          <label className="call-check"><input type="checkbox" checked={longPauses} onChange={(e) => setLongPauses(e.target.checked)} /> Autoriser des pauses plus longues</label>
-        )}
+        <p className="call-hint">Parlez naturellement. Une pause envoie. Vous pouvez interrompre à tout moment.<br /><span className="call-mode">{mode === "navigateur" ? "Reconnaissance : navigateur, correction IA Baarcha" : "Transcription : IA Baarcha"}</span></p>
+        <label className="call-check"><input type="checkbox" checked={longPauses} onChange={(e) => setLongPauses(e.target.checked)} /> Autoriser des pauses plus longues</label>
 
         <div className="call-log">
           {lines.map((l, i) => (
@@ -318,15 +404,9 @@ export function CallMode({
         {notice && <p className="call-notice" role="alert">{notice}</p>}
 
         <div className="call-controls">
-          {supported ? (
-            <button type="button" className={`call-round${phase === "muted" ? " call-round-on" : ""}`} onClick={toggleMute}>
-              <span aria-hidden="true">🎙</span>{phase === "muted" ? "Réactiver" : "Couper le micro"}
-            </button>
-          ) : (
-            <button type="button" className="call-round" onPointerDown={() => void pushToTalkStart()} onPointerUp={pushToTalkStop} onPointerLeave={pushToTalkStop}>
-              <span aria-hidden="true">🎙</span>Parler
-            </button>
-          )}
+          <button type="button" className={`call-round${phase === "muted" ? " call-round-on" : ""}`} onClick={toggleMute}>
+            <span aria-hidden="true">🎙</span>{phase === "muted" ? "Réactiver" : "Couper le micro"}
+          </button>
           <button type="button" className="call-round call-round-end" onClick={onClose}><span aria-hidden="true">📞</span>Raccrocher</button>
         </div>
         <p className="call-foot">La conversation reste dans votre fil d&apos;assistant. Quitter la page termine l&apos;appel.</p>

@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     if (!/^audio\/|^video\/webm/.test(audio.type)) return NextResponse.json({ error: "Format audio non reconnu." }, { status: 400 });
     if (!baarchaMediaAvailable()) return NextResponse.json({ error: "Transcription indisponible : utilisez Chrome pour l'appel en direct." }, { status: 503 });
     heard = (await transcribeAudio(Buffer.from(await audio.arrayBuffer()), audio.type || "audio/webm")) ?? "";
+    if (!heard) return NextResponse.json({ error: "Transcription Baarcha indisponible pour le moment (service ou crédit API). Réessayez dans un instant ou écrivez votre question." }, { status: 503 });
   }
   heard = tidyTranscript(heard);
   if (!heard) return NextResponse.json({ error: "Je n'ai rien entendu : parlez un peu plus fort, près du micro." }, { status: 422 });

@@ -520,3 +520,4 @@ body::before {
 .call-round-on { background: #374151; }
 .call-round-end { background: #dc2626; border-color: #dc2626; }
 .call-foot { margin-top: 14px; font-size: 11.5px; color: #8b93ab; }
+.call-mode { display: inline-block; margin-top: 4px; font-size: 11.5px; color: #8b93ab; }
