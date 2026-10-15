@@ -1,3 +1,4 @@
+import { detectSmallTalk } from "@/buddy/core/smalltalk";
 import { describe, expect, it } from "vitest";
 import { answerBuddy, parseContext, type BuddyContext, type BuddyResult } from "../answer";
 import { jsonDataSource, type Fixtures } from "../data/json";
@@ -281,5 +282,16 @@ describe("unités", () => {
   it("extraction d'entité : un projet cité n'est pas un client", () => {
     expect(extractEntity("le projet « Vidéo IA »")).toBeNull();
     expect(extractEntity("les commandes de Boutique Nour")).toEqual({ kind: "named", name: "Boutique Nour" });
+  });
+});
+
+describe("bavardage à l'oral", () => {
+  it("comprend « comment ça va », « qui es-tu », « que peux-tu faire »", () => {
+    expect(detectSmallTalk("salut comment ça va")).toBe("howAreYou");
+    expect(detectSmallTalk("Ça va ?")).toBe("howAreYou");
+    expect(detectSmallTalk("tu es qui ?")).toBe("whoAreYou");
+    expect(detectSmallTalk("qu'est-ce que tu peux faire")).toBe("help");
+    expect(detectSmallTalk("bonjour")).toBe("greeting");
+    expect(detectSmallTalk("où en est ma facture")).toBeNull();
   });
 });

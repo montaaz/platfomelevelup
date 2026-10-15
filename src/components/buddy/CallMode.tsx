@@ -140,6 +140,13 @@ export function CallMode({
       if (data.heard && !heard) push({ role: "user", text: data.heard });
       else if (heard) push({ role: "user", text: heard });
       if (data.context !== undefined) onContext(data.context);
+      // À l'oral, pas de « sujet ci-dessous » : on dicte des exemples.
+      if ((data as { kind?: string }).kind === "refusal" && /ci-dessous|below/.test(data.text)) {
+        const ex = (Array.isArray((data as { suggestions?: string[] }).suggestions) ? (data as { suggestions?: string[] }).suggestions! : []).slice(0, 3);
+        data.text = lang === "en"
+          ? `I didn't catch that. You can ask me for example: ${ex.join(", ") || "where my project stands, my invoices, my orders"}.`
+          : `Je n'ai pas compris. Vous pouvez me demander par exemple : ${ex.join(", ") || "où en est mon projet, mes factures, mes commandes"}.`;
+      }
       push({ role: "bot", text: data.text });
       onTurn({ role: "bot", text: data.text, proposal: data.proposal });
       if (data.proposal) {

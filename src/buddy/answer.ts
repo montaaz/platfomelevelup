@@ -170,6 +170,9 @@ export async function answerBuddy(
   if (!message) return { kind: "refusal", lang, text: t.notUnderstood("…", []), suggestions, context: carry };
 
   if (u.smallTalk === "greeting") return { kind: "answer", lang, text: t.greeting(ctx.fullName.split(" ")[0] ?? ""), suggestions, context: carry };
+  if (u.smallTalk === "howAreYou") return { kind: "answer", lang, text: t.howAreYou(ctx.fullName.split(" ")[0] ?? ""), suggestions, context: carry };
+  if (u.smallTalk === "whoAreYou") return { kind: "answer", lang, text: t.whoAreYou, suggestions, context: carry };
+  if (u.smallTalk === "help") return { kind: "answer", lang, text: t.helpList, suggestions, context: carry };
   if (u.smallTalk === "thanks") return { kind: "answer", lang, text: t.thanks, context: carry };
   if (u.smallTalk === "bye") return { kind: "answer", lang, text: t.bye, context: carry ? { ...carry, projectId: undefined } : undefined };
 
