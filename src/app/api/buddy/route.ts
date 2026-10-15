@@ -1,12 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSession } from "@/lib/session";
-import { toCtx, isAccountActive, type Ctx } from "@/server/context";
-import { answerBuddy, parseContext } from "@/buddy/answer";
-import { prismaDataSource } from "@/buddy/data/prisma";
+import { buddyTurn } from "@/server/services/buddyChat";
+import { authenticate, MAX_CHARS, rateLimited } from "@/server/buddyAuth";
 import { L } from "@/buddy/locales";
 import { detectLanguage } from "@/buddy/core/language";
-import { clearMyHistory, myHistory, recordExchange } from "@/buddy/history";
-import { configuredModel } from "@/buddy/ai/model";
+import { clearMyHistory, myHistory } from "@/buddy/history";
 
 /**
  * Point d'entrée du Dashboard Buddy.
@@ -18,49 +15,6 @@ import { configuredModel } from "@/buddy/ai/model";
  * Rien ne sort du serveur. Chaque
  * échange est conservé : GET rend le fil du compte, DELETE l'efface.
  */
-
-const MAX_CHARS = 1500;
-const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 30;
-
-/** Anti-abus : au plus 30 messages par minute et par compte (mémoire du process). */
-const hits = new Map<string, number[]>();
-function rateLimited(key: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (recent.length >= MAX_PER_WINDOW) {
-    hits.set(key, recent);
-    return true;
-  }
-  recent.push(now);
-  hits.set(key, recent);
-  if (hits.size > 5000) hits.clear();
-  return false;
-}
-
-/** Requête venue d'un autre site : refusée, le cookie de session ne doit pas servir ailleurs. */
-function crossOrigin(req: NextRequest): boolean {
-  const origin = req.headers.get("origin");
-  if (!origin) return false;
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  try {
-    return new URL(origin).host !== host;
-  } catch {
-    return true;
-  }
-}
-
-/** Session valide et compte actif, ou la réponse d'erreur à renvoyer. */
-async function authenticate(req: NextRequest): Promise<{ ctx: Ctx } | { error: NextResponse }> {
-  const session = await getSession();
-  if (!session) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) };
-  const ctx = toCtx(session);
-  if (!(await isAccountActive(ctx.userId))) {
-    return { error: NextResponse.json({ error: "Compte désactivé." }, { status: 403 }) };
-  }
-  if (crossOrigin(req)) return { error: NextResponse.json({ error: "Origine refusée." }, { status: 403 }) };
-  return { ctx };
-}
 
 export async function POST(req: NextRequest) {
   const auth = await authenticate(req);
@@ -80,9 +34,7 @@ export async function POST(req: NextRequest) {
   if (!message) return NextResponse.json({ error: "Message vide." }, { status: 400 });
 
   try {
-    const result = await answerBuddy(ctx, message, prismaDataSource, parseContext(body.context), new Date(), undefined, configuredModel());
-    await recordExchange(ctx, message, result);
-    return NextResponse.json(result);
+    return NextResponse.json(await buddyTurn(ctx, message, body.context));
   } catch (e) {
     // Le détail va au journal, jamais au navigateur.
     console.error("[buddy]", e);

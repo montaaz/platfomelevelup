@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { L } from "@/buddy/locales";
 import type { Lang } from "@/buddy/core/language";
+import { CallMode } from "./CallMode";
+import type { Proposal } from "@/lib/assistantActions";
 
 type Turn = {
   role: "user" | "bot";
@@ -14,6 +16,10 @@ type Turn = {
   ai?: boolean;
   /** Question à renvoyer si l'utilisateur clique sur « Réessayer ». */
   retryFor?: string;
+  /** Action proposée (panier, demande, message) : exécutée seulement après « Confirmer ». */
+  proposal?: Proposal;
+  /** Proposition déjà traitée (confirmée ou annulée). */
+  proposalDone?: boolean;
 };
 
 /**
@@ -32,6 +38,8 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
   const [lang, setLang] = useState<Lang>("fr");
   const [context, setContext] = useState<unknown>(undefined);
   const [loaded, setLoaded] = useState(false);
+  const [calling, setCalling] = useState(false);
+  const [projectChoice, setProjectChoice] = useState("");
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const t = L(lang);
@@ -79,12 +87,34 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
       if (res.ok && typeof data.text === "string") {
         if (data.context !== undefined) setContext(data.context);
         if (data.lang === "en" || data.lang === "fr") setLang(data.lang);
-        setTurns((prev) => [...prev, { role: "bot", text: data.text, kind: data.kind, suggestions: data.suggestions, actions: data.actions, ai: data.ai === true }]);
+        setTurns((prev) => [...prev, { role: "bot", text: data.text, kind: data.kind, suggestions: data.suggestions, actions: data.actions, ai: data.ai === true, proposal: data.proposal ?? undefined }]);
+        if (data.proposal?.action === "SEND_MESSAGE" && data.proposal.choices?.length) setProjectChoice(data.proposal.choices[0].id);
       } else {
         setTurns((prev) => [...prev, { role: "bot", text: data.error ?? t.widget.error, kind: "error", retryFor: text }]);
       }
     } catch {
       setTurns((prev) => [...prev, { role: "bot", text: t.widget.error, kind: "error", retryFor: text }]);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  /** Exécution d'une action proposée, après le clic « Confirmer » du client. */
+  async function confirmProposal(index: number, p: Proposal) {
+    setPending(true);
+    const payload: Record<string, unknown> = { confirm: true, action: p.action };
+    if (p.action === "ADD_TO_CART") payload.packCode = p.packCode;
+    if (p.action === "CREATE_REQUEST") { payload.title = p.title; payload.description = p.description; }
+    if (p.action === "SEND_MESSAGE") { payload.projectId = p.projectId ?? projectChoice; payload.body = p.body; }
+    try {
+      const res = await fetch("/api/buddy/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const data = await res.json();
+      setTurns((prev) => prev.map((x, i) => (i === index ? { ...x, proposalDone: true } : x)));
+      setTurns((prev) => [...prev, res.ok && data.text
+        ? { role: "bot", text: data.text, kind: "answer", actions: data.href ? [{ label: "Voir", href: data.href }] : undefined }
+        : { role: "bot", text: data.error ?? "Action impossible pour le moment.", kind: "error" }]);
+    } catch {
+      setTurns((prev) => [...prev, { role: "bot", text: t.widget.error, kind: "error" }]);
     } finally {
       setPending(false);
     }
@@ -127,6 +157,15 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
 
   return (
     <>
+      {calling && (
+        <CallMode
+          context={context}
+          lang={lang}
+          onContext={setContext}
+          onTurn={(line) => setTurns((prev) => [...prev, { role: line.role, text: line.text, kind: "answer", actions: line.href ? [{ label: "Voir", href: line.href }] : undefined }])}
+          onClose={() => setCalling(false)}
+        />
+      )}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -152,6 +191,16 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
               <p className="text-[14px] font-semibold text-ink">{t.widget.title}</p>
               <p className="text-[11.5px] text-ink/60">{t.widget.subtitle}</p>
             </div>
+            {role === "CLIENT" && (
+              <button
+                type="button"
+                onClick={() => setCalling(true)}
+                className="shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition hover:-translate-y-0.5"
+                title="Parler avec l'assistant"
+              >
+                📞 Appeler
+              </button>
+            )}
             {turns.length > 0 && (
               <button
                 type="button"
@@ -193,6 +242,21 @@ export function BuddyWidget({ role }: { role: "ADMIN" | "CLIENT" }) {
                           {a.label} →
                         </a>
                       ))}
+                    </div>
+                  )}
+                  {turn.proposal && !turn.proposalDone && turn === lastBot && (
+                    <div className="mt-2.5 rounded-xl border border-emerald-200 bg-emerald-50/80 p-2.5">
+                      <p className="text-[12.5px] font-semibold text-ink">{turn.proposal.label}</p>
+                      {turn.proposal.action === "SEND_MESSAGE" && turn.proposal.choices && turn.proposal.choices.length > 0 && (
+                        <select value={projectChoice} onChange={(e) => setProjectChoice(e.target.value)} className="mt-1.5 w-full rounded-lg border border-white/80 bg-white px-2 py-1 text-[12px]" aria-label="Projet concerné">
+                          {turn.proposal.choices.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+                        </select>
+                      )}
+                      <div className="mt-2 flex gap-1.5">
+                        <button type="button" disabled={pending} onClick={() => void confirmProposal(i, turn.proposal!)} className="rounded-full bg-emerald-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">Confirmer</button>
+                        <button type="button" disabled={pending} onClick={() => setTurns((prev) => prev.map((x, j) => (j === i ? { ...x, proposalDone: true } : x)))} className="rounded-full border border-ink/15 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink/70 hover:bg-ink/5">Annuler</button>
+                      </div>
+                      <p className="mt-1.5 text-[10.5px] text-ink/50">Rien n&apos;est fait sans votre confirmation ; les validations restent faites par l&apos;équipe.</p>
                     </div>
                   )}
                   {turn.kind === "error" && turn.retryFor && turn === lastBot && (
