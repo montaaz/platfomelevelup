@@ -101,12 +101,9 @@ export function TransferPayment({
       </p>
 
       <div style={{ marginTop: 8 }}>
-        <CopyRow label="Bénéficiaire" value={bank.holder} />
-        <CopyRow label="Banque" value={bank.bank} />
+        {/* Seuls le RIB et l'IBAN sont affichés (demande du 15/10/2026) ; le libellé reste dans la phrase ci-dessus. */}
         <CopyRow label="RIB" value={bank.rib} />
         <CopyRow label="IBAN" value={bank.iban} />
-        <CopyRow label="Code BIC" value={bank.bic} />
-        <CopyRow label="Libellé du virement" value={label} />
       </div>
 
       {waiting ? (
