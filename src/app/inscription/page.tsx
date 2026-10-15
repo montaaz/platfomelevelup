@@ -92,7 +92,7 @@ function InscriptionForm() {
         )}
         {params.get("mode") === "virement" && (
           <p className={styles.hint} role="status" style={{ marginTop: 12, fontWeight: 600, color: "#0a5ff0" }}>
-            Paiement par virement : créez votre compte, le RIB et le dépôt du justificatif suivent juste après.
+            Paiement par virement : créez votre compte, le RIB à copier s&apos;affiche juste après, puis un clic sur « J&apos;ai fait le virement » prévient l&apos;équipe.
           </p>
         )}
         {params.get("paye") === "1" && (
