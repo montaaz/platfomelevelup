@@ -1,6 +1,6 @@
 {
  "source": "levelupia.agency",
- "generatedAt": "2026-10-15",
+ "generatedAt": "2026-10-18",
  "chunks": [
   {
    "id": "site:fr:about",
@@ -29,41 +29,23 @@
   {
    "id": "site:fr:service-0",
    "lang": "fr",
-   "title": "Sites web IA",
-   "text": "Des sites vitrines professionnels, rapides et optimisés. Livrés en quelques jours."
-  },
-  {
-   "id": "site:fr:service-1",
-   "lang": "fr",
-   "title": "Site marchand IA",
-   "text": "Boutique en ligne complète avec paiement, commandes et suivi client. Automatisation des emails, WhatsApp, paniers abandonnés et relances. Gestion des produits, stocks, livraisons, promotions et analyse des ventes."
-  },
-  {
-   "id": "site:fr:service-2",
-   "lang": "fr",
-   "title": "Shootings & vidéos IA",
-   "text": "Photos et vidéos produits générées par l’IA pour vos réseaux sociaux, vos publicités et votre e-commerce, avec un rendu haut de gamme et rapide à produire."
-  },
-  {
-   "id": "site:fr:service-3",
-   "lang": "fr",
    "title": "Avatar et porte-parole virtuel et doublage multi-langues",
    "text": "Voix off, doublage multilingue et porte-parole virtuel réunis dans une offre. 99 TND."
   },
   {
-   "id": "site:fr:service-4",
+   "id": "site:fr:service-1",
    "lang": "fr",
    "title": "Automatisation",
    "text": "Une offre complète pour les prospects, puis une automatisation adaptée à vos besoins. Le parcours sur mesure est chiffré après étude des outils et du périmètre. Niveau 1 Suivi, qualification et attribution : Classer les demandes par besoin et urgence, les attribuer au bon responsable et créer une tâche de suivi. Après un devis, programmer une relance et l'arrêter une fois le dossier marqué répondu ou accepté. — 250 TND. Automatisation sur mesure : Pour les parcours complexes ou propres à votre activité. Étapes, outils et règles sont définis selon vos besoins, puis chiffrés après étude du périmètre. — Sur devis."
   },
   {
-   "id": "site:fr:service-5",
+   "id": "site:fr:service-2",
    "lang": "fr",
    "title": "SEO, référencement, email marketing automatisé",
    "text": "Référencement naturel et pages optimisées pour avoir plus d'impact et être plus compétitifs sur le marché, plus des campagnes email automatisées : segmentation, personnalisation et relances pilotées par l'IA. SEO Starter (Petites entreprises) : Audit initial, Suivi de 10 mots-clés, Recommandations SEO, Rapport mensuel — 99 TND. SEO Business (PME) : Suivi de 30 mots-clés, Optimisation de 5 pages / mois, Analyse concurrentielle, Rapport détaillé — 290 TND."
   },
   {
-   "id": "site:fr:service-6",
+   "id": "site:fr:service-3",
    "lang": "fr",
    "title": "Identité visuelle express",
    "text": "Logo et charte graphique générés rapidement pour améliorer votre image et être à la pointe de la technologie. 149 TND."
@@ -155,41 +137,23 @@
   {
    "id": "site:en:service-0",
    "lang": "en",
-   "title": "AI websites",
-   "text": "Professional, fast, optimized showcase sites. Delivered in a few days."
-  },
-  {
-   "id": "site:en:service-1",
-   "lang": "en",
-   "title": "AI-Powered E-Commerce Website",
-   "text": "Complete online store with payments, orders, products, inventory, and delivery. Automated emails, WhatsApp, cart recovery, customer follow-ups, and sales tracking."
-  },
-  {
-   "id": "site:en:service-2",
-   "lang": "en",
-   "title": "AI-Powered Product Photography & Video",
-   "text": "High-quality product photos and videos created with AI for your social media, advertising, and e-commerce — with a premium look and faster production."
-  },
-  {
-   "id": "site:en:service-3",
-   "lang": "en",
    "title": "Avatar, virtual spokesperson and multilingual dubbing",
    "text": "Voiceover, multilingual dubbing and a virtual spokesperson, bundled in one offer. 99 TND."
   },
   {
-   "id": "site:en:service-4",
+   "id": "site:en:service-1",
    "lang": "en",
    "title": "Automation",
    "text": "A complete offer for your leads, then an automation tailored to your needs. Custom journeys are quoted after reviewing your tools and scope. Level 1 Tracking, qualification and assignment : Sort requests by need and urgency, assign them to the right person and create a follow-up task. After a quote, schedule a reminder and stop it once the file is marked answered or accepted. — 250 TND. Custom automation : For complex journeys or ones specific to your business. Steps, tools and rules are defined around your needs, then quoted after a scope review. — On quote."
   },
   {
-   "id": "site:en:service-5",
+   "id": "site:en:service-2",
    "lang": "en",
    "title": "SEO, search engine optimization, automated email marketing",
    "text": "Search engine optimization and pages built to make more impact and be more competitive in your market, plus automated email campaigns: segmentation, personalization, and follow-ups driven by AI. SEO Starter (Small businesses) : Initial audit, 10 keywords tracked, SEO recommendations, Monthly report — 99 TND. SEO Business (SMEs) : 30 keywords tracked, 5 pages optimised per month, Competitor analysis, Detailed report — 290 TND."
   },
   {
-   "id": "site:en:service-6",
+   "id": "site:en:service-3",
    "lang": "en",
    "title": "Express visual identity",
    "text": "Logo and brand guidelines generated quickly to improve your image and keep up with the latest technology. 149 TND."

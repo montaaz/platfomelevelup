@@ -100,8 +100,8 @@ const T = {
   fr: {
     welcome: (n: string | null) => `${salutation("fr")}${n ? ` ${n}` : ""} ! Dites-nous comment nous pouvons vous aider.`,
     fallback: (n: string | null) =>
-      `${salutation("fr")}${n ? ` ${n}` : ""} ! Merci pour votre message. Je suis l'assistant de Level Up IA : je réponds aux questions sur nos sites web, vidéos IA, automatisations, packs et tarifs. Pour tout le reste, l'équipe vous répond directement à contact@levelupia.agency. Nos offres : ${SITE}/fr`,
-    handoff: `Je transmets votre demande à l'équipe Level Up IA, qui vous répond personnellement dans la journée (jours ouvrés). Vous pouvez aussi nous écrire à contact@levelupia.agency.`,
+      `${salutation("fr")}${n ? ` ${n}` : ""} ! Merci pour votre message. Je suis l'assistant de Level Up AI : je réponds aux questions sur nos sites web, vidéos IA, automatisations, packs et tarifs. Pour tout le reste, l'équipe vous répond directement à contact@levelupia.agency. Nos offres : ${SITE}/fr`,
+    handoff: `Je transmets votre demande à l'équipe Level Up AI, qui vous répond personnellement dans la journée (jours ouvrés). Vous pouvez aussi nous écrire à contact@levelupia.agency.`,
     complaint: `Je suis désolé pour ce désagrément. Votre réclamation est transmise à l'équipe, qui en accuse réception sous 2 jours ouvrés et vous répond sous 7 jours ouvrés : ${SITE}/fr/reclamations`,
     meeting: `Avec plaisir : l'équipe vous propose un créneau par retour de message. Pour aller plus vite, indiquez vos disponibilités et le sujet (site, vidéo, automatisation).`,
     order: (url: string) => `👉 Commander en ligne (carte ou virement) : ${url}`,
@@ -110,8 +110,8 @@ const T = {
   en: {
     welcome: (n: string | null) => `${salutation("en")}${n ? ` ${n}` : ""}! Tell us how we can help you.`,
     fallback: (n: string | null) =>
-      `${salutation("en")}${n ? ` ${n}` : ""}! Thanks for your message. I'm the Level Up IA assistant: I answer questions about our websites, AI videos, automations, packs and prices. For anything else, the team replies directly at contact@levelupia.agency. Our offers: ${SITE}/en`,
-    handoff: `I'm passing your request to the Level Up IA team, who will answer you personally within the day (working days). You can also write to contact@levelupia.agency.`,
+      `${salutation("en")}${n ? ` ${n}` : ""}! Thanks for your message. I'm the Level Up AI assistant: I answer questions about our websites, AI videos, automations, packs and prices. For anything else, the team replies directly at contact@levelupia.agency. Our offers: ${SITE}/en`,
+    handoff: `I'm passing your request to the Level Up AI team, who will answer you personally within the day (working days). You can also write to contact@levelupia.agency.`,
     complaint: `I'm sorry about this. Your complaint is forwarded to the team: acknowledgement within 2 working days, answer within 7 working days: ${SITE}/en/reclamations`,
     meeting: `Gladly: the team will propose a slot by return message. To speed things up, share your availability and the topic (website, video, automation).`,
     order: (url: string) => `👉 Order online (card or bank transfer): ${url}`,
@@ -157,7 +157,7 @@ function ruleIntent(message: string): Intent | null {
 /** Qualification par le modèle (JSON), vérifiée contre la liste fermée. */
 async function modelIntent(model: LocalModel, message: string, lang: Lang): Promise<{ intent: Intent | null; summary: string | null }> {
   const system = [
-    "You qualify messages sent to Level Up IA, a Tunisian AI-powered digital marketing agency (websites, AI videos, automations, social media packs).",
+    "You qualify messages sent to Level Up AI, a Tunisian AI-powered digital marketing agency (websites, AI videos, automations, social media packs).",
     "Messages may be in French, English or Tunisian Arabic (Latin or Arabic letters).",
     `Pick ONE intent among: ${INTENTS.join(", ")}.`,
     "PRIX = asks a price/quote. COMMANDE = wants to buy/sign up now. INFO_SERVICE = asks what we do/how it works. RENDEZ_VOUS = wants a call or meeting.",
@@ -244,8 +244,8 @@ async function answerSocialOnce(input: BrainInput): Promise<BrainOutput> {
     // Vocal reçu mais impossible à écouter : on le dit franchement et on passe la main.
     const lang: Lang = langGuess;
     const reply = lang === "fr"
-      ? "J'ai bien reçu votre note vocale mais je n'ai pas pu l'écouter. Pouvez-vous m'écrire votre demande en quelques mots ? L'équipe Level Up IA est aussi joignable à contact@levelupia.agency."
-      : "I received your voice note but couldn't listen to it. Could you write your request in a few words? The Level Up IA team is also reachable at contact@levelupia.agency.";
+      ? "J'ai bien reçu votre note vocale mais je n'ai pas pu l'écouter. Pouvez-vous m'écrire votre demande en quelques mots ? L'équipe Level Up AI est aussi joignable à contact@levelupia.agency."
+      : "I received your voice note but couldn't listen to it. Could you write your request in a few words? The Level Up AI team is also reachable at contact@levelupia.agency.";
     const lead = await prisma.inboundLead.create({ data: { channel: input.channel, externalId: input.externalId?.slice(0, 160) || null, displayName: input.displayName?.slice(0, 160) || null, contact: input.contact?.slice(0, 254) || null, message: "[vocal non transcrit]", reply, answeredByAi: false, lang, threadRef: input.threadRef?.slice(0, 160) || null, intent: "AUTRE", score: 20, summary: "Note vocale non transcrite", mediaKind: "audio" }, select: { id: true } });
     return { reply, lang, ai: false, suggestions: SUGGESTIONS[lang], leadId: lead.id.toString(), duplicate: false, intent: "AUTRE", score: 20, temperature: "froid", handoff: false, handoffReason: null, packCode: null, checkoutUrl: null, summary: "Note vocale non transcrite", priorMessages: 0, transcript: null, imageDescription: null, voice: null };
   }
@@ -322,7 +322,7 @@ async function answerSocialOnce(input: BrainInput): Promise<BrainOutput> {
     const about = pool.filter((c) => c.id === `site:${lang}:about` && !found.includes(c));
     const context = memory.history
       .slice(-6)
-      .map((h) => `${h.role === "user" ? (lang === "fr" ? "Contact" : "Contact") : "Level Up IA"} : ${h.content.slice(0, 300)}`)
+      .map((h) => `${h.role === "user" ? (lang === "fr" ? "Contact" : "Contact") : "Level Up AI"} : ${h.content.slice(0, 300)}`)
       .join("\n");
     // La photo comprise devient une connaissance : le garde-fou l'accepte comme source
     // (sinon toute réponse qui la mentionne serait rejetée comme « inventée »).
@@ -427,8 +427,8 @@ export async function dueFollowups() {
     const name = latest.displayName?.split(/\s+/)[0] || null;
     const url = pack ? `${APP}/paiement/choisir?pack=${pack}` : `${SITE}/${lang}#packs`;
     const message = lang === "fr"
-      ? `Bonjour${name ? ` ${name}` : ""}, c'est l'équipe Level Up IA. Vous nous aviez contactés${pack ? ` au sujet du ${pack.replace(/_/g, " ").toLowerCase()}` : ""} : avez-vous encore des questions ? Nous sommes là pour vous aider à démarrer. ${pack ? "Commander en ligne : " : "Nos offres : "}${url}`
-      : `Hello${name ? ` ${name}` : ""}, this is the Level Up IA team. You contacted us${pack ? ` about ${pack.replace(/_/g, " ").toLowerCase()}` : ""}: any remaining questions? We're here to help you get started. ${pack ? "Order online: " : "Our offers: "}${url}`;
+      ? `Bonjour${name ? ` ${name}` : ""}, c'est l'équipe Level Up AI. Vous nous aviez contactés${pack ? ` au sujet du ${pack.replace(/_/g, " ").toLowerCase()}` : ""} : avez-vous encore des questions ? Nous sommes là pour vous aider à démarrer. ${pack ? "Commander en ligne : " : "Nos offres : "}${url}`
+      : `Hello${name ? ` ${name}` : ""}, this is the Level Up AI team. You contacted us${pack ? ` about ${pack.replace(/_/g, " ").toLowerCase()}` : ""}: any remaining questions? We're here to help you get started. ${pack ? "Order online: " : "Our offers: "}${url}`;
     due.push({ leadId: latest.id.toString(), channel: latest.channel, externalId: latest.externalId, contact: latest.contact, displayName: latest.displayName, lang, packCode: pack, checkoutUrl: pack ? url : null, message });
   }
   return due;

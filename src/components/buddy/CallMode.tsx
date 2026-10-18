@@ -378,7 +378,7 @@ export function CallMode({
   return (
     <div className="call-overlay" role="dialog" aria-label="Appel avec l'assistant">
       <div className="call-card">
-        <div className="call-head"><span className="call-brand">LEVEL UP IA</span><span className="call-tag">Appel en direct</span></div>
+        <div className="call-head"><span className="call-brand">LEVEL UP AI</span><span className="call-tag">Appel en direct</span></div>
         <div className={`call-orb call-orb-${phase}`} aria-hidden="true"><span /><span /><span /><span /><span /></div>
         <p className="call-status">{status}</p>
         <p className="call-hint">Parlez naturellement. Une pause envoie. Vous pouvez interrompre à tout moment.<br /><span className="call-mode">{mode === "navigateur" ? "Reconnaissance : navigateur, correction IA Baarcha" : "Transcription : IA Baarcha"}</span></p>

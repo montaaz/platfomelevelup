@@ -4,7 +4,7 @@ import styles from "@/styles/neu.module.css";
 import { ctxOrNull, ValidationError } from "@/server/context";
 import { moneticoAvailable, moneticoFormForOrder, moneticoFormForPack } from "@/server/services/monetico";
 import { requestIsTunisian } from "@/lib/region";
-import { formatDT } from "@/lib/format";
+import { formatMoney, formatDT } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Paiement par carte" };
@@ -14,8 +14,8 @@ export const metadata = { title: "Paiement par carte" };
  * clients hors Tunisie : le formulaire scellé est posté automatiquement.
  * `?commande=ID` depuis l'espace client, `?pack=CODE` depuis le panier.
  */
-export default async function CartePage({ searchParams }: { searchParams: Promise<{ commande?: string; pack?: string }> }) {
-  const { commande, pack } = await searchParams;
+export default async function CartePage({ searchParams }: { searchParams: Promise<{ commande?: string; pack?: string; engagement?: string }> }) {
+  const { commande, pack, engagement } = await searchParams;
   if (!moneticoAvailable()) redirect(pack ? `/paiement/choisir?pack=${encodeURIComponent(pack)}` : "/paiement");
 
   let form;
@@ -24,7 +24,7 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
       if (!/^[A-Z0-9_]{2,40}$/.test(pack)) redirect("/login");
       const h = await headers();
       if (requestIsTunisian(h)) redirect(`/paiement/choisir?pack=${encodeURIComponent(pack)}`);
-      form = await moneticoFormForPack(pack, h.get("cf-ipcountry") ?? h.get("x-vercel-ip-country"));
+      form = await moneticoFormForPack(pack, h.get("cf-ipcountry") ?? h.get("x-vercel-ip-country"), Number(engagement) || 1);
     } else {
       const ctx = await ctxOrNull("CLIENT");
       if (!ctx) redirect("/login?next=%2Fpaiement");
@@ -42,7 +42,7 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
         <div className={styles.badge} aria-hidden="true">💳</div>
         <h1 className={styles.title}>Vers le paiement sécurisé</h1>
         <p className={styles.subtitle}>
-          {form.label} — {form.amountEur.toFixed(2)} €{form.amountEur !== form.amountTnd ? <span style={{ color: "#8a93a6" }}> ({formatDT(form.amountTnd)})</span> : null}
+          {form.label} — {formatMoney(form.amountEur, form.currency ?? "EUR", { decimals: 2 })}
         </p>
         <p className={styles.hint} style={{ marginTop: 12 }}>
           Vous allez être redirigé vers la page de paiement de notre banque (Monetico — Crédit Mutuel). Si rien ne se passe, cliquez sur le bouton.

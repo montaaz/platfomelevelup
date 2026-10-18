@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import type { Ctx } from "@/server/context";
 
 /** Where a notification points to, per role — "the alert links to the element". */
-function notificationHref(role: "ADMIN" | "CLIENT", type: string, entityType: string | null, entityId: bigint | null): string {
+function notificationHref(role: "ADMIN" | "CLIENT" | "EQUIPE", type: string, entityType: string | null, entityId: bigint | null): string {
   const id = entityId?.toString();
+  if (role === "EQUIPE") return entityType === "project" && id ? `/equipe/projets/${id}` : "/equipe";
   if (entityType === "complaint") return role === "ADMIN" ? "/admin/reclamations" : "/client/reclamations";
   if (role === "ADMIN") {
     if (type === "NOUVEAU_MESSAGE" && id) return `/admin/messagerie/${id}`;

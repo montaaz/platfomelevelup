@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { mirrorNotificationEmails } from "@/lib/mail";
 import { assertAdmin, forgetAccountState, ForbiddenError, ValidationError, type Ctx } from "@/server/context";
 
-const DEFAULT_STEPS = ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"];
+const DEFAULT_STEPS = ["Brief reçu", "Production", "Votre validation", "Livraison finale"];
 
 function parseDate(value: string | null | undefined): Date | null {
   if (!value) return null;
@@ -406,6 +406,7 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
       serviceName: p.service.name,
       status: p.status,
       price: Number(p.price),
+      currency: p.currency,
       dueDate: p.dueDate?.toISOString() ?? null,
     })),
     invoices: c.invoices
@@ -415,11 +416,13 @@ export async function adminClientDetail(ctx: Ctx, clientId: bigint) {
         number: i.invoiceNumber,
         status: i.status,
         total: Number(i.total),
+        currency: i.currency,
         issueDate: i.issueDate.toISOString(),
       })),
     subscriptions: c.subscriptions.map((sub) => ({
       planName: sub.planName,
       monthlyAmount: Number(sub.monthlyAmount),
+      currency: sub.currency,
       status: sub.status,
       renewalDate: sub.renewalDate.toISOString(),
     })),
@@ -581,6 +584,7 @@ export async function adminProjectDetail(ctx: Ctx, projectId: bigint) {
     serviceName: p.service.name,
     assigneeName: p.assignedTo?.fullName ?? null,
     price: Number(p.price),
+    currency: p.currency,
     status: p.status,
     startDate: p.startDate?.toISOString() ?? null,
     dueDate: p.dueDate?.toISOString() ?? null,
@@ -608,6 +612,7 @@ export async function adminProjectDetail(ctx: Ctx, projectId: bigint) {
       number: i.invoiceNumber,
       status: i.status,
       total: Number(i.total),
+      currency: i.currency,
     })),
   };
 }
@@ -808,7 +813,7 @@ export async function listUserAccounts(ctx: Ctx) {
 }
 
 export type UserAccountInput = {
-  role: "ADMIN" | "CLIENT";
+  role: "ADMIN" | "CLIENT" | "EQUIPE";
   fullName: string;
   email: string;
   password: string;
@@ -821,7 +826,7 @@ export async function createUserAccount(ctx: Ctx, input: UserAccountInput) {
   const email = input.email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError("Adresse e-mail invalide.");
   if (input.password.length < 8) throw new ValidationError("Le mot de passe doit contenir au moins 8 caractères.");
-  if (input.role !== "ADMIN" && input.role !== "CLIENT") throw new ValidationError("Rôle inconnu.");
+  if (input.role !== "ADMIN" && input.role !== "CLIENT" && input.role !== "EQUIPE") throw new ValidationError("Rôle inconnu.");
   if (input.role === "CLIENT" && !input.clientId) throw new ValidationError("Un compte client doit être rattaché à un client.");
 
   try {
@@ -837,6 +842,12 @@ export async function createUserAccount(ctx: Ctx, input: UserAccountInput) {
     await prisma.auditLog.create({
       data: { userId: ctx.userId, action: "USER_CREATE", entityType: "user", entityId: user.id },
     });
+    // Compte équipe : rattaché à sa fiche membre (créée si besoin) pour lui attribuer des projets.
+    if (input.role === "EQUIPE") {
+      const member = await prisma.teamMember.findFirst({ where: { OR: [{ email }, { fullName }], userId: null } });
+      if (member) await prisma.teamMember.update({ where: { id: member.id }, data: { userId: user.id, email } });
+      else await prisma.teamMember.create({ data: { userId: user.id, fullName, email } });
+    }
     return { id: user.id.toString() };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

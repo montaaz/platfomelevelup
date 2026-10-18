@@ -46,7 +46,7 @@ export async function executeAssistantAction(ctx: Ctx, input: ActionInput, meta:
       const description = String(input.description ?? "").trim().slice(0, 4000);
       if (title.length < 3) throw new ValidationError("Décrivez votre demande en quelques mots.");
       await createProjectRequest(ctx, { title, description });
-      text = `✓ Votre demande « ${title} » est envoyée à l'équipe Level Up IA, qui vous répond avec une proposition.`;
+      text = `✓ Votre demande « ${title} » est envoyée à l'équipe Level Up AI, qui vous répond avec une proposition.`;
       href = "/client";
       summary = `demande de projet « ${title} »`;
       break;

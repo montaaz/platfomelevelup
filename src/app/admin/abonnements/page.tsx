@@ -1,7 +1,7 @@
 import { requireCtx } from "@/server/context";
 import { listSubscriptions } from "@/server/services/directory";
 import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/ui";
-import { formatDT, formatDateFull } from "@/lib/format";
+import { formatDT, formatDateFull, formatMoney, formatTotals } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export default async function AdminSubscriptionsPage() {
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Revenu mensuel récurrent</p>
-            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatDT(active.reduce((s, x) => s + x.monthlyAmount, 0))}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatTotals(active.map((x) => ({ amount: x.monthlyAmount, currency: x.currency })))}</p>
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Échéances sous 14 jours</p>
@@ -71,7 +71,7 @@ export default async function AdminSubscriptionsPage() {
                     {formatDateFull(sub.renewalDate)}
                     {sub.renewalSoon && " ⚠"}
                   </td>
-                  <td className="px-6 py-3.5 text-right text-[13.5px] font-semibold">{formatDT(sub.monthlyAmount)}</td>
+                  <td className="px-6 py-3.5 text-right text-[13.5px] font-semibold">{formatMoney(sub.monthlyAmount, sub.currency)}</td>
                 </tr>
               ))}
             </tbody>

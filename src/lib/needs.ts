@@ -54,7 +54,7 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "palette", kind: "palette", label: "Quelle palette de couleurs souhaitez-vous ?" },
       { key: "styles", kind: "styles", label: "Quel style ou quelle ambiance préférez-vous ?" },
     ],
-    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, déposez-les ci-dessus ou envoyez-les-nous par e-mail.",
+    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, déposez-les ci-dessus.",
   },
   SITE_MARCHAND: {
     title: "Décrivez votre projet de site marchand",
@@ -64,9 +64,9 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "pages", kind: "pages", label: "Pages et fonctionnalités souhaitées" },
       { key: "palette", kind: "palette", label: "Quelle palette de couleurs souhaitez-vous ?" },
       { key: "styles", kind: "styles", label: "Quel style ou quelle ambiance préférez-vous ?" },
-      { key: "call", kind: "call", label: "Échange de 30 minutes", hint: "Un échange de 30 minutes est très important pour mieux comprendre votre activité. Vous pouvez aussi nous envoyer tous les détails de votre projet par e-mail." },
+      { key: "call", kind: "call", label: "Échange de 30 minutes", hint: "Un échange de 30 minutes est très important pour mieux comprendre votre activité. Vous pouvez aussi déposer tous les détails de votre projet ci-dessus." },
     ],
-    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, déposez-les ci-dessus ou envoyez-les-nous par e-mail.",
+    attachNote: "Si vous avez déjà un logo, un site de référence ou d'autres détails sur votre projet, déposez-les ci-dessus.",
   },
   SHOOTING: {
     title: "Votre projet de shooting de produits",
@@ -76,7 +76,7 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "expected", kind: "text", label: "Quel résultat souhaitez-vous obtenir ?", placeholder: "Décrivez le résultat attendu…" },
       { key: "mood", kind: "text", label: "Mood désiré", placeholder: "Exemple : naturel, élégant, coloré…" },
     ],
-    attachNote: "Photos ou références à partager ? Déposez-les ci-dessus ou contactez-nous par e-mail.",
+    attachNote: "Photos ou références à partager ? Déposez-les ci-dessus.",
   },
   VIDEOS: {
     title: "Décrivez la vidéo que vous imaginez",
@@ -87,13 +87,13 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "expected", kind: "text", label: "Résultat recherché", placeholder: "Quel résultat souhaitez-vous obtenir ?" },
       { key: "mood", kind: "text", label: "Mood désiré", placeholder: "Exemple : naturelle, dynamique, élégante…" },
     ],
-    attachNote: "Vous avez une vidéo de référence ou une photo à retoucher ? Envoyez-la-nous par e-mail.",
+    attachNote: "Vous avez une vidéo de référence ou une photo à retoucher ? Déposez-la ci-dessus.",
   },
   PUBLICITE: {
     title: "Vos campagnes publicitaires",
     hint: "Où, pour quel objectif, avec quel budget indicatif ?",
     fields: [{ key: "description", kind: "text", label: "Décrivez votre besoin", placeholder: "Réseaux visés (Meta, Google, TikTok…), objectif, budget mensuel indicatif, période…" }],
-    attachNote: "Vous avez déjà des visuels ou d'anciennes campagnes ? Envoyez-les-nous par e-mail.",
+    attachNote: "Vous avez déjà des visuels ou d'anciennes campagnes ? Déposez-les ci-dessus.",
   },
   IDENTITE: {
     title: "Décrivez l'identité visuelle souhaitée",
@@ -103,13 +103,13 @@ export const NEED_SPECS: Record<string, NeedSpec> = {
       { key: "styles", kind: "styles", label: "Quel style ou quelle ambiance préférez-vous ?" },
       { key: "notes", kind: "text", label: "Autres couleurs, références ou précisions", placeholder: "Ajoutez les détails qui vous semblent utiles…" },
     ],
-    attachNote: "Vous avez déjà un logo ou une référence ? Envoyez-les-nous par e-mail avec les détails de votre projet.",
+    attachNote: "Vous avez déjà un logo ou une référence ? Déposez-les ci-dessus avec les détails de votre projet.",
   },
   CHATBOT: {
     title: "Votre assistant ou automatisation",
     hint: "Que doit-il faire, sur quels canaux, pour quels clients ?",
     fields: [{ key: "description", kind: "text", label: "Décrivez votre besoin", placeholder: "Exemple : répondre aux questions sur WhatsApp et Instagram, prendre des rendez-vous, relancer les devis…" }],
-    attachNote: "Vous avez une liste de questions fréquentes ou des exemples d'échanges ? Envoyez-les-nous par e-mail.",
+    attachNote: "Vous avez une liste de questions fréquentes ou des exemples d'échanges ? Déposez-les ci-dessus.",
   },
 };
 
@@ -145,6 +145,9 @@ export function cleanNeedsDetails(mainNeeds: string[], raw: unknown): NeedDetail
         if (typeof v === "string" && PALETTES.some((p) => p.value === v)) d[f.key] = v;
       } else if (f.kind === "call") {
         if (v === true) d[f.key] = true;
+        // Créneau réservé (ISO) : la réservation elle-même vit dans « appointments ».
+        const at = g[`${f.key}At`];
+        if (v === true && typeof at === "string" && !Number.isNaN(Date.parse(at))) d[`${f.key}At`] = new Date(at).toISOString();
       }
     }
     if (Object.keys(d).length) out[need] = d;
@@ -169,13 +172,19 @@ export function needsSummary(mainNeeds: string[], details: unknown, needLabel: (
       else if (f.kind === "pages") rows.push({ label: f.label, chips: (v as string[]).map((x) => PAGES.find((o) => o.value === x)?.label ?? x) });
       else if (f.kind === "styles") rows.push({ label: f.label, chips: (v as string[]).map((x) => STYLES.find((o) => o.value === x)?.label ?? x) });
       else if (f.kind === "palette") rows.push({ label: f.label, palette: PALETTES.find((p) => p.value === v) });
-      else if (f.kind === "call" && v === true) rows.push({ label: "Échange téléphonique", text: "Le client souhaite un échange de 30 minutes.", flag: true });
+      else if (f.kind === "call" && v === true) {
+        const at = given[`${f.key}At`];
+        const when = typeof at === "string"
+          ? new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Tunis", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(at))
+          : null;
+        rows.push({ label: "Échange téléphonique", text: when ? `Échange de 30 minutes réservé le ${when} (heure de Tunis).` : "Le client souhaite un échange de 30 minutes.", flag: true });
+      }
     }
     return { need, title: needLabel(need), rows };
   });
 }
 
-export const CONTACT_MAILTO = "mailto:contact@levelupia.agency?subject=" + encodeURIComponent("Détails de mon projet — Level Up IA");
+export const CONTACT_MAILTO = "mailto:contact@levelupia.agency?subject=" + encodeURIComponent("Détails de mon projet — Level Up AI");
 
 /**
  * Besoins proposés selon le pack commandé (l'étape « Vos besoins » et le

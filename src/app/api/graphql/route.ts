@@ -3,6 +3,7 @@ import {
   GraphQLError,
   type ASTVisitor,
   type ValidationContext,
+  type DocumentNode,
   Kind,
 } from "graphql";
 import { schema, type GqlContext } from "@/graphql/schema";
@@ -47,6 +48,20 @@ function noIntrospection(context: ValidationContext): ASTVisitor {
   };
 }
 
+/**
+ * Espace équipe (notes de Sarra, §03) : l'API GraphQL sert aussi les
+ * factures, commandes et paiements. Un compte EQUIPE n'y a droit qu'à ses
+ * opérations personnelles ; tout le reste est refusé avant exécution.
+ */
+const TEAM_FIELDS = new Set(["changeMyPassword", "markNotificationsRead", "me"]);
+
+function teamAllowed(document: DocumentNode): boolean {
+  return document.definitions.every((d) =>
+    d.kind !== Kind.OPERATION_DEFINITION ||
+    d.selectionSet.selections.every((sel) => sel.kind === Kind.FIELD && (sel.name.value === "__typename" || TEAM_FIELDS.has(sel.name.value))),
+  );
+}
+
 const yoga = createYoga<object, GqlContext>({
   schema,
   graphqlEndpoint: "/api/graphql",
@@ -61,6 +76,11 @@ const yoga = createYoga<object, GqlContext>({
       onValidate({ addValidationRule }: { addValidationRule: (rule: (ctx: ValidationContext) => ASTVisitor) => void }) {
         addValidationRule(depthLimit);
         if (isProd) addValidationRule(noIntrospection);
+      },
+      onExecute({ args, setResultAndStopExecution }: { args: { contextValue: GqlContext; document: DocumentNode }; setResultAndStopExecution: (r: { errors: GraphQLError[] }) => void }) {
+        if (args.contextValue.ctx?.role === "EQUIPE" && !teamAllowed(args.document)) {
+          setResultAndStopExecution({ errors: [new GraphQLError("Accès refusé.")] });
+        }
       },
     },
   ],

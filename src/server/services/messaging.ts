@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/prisma";
+
+/** Nom affiché au client pour tout message de l'équipe (notes de Sarra : jamais le nom personnel). */
+export const TEAM_DISPLAY_NAME = "LevelUpAI Assistant";
+const shownName = (viewerRole: string, sender: { fullName: string; role: string }) =>
+  viewerRole === "CLIENT" && sender.role !== "CLIENT" ? TEAM_DISPLAY_NAME : sender.fullName;
 import { autoReplyLater, draftReply, messagingAIEnabled } from "@/server/services/messagingAI";
 import { mirrorNotificationEmails } from "@/lib/mail";
 import { ForbiddenError, ValidationError, type Ctx, assertAdmin } from "@/server/context";
@@ -48,7 +53,7 @@ export async function listThreads(ctx: Ctx) {
         clientCompany: p.client.companyName,
         serviceName: p.service.name,
         lastMessage: last.body.length > 120 ? last.body.slice(0, 120) + "…" : last.body,
-        lastSenderName: last.sender.fullName,
+        lastSenderName: shownName(ctx.role, last.sender),
         lastAt: last.createdAt.toISOString(),
         unread,
       };
@@ -85,7 +90,7 @@ export async function getThread(ctx: Ctx, projectId: bigint) {
     messages: messages.map((m) => ({
       id: m.id.toString(),
       body: m.body,
-      senderName: m.sender.fullName,
+      senderName: shownName(ctx.role, m.sender),
       senderRole: m.sender.role,
       mine: m.senderUserId === ctx.userId,
       createdAt: m.createdAt.toISOString(),

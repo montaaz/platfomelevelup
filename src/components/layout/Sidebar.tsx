@@ -27,7 +27,7 @@ const ICON_TINT: Record<string, string> = {
 
 export function Sidebar({
   space, items, userName, roleLabel,
-}: { space: "ESPACE ADMIN" | "ESPACE CLIENT"; items: NavItem[]; userName: string; roleLabel: string }) {
+}: { space: "ESPACE ADMIN" | "ESPACE CLIENT" | "ESPACE ÉQUIPE"; items: NavItem[]; userName: string; roleLabel: string }) {
   const pathname = usePathname();
   const rootHref = items[0]!.href;
   const isActive = (href: string) => (href === rootHref ? pathname === href : pathname.startsWith(href));
@@ -56,7 +56,7 @@ export function Sidebar({
           </span>
           <span className="min-w-0">
             <span className="block text-[15px] leading-tight font-extrabold tracking-wide text-ink">
-              LEVEL UP<span className="brand-text-gradient"> IA</span>
+              LEVEL UP<span className="brand-text-gradient"> AI</span>
             </span>
             <span className="block truncate text-[8.5px] font-semibold tracking-[0.16em] text-ink/55 uppercase">
               Powered by AI
@@ -167,7 +167,7 @@ export function Sidebar({
             <div className="mb-4 flex items-center gap-3 px-1">
               <span className="keycap flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 text-[15px] font-black text-white">LU</span>
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-extrabold tracking-wide text-ink">LEVEL UP<span className="brand-text-gradient"> IA</span></p>
+                <p className="text-[15px] font-extrabold tracking-wide text-ink">LEVEL UP<span className="brand-text-gradient"> AI</span></p>
                 <p className="text-[10px] font-semibold tracking-[0.16em] text-ink/50 uppercase">{space}</p>
               </div>
               <button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer" className="rounded-full bg-ink/5 p-2.5 text-ink/70">

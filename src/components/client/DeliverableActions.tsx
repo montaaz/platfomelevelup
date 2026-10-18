@@ -105,7 +105,7 @@ export function DeliverableActions({ fileId, version }: { fileId: string; versio
             className="inline-flex items-center gap-2 rounded-xl btn-3d bg-gradient-to-r from-brand-500 to-violet-500 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-brand-500/25 hover:opacity-95 disabled:opacity-60"
           >
             <IconCheck width={15} height={15} />
-            {busy ? "Validation…" : "Approuver le livrable"}
+            {busy ? "Validation…" : "Valider — version finale"}
           </button>
         </div>
       )}

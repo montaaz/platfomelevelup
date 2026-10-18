@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 
 export type SessionPayload = {
   userId: string; // BigInt serialized as string
-  role: "ADMIN" | "CLIENT";
+  role: "ADMIN" | "CLIENT" | "EQUIPE";
   clientId: string | null;
   fullName: string;
   email: string;

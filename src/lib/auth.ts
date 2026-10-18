@@ -9,7 +9,7 @@ export async function hashPassword(plain: string) {
 }
 
 export type LoginResult =
-  | { ok: true; user: { id: bigint; role: "ADMIN" | "CLIENT"; clientId: bigint | null; fullName: string; email: string } }
+  | { ok: true; user: { id: bigint; role: "ADMIN" | "CLIENT" | "EQUIPE"; clientId: bigint | null; fullName: string; email: string } }
   | { ok: false; reason: "INVALID" | "LOCKED" | "INACTIVE" };
 
 /** Verifies credentials with brute-force lockout. Never reveals which part failed. */

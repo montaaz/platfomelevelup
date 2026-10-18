@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Level Up IA — Dashboard",
+  title: "Level Up AI — Dashboard",
   description: "Digital marketing powered by AI — espace client et espace admin.",
   // Application installable (Android : « Installer l'application » ; iPhone : Partager → Sur l'écran d'accueil)
   manifest: "/manifest.webmanifest",
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/icons/apple-touch-icon.png",
   },
-  appleWebApp: { capable: true, title: "Level Up IA", statusBarStyle: "default" },
-  applicationName: "Level Up IA",
+  appleWebApp: { capable: true, title: "Level Up AI", statusBarStyle: "default" },
+  applicationName: "Level Up AI",
 };
 
 export const viewport: Viewport = {

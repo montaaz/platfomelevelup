@@ -10,7 +10,7 @@ describe("dictée vocale", () => {
     const o = "je veu un site vitrine avec 5 pages pour ma boutique de vetement";
     expect(acceptCorrection(o, "Je veux un site vitrine avec 5 pages pour ma boutique de vêtements.")).toBe(true);
     expect(acceptCorrection(o, "VIDE")).toBe(false);
-    expect(acceptCorrection(o, "Je suis l'assistant de Level Up IA, je peux vous aider à créer un site vitrine.")).toBe(false);
+    expect(acceptCorrection(o, "Je suis l'assistant de Level Up AI, je peux vous aider à créer un site vitrine.")).toBe(false);
     expect(acceptCorrection(o, "Je veux un site vitrine avec 6 pages pour ma boutique de vêtements.")).toBe(false); // chiffre changé
     expect(acceptCorrection(o, "Site.")).toBe(false); // trop court
   });

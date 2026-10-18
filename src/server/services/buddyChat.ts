@@ -1,4 +1,4 @@
-import type { Ctx } from "@/server/context";
+import type { BuddyCtx } from "@/buddy/data/types";
 import { answerBuddy, parseContext, type BuddyResult } from "@/buddy/answer";
 import { prismaDataSource } from "@/buddy/data/prisma";
 import { configuredModel } from "@/buddy/ai/model";
@@ -15,7 +15,7 @@ export type ChatReply = BuddyResult & {
  * habituelle (gabarits + modèle Baarcha sur les données du compte), plus,
  * pour un client, l'action qu'il semble demander — proposée, jamais faite.
  */
-export async function buddyTurn(ctx: Ctx, message: string, rawContext: unknown): Promise<ChatReply> {
+export async function buddyTurn(ctx: BuddyCtx, message: string, rawContext: unknown): Promise<ChatReply> {
   const result = await answerBuddy(ctx, message, prismaDataSource, parseContext(rawContext), new Date(), undefined, configuredModel());
   let reply: ChatReply = result;
 
@@ -37,7 +37,7 @@ export async function buddyTurn(ctx: Ctx, message: string, rawContext: unknown):
         ...result,
         kind: "answer",
         text: adminOnlyMessage(result.lang),
-        proposal: { action: "CREATE_REQUEST", title: message.slice(0, 80), description: message, label: result.lang === "en" ? "Forward to the team" : "Transmettre à l'équipe", summary: result.lang === "en" ? "Your request will be forwarded to the Level Up IA team." : "Votre demande sera transmise à l'équipe Level Up IA." },
+        proposal: { action: "CREATE_REQUEST", title: message.slice(0, 80), description: message, label: result.lang === "en" ? "Forward to the team" : "Transmettre à l'équipe", summary: result.lang === "en" ? "Your request will be forwarded to the Level Up AI team." : "Votre demande sera transmise à l'équipe Level Up AI." },
         suggestions: undefined,
         actions: undefined,
       };

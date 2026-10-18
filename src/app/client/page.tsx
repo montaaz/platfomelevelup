@@ -27,7 +27,9 @@ export default async function ClientHomePage() {
   const featured = data.featured;
   const days = featured ? daysUntil(featured.dueDate) : null;
   const latestDeliverable = featured?.deliverables[0];
-  const awaitingApproval = latestDeliverable && featured?.status === "EN_REVISION" && latestDeliverable.approval !== "APPROUVE";
+  // Une seule validation : rien à valider si une version a déjà été validée.
+  const alreadyValidated = featured?.deliverables.some((d) => d.approval === "APPROUVE") ?? false;
+  const awaitingApproval = latestDeliverable && !alreadyValidated && latestDeliverable.approval === "EN_ATTENTE";
 
   return (
     <div className="space-y-5 pb-8">
@@ -135,18 +137,32 @@ export default async function ClientHomePage() {
                         le {formatDateShort(file.createdAt)}
                       </p>
                     </div>
-                    {file.approval === "APPROUVE" && (
-                      <span className="hidden items-center gap-1 text-[12px] font-medium text-emerald-600 sm:inline-flex">
-                        <IconCheck width={13} height={13} /> Approuvé
-                      </span>
+                    {file.approval === "APPROUVE" ? (
+                      <>
+                        <span className="hidden items-center gap-1 text-[12px] font-medium text-emerald-600 sm:inline-flex">
+                          <IconCheck width={13} height={13} /> Version finale
+                        </span>
+                        <a
+                          href={`/api/files/${file.publicId}`}
+                          className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-brand-500 hover:text-brand-600"
+                        >
+                          <IconDownload width={15} height={15} />
+                          <span className="hidden sm:inline">Télécharger</span>
+                        </a>
+                      </>
+                    ) : /^(image\/|video\/|audio\/|application\/pdf$)/.test(file.mime) ? (
+                      <a
+                        href={`/api/files/${file.publicId}?apercu=1`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-brand-500 hover:text-brand-600"
+                        title="Aperçu : le téléchargement s'ouvre après votre validation"
+                      >
+                        <span className="hidden sm:inline">Aperçu</span><span className="sm:hidden">👁</span>
+                      </a>
+                    ) : (
+                      <span className="shrink-0 text-[12px] text-ink/50" title="Téléchargeable après votre validation">🔒 après validation</span>
                     )}
-                    <a
-                      href={`/api/files/${file.publicId}`}
-                      className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-brand-500 hover:text-brand-600"
-                    >
-                      <IconDownload width={15} height={15} />
-                      <span className="hidden sm:inline">Télécharger</span>
-                    </a>
                   </div>
                 ))}
               </div>
@@ -257,7 +273,7 @@ export default async function ClientHomePage() {
                 <Avatar name={message.senderName} size={36} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-[13px] font-semibold text-ink">{message.senderName}, Level Up IA</p>
+                    <p className="truncate text-[13px] font-semibold text-ink">{message.senderName}</p>
                     {message.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" />}
                     <span className="ml-auto shrink-0 text-[11px] text-ink/60">{relativeTime(message.createdAt)}</span>
                   </div>

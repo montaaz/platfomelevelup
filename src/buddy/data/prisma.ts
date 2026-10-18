@@ -287,7 +287,8 @@ export const prismaDataSource: BuddyDataSource = {
     return rows.map((m) => ({
       projectId: m.projectId.toString(),
       projectTitle: m.project.title,
-      senderName: m.sender.fullName,
+      // Côté client, l'équipe signe « LevelUpAI Assistant », jamais d'un nom personnel.
+      senderName: ctx.role === "CLIENT" && m.sender.role !== "CLIENT" ? "LevelUpAI Assistant" : m.sender.fullName,
       body: m.body,
       createdAt: m.createdAt.toISOString(),
     }));

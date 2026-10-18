@@ -24,6 +24,8 @@ export async function middleware(req: NextRequest) {
   }
 
   const isAdminPath = pathname.startsWith("/admin");
+  const isTeamPath = pathname.startsWith("/equipe");
+  const home = (role?: string) => (role === "ADMIN" ? "/admin" : role === "EQUIPE" ? "/equipe" : "/client");
   const isClientPath = pathname.startsWith("/client") || pathname === "/bienvenue" || pathname === "/paiement";
   // pages publiques d'authentification : connexion et inscription
   const isLogin = pathname === "/login" || pathname === "/inscription";
@@ -48,22 +50,25 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 307);
   };
 
-  if ((isAdminPath || isClientPath) && !session) {
+  if ((isAdminPath || isClientPath || isTeamPath) && !session) {
     return redirectTo(`/login?next=${encodeURIComponent(pathname)}`);
   }
   if (isAdminPath && session?.role !== "ADMIN") {
-    return session ? redirectTo("/client") : NextResponse.next();
+    return session ? redirectTo(home(session.role)) : NextResponse.next();
+  }
+  if (isTeamPath && session?.role !== "EQUIPE") {
+    return session ? redirectTo(home(session.role)) : NextResponse.next();
   }
   if (isClientPath && session?.role !== "CLIENT") {
-    return session ? redirectTo("/admin") : NextResponse.next();
+    return session ? redirectTo(home(session.role)) : NextResponse.next();
   }
   if (isLogin && session) {
-    return redirectTo(session.role === "ADMIN" ? "/admin" : "/client");
+    return redirectTo(home(session.role));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/client/:path*", "/bienvenue", "/paiement", "/login", "/inscription"],
+  matcher: ["/admin/:path*", "/client/:path*", "/equipe/:path*", "/bienvenue", "/paiement", "/login", "/inscription"],
 };

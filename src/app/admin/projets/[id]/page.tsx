@@ -8,7 +8,7 @@ import { ClientFilesList } from "@/components/admin/ClientFilesList";
 import { Card, CardHeader, StatusBadge, EmptyState } from "@/components/ui";
 import { StatusChanger, ReachStepButton, UploadForm } from "@/components/admin/ProjectDetailActions";
 import { IconFile, IconDownload, IconCheck } from "@/components/icons";
-import { formatDT, formatDateShort, formatDateFull, formatBytes, PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL } from "@/lib/format";
+import { formatDT, formatDateShort, formatDateFull, formatBytes, PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL, formatMoney } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
         <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-6 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Prix</p>
-            <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatDT(p.price)}</p>
+            <p className="mt-1 text-[20px] leading-none font-bold sm:text-[24px]">{formatMoney(p.price, p.currency)}</p>
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Début</p>
@@ -164,7 +164,7 @@ export default async function AdminProjectDetailPage({ params }: { params: Promi
                 <div key={i.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:px-6">
                   <p className="text-[13px] font-medium whitespace-nowrap text-ink">{i.number}</p>
                   <StatusBadge status={i.status} label={INVOICE_STATUS_LABEL[i.status] ?? i.status} />
-                  <p className="ml-auto text-[13px] font-semibold whitespace-nowrap">{formatDT(i.total, { decimals: 2 })}</p>
+                  <p className="ml-auto text-[13px] font-semibold whitespace-nowrap">{formatMoney(i.total, i.currency, { decimals: 2 })}</p>
                 </div>
               ))}
             </div>

@@ -135,6 +135,7 @@ export async function submitTransferProof(
 
 /** Fichier d'un justificatif, pour la route de téléchargement (admin ou client propriétaire). */
 export async function proofFileFor(ctx: Ctx, proofId: bigint) {
+  if (ctx.role === "EQUIPE") throw new ForbiddenError(); // aucune donnée financière pour l'équipe
   const proof = await prisma.paymentProof.findFirst({
     where: { id: proofId, ...(ctx.role === "CLIENT" ? { clientId: clientScope(ctx) } : {}) },
   });

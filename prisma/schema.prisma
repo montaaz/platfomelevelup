@@ -17,6 +17,7 @@ datasource db {
 enum UserRole {
   ADMIN
   CLIENT
+  EQUIPE
 
   @@map("user_role")
 }
@@ -165,6 +166,7 @@ model Client {
   securityEvents    SecurityEvent[]
 
   @@map("clients")
+  appointments   Appointment[]
 }
 
 model User {
@@ -203,6 +205,7 @@ model User {
   securityEvents    SecurityEvent[]
 
   @@map("users")
+  appointments   Appointment[]
 }
 
 model PasswordResetToken {
@@ -433,6 +436,8 @@ model Subscription {
   planName      String             @map("plan_name") @db.VarChar(80)
   monthlyAmount Decimal            @map("monthly_amount") @db.Decimal(12, 3)
   currency      String             @default("TND") @db.Char(3)
+  commitmentMonths Int             @default(1) @map("commitment_months") @db.SmallInt
+  freeMonths       Int             @default(0) @map("free_months") @db.SmallInt
   status        SubscriptionStatus @default(ACTIF)
   autoRenew     Boolean            @default(true) @map("auto_renew")
   startDate     DateTime           @map("start_date") @db.Date
@@ -553,6 +558,8 @@ model Order {
   status           OrderStatus    @default(EN_ATTENTE_PAIEMENT)
   amount           Decimal        @db.Decimal(12, 3)
   currency         String         @default("TND") @db.Char(3)
+  /// Engagement choisi pour un abonnement : 1, 6 (1 mois offert) ou 12 mois (2 offerts) — migration 024.
+  commitmentMonths Int            @default(1) @map("commitment_months") @db.SmallInt
   paymentMethod    PaymentMethod? @map("payment_method")
   paymentReference String?        @map("payment_reference") @db.VarChar(160)
   /// Transaction ClicToPay en cours ou réglée (migration 012).
@@ -664,6 +671,7 @@ model PrepaidPayment {
   packId           BigInt    @map("pack_id")
   amount           Decimal   @db.Decimal(12, 3)
   currency         String    @default("TND") @db.Char(3)
+  commitmentMonths Int       @default(1) @map("commitment_months") @db.SmallInt
   status           String    @default("EN_ATTENTE") @db.VarChar(12)
   gatewayOrderId   String?   @unique @map("gateway_order_id") @db.VarChar(64)
   gatewayAmount    Decimal?  @map("gateway_amount") @db.Decimal(12, 2)
@@ -744,4 +752,23 @@ model SecurityEvent {
   @@index([createdAt(sort: Desc)], map: "idx_security_events_created")
   @@index([clientId, createdAt(sort: Desc)], map: "idx_security_events_client")
   @@map("security_events")
+}
+
+/// Échange téléphonique réservé par un client sur un créneau libre (migration 025).
+model Appointment {
+  id             BigInt   @id @default(autoincrement())
+  clientId       BigInt   @map("client_id")
+  bookedByUserId BigInt?  @map("booked_by_user_id")
+  startsAt       DateTime @map("starts_at") @db.Timestamptz(6)
+  endsAt         DateTime @map("ends_at") @db.Timestamptz(6)
+  need           String?  @db.VarChar(40)
+  topic          String?  @db.VarChar(200)
+  status         String   @default("CONFIRME") @db.VarChar(12)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  bookedBy User?  @relation(fields: [bookedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([clientId, startsAt], map: "idx_appointments_client")
+  @@map("appointments")
 }

@@ -122,15 +122,7 @@ export function UploadForm({ projectId }: { projectId: string }) {
           <option value="ELEMENT_CLIENT">Élément interne</option>
         </select>
         {kind === "LIVRABLE" && (
-          <label className="flex items-center gap-2 text-[13px] text-ink/82">
-            <input
-              type="checkbox"
-              checked={askValidation}
-              onChange={(e) => setAskValidation(e.target.checked)}
-              className="h-4 w-4 rounded accent-brand-500"
-            />
-            Demander la validation du client
-          </label>
+          <span className="text-[12.5px] text-ink/60">Soumis à la validation du client : la version validée devient la version finale.</span>
         )}
         <button type="submit" disabled={busy || !file} className={`${secondaryBtnCls} ml-auto`}>
           {busy ? "Envoi…" : "Envoyer"}

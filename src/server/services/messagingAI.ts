@@ -22,7 +22,7 @@ export function messagingAIEnabled(): boolean {
   return /^(1|on|true|yes)$/i.test(process.env.MESSAGING_AI ?? "") && configuredModel() !== null;
 }
 
-export const AUTO_REPLY_PREFIX = "🤖 Réponse automatique de l'assistant Level Up IA — l'équipe vous répond ensuite.\n\n";
+export const AUTO_REPLY_PREFIX = "🤖 Réponse automatique de l'assistant Level Up AI — l'équipe vous répond ensuite.\n\n";
 
 async function projectFacts(projectId: bigint, lang: Lang): Promise<{ facts: string; packNames: string[] }> {
   const p = await prisma.project.findUniqueOrThrow({
@@ -64,7 +64,7 @@ export async function draftReply(projectId: bigint, question: string, recentMess
   const guide = await retrieve(question, guideChunks(lang), 2, model);
   const context = recentMessages
     .slice(-6)
-    .map((m) => `${m.fromClient ? "Client" : "Level Up IA"} : ${m.body.slice(0, 300)}`)
+    .map((m) => `${m.fromClient ? "Client" : "Level Up AI"} : ${m.body.slice(0, 300)}`)
     .join("\n");
   const message = context
     ? `${lang === "fr" ? "Derniers échanges" : "Recent messages"} :\n${context}\n\n${lang === "fr" ? "Dernier message du client" : "Client's latest message"} : ${question}`

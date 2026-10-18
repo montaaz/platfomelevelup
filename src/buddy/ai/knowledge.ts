@@ -24,7 +24,7 @@ const SITE: Chunk[] = (site.chunks as { id: string; lang: string; title: string;
 const GUIDE: Record<Lang, [string, string][]> = {
   fr: [
     ["Espace client : Mes projets", "La page Mes projets (accueil de l'espace) montre le projet en cours : statut, étapes franchies, échéance, livrables à télécharger. Quand un livrable attend votre validation, vous pouvez l'approuver ou demander une révision depuis cette page."],
-    ["Espace client : Messages", "La page Messages contient une conversation par projet avec l'équipe Level Up IA. Vous pouvez y poser vos questions, envoyer des précisions ou des fichiers."],
+    ["Espace client : Messages", "La page Messages contient une conversation par projet avec l'équipe Level Up AI. Vous pouvez y poser vos questions, envoyer des précisions ou des fichiers."],
     ["Espace client : Mes factures", "La page Mes factures liste vos factures avec leur statut (en attente, payée, en retard) et leur échéance."],
     ["Espace client : paiement d'une commande", "Après le choix d'un pack, la commande et le projet restent « en attente de paiement » jusqu'à ce que l'équipe confirme la réception du paiement. Moyens de paiement enregistrés par l'équipe : virement, carte, espèces, chèque ou paiement en ligne. Le projet démarre une fois le paiement confirmé."],
     ["Espace client : Nouveau projet", "La page Nouveau projet permet de décrire un besoin ou de demander un devis. La demande arrive directement chez l'équipe, qui revient vers vous avec une proposition."],
@@ -32,7 +32,7 @@ const GUIDE: Record<Lang, [string, string][]> = {
   ],
   en: [
     ["Client space: My projects", "The My projects page (home of the space) shows the current project: status, completed steps, due date and deliverables to download. When a deliverable awaits your approval, you can approve it or request a revision from this page."],
-    ["Client space: Messages", "The Messages page holds one conversation per project with the Level Up IA team. You can ask questions, send details or files there."],
+    ["Client space: Messages", "The Messages page holds one conversation per project with the Level Up AI team. You can ask questions, send details or files there."],
     ["Client space: My invoices", "The My invoices page lists your invoices with their status (pending, paid, overdue) and due date."],
     ["Client space: paying an order", "After choosing a pack, the order and the project stay \"awaiting payment\" until the team confirms the payment was received. Payment methods recorded by the team: bank transfer, card, cash, cheque or online payment. The project starts once payment is confirmed."],
     ["Client space: New project", "The New project page lets you describe a need or ask for a quote. The request goes straight to the team, who come back to you with a proposal."],

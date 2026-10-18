@@ -90,6 +90,11 @@ function InscriptionForm() {
             enregistrée en attente de règlement.
           </p>
         )}
+        {params.get("devis") === "1" && (
+          <p className={styles.hint} style={{ marginTop: 8, padding: "10px 12px", borderRadius: 12, background: "#eef3ff", color: "#1c3f8a", fontWeight: 600 }}>
+            Site marchand sur devis : après votre inscription, choisissez « Créer un site marchand », décrivez votre projet et réservez un échange. Aucun paiement ne vous sera demandé avant le devis.
+          </p>
+        )}
         {params.get("mode") === "virement" && (
           <p className={styles.hint} role="status" style={{ marginTop: 12, fontWeight: 600, color: "#0a5ff0" }}>
             Paiement par virement : créez votre compte, le RIB à copier s&apos;affiche juste après, puis un clic sur « J&apos;ai fait le virement » prévient l&apos;équipe.

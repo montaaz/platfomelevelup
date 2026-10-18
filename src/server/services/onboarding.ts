@@ -6,6 +6,7 @@ import {
 import { COUNTRIES } from "@/lib/countries";
 import { cleanNeedsDetails, needsForPacks, type NeedDetails } from "@/lib/needs";
 import { readChosenPack } from "@/lib/session";
+import { createProjectRequest } from "@/server/services/clientActions";
 
 export type OnboardingInput = {
   contactName: string;
@@ -131,6 +132,7 @@ export async function saveNeeds(ctx: Ctx, rawNeeds: string[], rawDetails: string
       })),
     });
   }
+  await merchantSiteToQuote(ctx, clientId, mainNeeds, needsDetails);
   return true;
 }
 
@@ -213,5 +215,46 @@ export async function saveOnboarding(ctx: Ctx, input: OnboardingInput) {
     data: { userId: ctx.userId, action: "ONBOARDING_COMPLETE", entityType: "client", entityId: clientId },
   });
 
+  await merchantSiteToQuote(ctx, clientId, mainNeeds, needsDetails);
+
   return true;
+}
+
+/**
+ * Site marchand (notes de Sarra, §01) : il est fait sur devis, après recueil
+ * des besoins et un échange avec le client — jamais payé directement.
+ *   - Une demande de devis est créée avec les besoins décrits (l'équipe la voit
+ *     dans « Demandes » et sur la fiche client).
+ *   - Si le client a commandé le Pack Découverte UNIQUEMENT pour un site
+ *     marchand (pas de site vitrine), la commande de 890 en attente est annulée :
+ *     aucun paiement ne lui est demandé avant le devis.
+ */
+export async function merchantSiteToQuote(ctx: Ctx, clientId: bigint, mainNeeds: string[], details: NeedDetails) {
+  if (!mainNeeds.includes("SITE_MARCHAND")) return { quote: false };
+  const already = await prisma.projectRequest.findFirst({ where: { clientId, title: { startsWith: "Site marchand" } }, select: { id: true } });
+  const d = (details.SITE_MARCHAND ?? {}) as Record<string, unknown>;
+  const at = typeof d.callAt === "string" ? new Date(d.callAt) : null;
+  const when = at ? new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Tunis", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(at) : null;
+  const description = [
+    typeof d.description === "string" ? d.description : null,
+    Array.isArray(d.pages) && d.pages.length ? `Pages : ${(d.pages as string[]).join(", ")}` : null,
+    when ? `Échange téléphonique réservé : ${when} (heure de Tunis).` : "Échange téléphonique à proposer avant l'envoi du devis.",
+  ].filter(Boolean).join("\n");
+  if (!already) {
+    await createProjectRequest(ctx, { title: "Site marchand — demande de devis", description });
+  }
+
+  if (mainNeeds.includes("SITE_WEB")) return { quote: true, orderCancelled: false };
+  const order = await prisma.order.findFirst({
+    where: { clientId, status: "EN_ATTENTE_PAIEMENT", pack: { code: "PACK_DECOUVERTE" } },
+    select: { id: true, projectId: true },
+  });
+  if (!order) return { quote: true, orderCancelled: false };
+  const declared = await prisma.paymentProof.findFirst({ where: { orderId: order.id, status: "EN_ATTENTE" }, select: { id: true } });
+  if (declared) return { quote: true, orderCancelled: false }; // virement déjà déclaré : l'équipe tranche
+  await prisma.$transaction(async (tx) => {
+    await tx.order.update({ where: { id: order.id }, data: { status: "ANNULEE" } });
+    if (order.projectId) await tx.project.update({ where: { id: order.projectId }, data: { deletedAt: new Date() } });
+  });
+  return { quote: true, orderCancelled: true };
 }

@@ -4,7 +4,7 @@ import { getSession, type SessionPayload } from "@/lib/session";
 /** Authenticated request context used by every service and resolver. */
 export type Ctx = {
   userId: bigint;
-  role: "ADMIN" | "CLIENT";
+  role: "ADMIN" | "CLIENT" | "EQUIPE";
   clientId: bigint | null;
   fullName: string;
 };
@@ -71,7 +71,7 @@ export function forgetAccountState(userId: bigint) {
 }
 
 /** For server components: returns the ctx or throws (middleware already guards). */
-export async function requireCtx(role?: "ADMIN" | "CLIENT"): Promise<Ctx> {
+export async function requireCtx(role?: "ADMIN" | "CLIENT" | "EQUIPE"): Promise<Ctx> {
   const session = await getSession();
   if (!session) throw new ForbiddenError("Session expirée.");
   const ctx = toCtx(session);
@@ -86,12 +86,22 @@ export async function requireCtx(role?: "ADMIN" | "CLIENT"): Promise<Ctx> {
  * — qui donnerait un écran 500 — elle renvoie null, à charge pour la page de
  * rediriger vers la déconnexion.
  */
-export async function ctxOrNull(role?: "ADMIN" | "CLIENT"): Promise<Ctx | null> {
+export async function ctxOrNull(role?: "ADMIN" | "CLIENT" | "EQUIPE"): Promise<Ctx | null> {
   try {
     return await requireCtx(role);
   } catch {
     return null;
   }
+}
+
+/** Page d'accueil selon le rôle. */
+export function homeFor(role: string): string {
+  return role === "ADMIN" ? "/admin" : role === "EQUIPE" ? "/equipe" : "/client";
+}
+
+/** Équipe (ou admin) : accès aux projets, échéances et clients, jamais aux finances. */
+export function assertTeam(ctx: Ctx) {
+  if (ctx.role !== "EQUIPE" && ctx.role !== "ADMIN") throw new ForbiddenError();
 }
 
 export function assertAdmin(ctx: Ctx) {

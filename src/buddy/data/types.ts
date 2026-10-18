@@ -14,7 +14,8 @@ import type { StatusToken } from "../filters";
  * manuelle plutôt que présenté comme fiable.
  */
 
-export type BuddyCtx = Ctx;
+/** L'assistant sert les clients et les administrateurs ; l'espace équipe n'y a pas accès. */
+export type BuddyCtx = Omit<Ctx, "role"> & { role: "ADMIN" | "CLIENT" };
 
 /** Ce qui manque à un enregistrement pour être complet. Vide = rien à signaler. */
 export type Review = string[];

@@ -5,7 +5,8 @@ import { assertAdmin, clientScope, ForbiddenError, ValidationError, type Ctx } f
 import { fetchPaymentStatus, registerPayment, toMillimes, TND_NUMERIC } from "@/lib/clictopay";
 import { notifyTeamByEmail } from "@/lib/mail";
 import { stripPublicPort } from "@/lib/publicUrl";
-import { clientIsTunisian } from "@/lib/region";
+import { clientCurrency, clientIsTunisian } from "@/lib/region";
+import { commitmentAmount, commitmentFor } from "@/lib/commitment";
 
 /**
  * Commandes issues du site vitrine (levelupia.agency) vers la plateforme
@@ -98,11 +99,14 @@ export async function createOrderForClient(
   prepaidAmount?: Prisma.Decimal,
   /** Devise imposée (paiement déjà fait) ; sinon : dinars en Tunisie, euros ailleurs — même nombre. */
   currencyOverride?: string | null,
+  /** Engagement d'un abonnement payé d'avance (1, 6 ou 12 mois). */
+  commitmentMonths = 1,
 ) {
   const pack = await prisma.pack.findFirst({ where: { code: packCode, isActive: true } });
   if (!pack) throw new ValidationError("Cette offre n'est plus disponible.");
   const owner = await prisma.client.findUnique({ where: { id: clientId }, select: { country: true, detectedCountryCode: true } });
-  const currency = currencyOverride ?? (owner && !clientIsTunisian(owner) ? "EUR" : pack.currency);
+  // Même règle que le site vitrine : TND en Tunisie, EUR en Europe, USD ailleurs (même nombre).
+  const currency = currencyOverride ?? (owner && !clientIsTunisian(owner) ? clientCurrency(owner) : pack.currency);
 
   const order = await prisma.$transaction(async (tx) => {
     // Le projet existe dès la commande : le client le voit dans « Mes projets »
@@ -120,12 +124,13 @@ export async function createOrderForClient(
           title: pack.name,
           description: pack.description,
           price: prepaidAmount ?? pack.price,
+          currency,
           status: "EN_ATTENTE_PAIEMENT",
           startDate: new Date(),
         },
       });
       await tx.projectStep.createMany({
-        data: ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"].map(
+        data: ["Brief reçu", "Production", "Votre validation", "Livraison finale"].map(
           (label, i) => ({ projectId: project.id, label, position: i + 1 }),
         ),
       });
@@ -166,6 +171,7 @@ export async function createOrderForClient(
         packId: pack.id,
         amount: prepaidAmount ?? pack.price, // prix serveur, jamais celui du navigateur
         currency,
+        commitmentMonths: pack.isMonthly ? commitmentFor(commitmentMonths).months : 1,
         status: "EN_ATTENTE_PAIEMENT",
         projectId,
       },
@@ -213,7 +219,30 @@ export async function myPendingOrders(ctx: Ctx) {
     amount: Number(o.amount),
     currency: o.currency,
     isMonthly: o.pack.isMonthly,
+    monthlyPrice: Number(o.pack.price),
+    commitmentMonths: o.commitmentMonths,
   }));
+}
+
+/**
+ * Le client choisit la durée d'engagement de son abonnement avant de payer
+ * (promotions : 6 mois = 1 offert, 12 mois = 2 offerts). Le montant de la
+ * commande suit ; un paiement en ligne déjà lancé est abandonné.
+ */
+export async function setOrderCommitment(ctx: Ctx, orderId: bigint, months: number) {
+  const clientId = clientScope(ctx);
+  const order = await prisma.order.findFirst({ where: { id: orderId, clientId, status: "EN_ATTENTE_PAIEMENT" }, include: { pack: true } });
+  if (!order) throw new ValidationError("Cette commande n'attend plus de paiement.");
+  if (!order.pack.isMonthly) throw new ValidationError("L'engagement ne concerne que les abonnements.");
+  const declared = await prisma.paymentProof.findFirst({ where: { orderId, status: "EN_ATTENTE" }, select: { id: true } });
+  if (declared) throw new ValidationError("Votre virement est déjà déclaré : contactez l'équipe pour changer d'engagement.");
+  const c = commitmentFor(months);
+  const amount = commitmentAmount(Number(order.pack.price), c.months);
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { commitmentMonths: c.months, amount: new Prisma.Decimal(amount), gatewayOrderId: null, gatewayAmount: null, gatewayCurrency: null },
+  });
+  return { months: c.months, free: c.free, amount };
 }
 
 /** État d'accès du client connecté : sert à bloquer l'espace client. */
@@ -334,13 +363,18 @@ export async function settleOrder(
 
     if (order.pack.isMonthly) {
       const now = new Date();
+      // Promotion d'engagement : 6 mois (1 offert) ou 12 mois (2 offerts) payés d'avance.
+      const engagement = commitmentFor(order.commitmentMonths);
       const renewal = new Date(now);
-      renewal.setMonth(renewal.getMonth() + 1);
+      renewal.setMonth(renewal.getMonth() + engagement.months);
       const sub = await tx.subscription.create({
         data: {
           clientId: order.clientId,
           planName: order.pack.name,
-          monthlyAmount: order.amount,
+          monthlyAmount: order.pack.price,
+          commitmentMonths: engagement.months,
+          freeMonths: engagement.free,
+          currency: order.currency,
           status: "ACTIF",
           startDate: now,
           renewalDate: renewal,
@@ -385,7 +419,7 @@ export async function settleOrder(
         },
       });
       await tx.projectStep.createMany({
-        data: ["Brief reçu", "Production", "Première version", "Votre validation", "Livraison finale"].map(
+        data: ["Brief reçu", "Production", "Votre validation", "Livraison finale"].map(
           (label, i) => ({ projectId: project.id, label, position: i + 1, reachedAt: i === 0 ? new Date() : null }),
         ),
       });

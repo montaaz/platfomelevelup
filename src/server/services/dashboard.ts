@@ -1,3 +1,4 @@
+import { TEAM_DISPLAY_NAME } from "@/server/services/messaging";
 import { prisma } from "@/lib/prisma";
 import { assertAdmin, clientScope, type Ctx } from "@/server/context";
 import { clientCountryFilter, PENDING_COUNTRY } from "@/server/services/geo";
@@ -262,7 +263,8 @@ export async function clientHome(ctx: Ctx) {
     teamMessages: teamMessages.map((m) => ({
       projectId: m.projectId.toString(),
       projectTitle: m.project.title,
-      senderName: m.sender.fullName,
+      // Notes de Sarra : le client ne voit jamais le nom personnel de l'équipe.
+      senderName: TEAM_DISPLAY_NAME,
       excerpt: m.body.length > 140 ? m.body.slice(0, 140) + "…" : m.body,
       createdAt: m.createdAt.toISOString(),
       unread: m.reads.length === 0,

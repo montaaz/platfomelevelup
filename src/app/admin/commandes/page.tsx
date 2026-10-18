@@ -6,7 +6,7 @@ import { ConfirmPaymentButton } from "@/components/admin/ConfirmPaymentButton";
 import { TransferReview } from "@/components/admin/TransferReview";
 import { latestProofsByOrder } from "@/server/services/transfers";
 import { transferLabel } from "@/lib/bank";
-import { formatMoney, formatDT, formatDateFull } from "@/lib/format";
+import { formatMoney, formatDT, formatDateFull, formatTotals } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +49,7 @@ export default async function AdminCommandesPage() {
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Montant en attente</p>
             <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">
-              {formatDT(pending.reduce((sum: number, o: OrderRow) => sum + o.amount, 0))}
+              {formatTotals(pending.map((o: OrderRow) => ({ amount: o.amount, currency: o.currency })))}
             </p>
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">

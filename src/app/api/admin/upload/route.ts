@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
   const file = form.get("file");
   const projectIdRaw = form.get("projectId");
   const kind = form.get("kind") === "ELEMENT_CLIENT" ? "ELEMENT_CLIENT" : "LIVRABLE";
-  const askValidation = form.get("askValidation") === "1";
+  // Une seule étape de validation (notes de Sarra, §04) : tout livrable est soumis au client.
+  const askValidation = true;
 
   if (!(file instanceof File) || typeof projectIdRaw !== "string" || !/^\d+$/.test(projectIdRaw)) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
@@ -47,6 +48,15 @@ export async function POST(req: NextRequest) {
   const projectId = BigInt(projectIdRaw);
   const project = await prisma.project.findFirst({ where: { id: projectId, deletedAt: null } });
   if (!project) return NextResponse.json({ error: "Projet introuvable." }, { status: 404 });
+  if (kind === "LIVRABLE") {
+    const valide = await prisma.file.findFirst({ where: { projectId, kind: "LIVRABLE", approval: "APPROUVE", deletedAt: null }, select: { originalName: true } });
+    if (valide) {
+      return NextResponse.json(
+        { error: `Le client a déjà validé « ${valide.originalName} » : c'est la version finale du projet, aucun autre livrable ne peut la remplacer.` },
+        { status: 409 },
+      );
+    }
+  }
 
   const originalName = path.basename(file.name).slice(0, 255) || "fichier";
   const storageKey = `projects/${projectId}/${crypto.randomUUID()}${path.extname(originalName).slice(0, 12)}`;

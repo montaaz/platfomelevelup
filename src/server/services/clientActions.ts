@@ -10,9 +10,16 @@ export async function approveDeliverable(ctx: Ctx, fileId: bigint) {
     include: { project: true },
   });
   if (!file) throw new ForbiddenError();
+  const dejaValide = await prisma.file.findFirst({ where: { projectId: file.projectId, kind: "LIVRABLE", approval: "APPROUVE", deletedAt: null }, select: { id: true } });
+  if (dejaValide) throw new ValidationError("Ce projet est déjà validé : la version validée est la version finale.");
 
   await prisma.$transaction(async (tx) => {
     await tx.file.update({ where: { id: file.id }, data: { approval: "APPROUVE" } });
+    // Une seule validation : les autres versions encore en attente ne sont plus à valider.
+    await tx.file.updateMany({
+      where: { projectId: file.projectId, kind: "LIVRABLE", deletedAt: null, id: { not: file.id }, approval: "EN_ATTENTE" },
+      data: { approval: null },
+    });
     await tx.project.update({
       where: { id: file.projectId },
       data: { status: "LIVRE", deliveredAt: new Date() },
@@ -36,7 +43,7 @@ export async function approveDeliverable(ctx: Ctx, fileId: bigint) {
         userId: a.id,
         type: "STATUT_PROJET" as const,
         title: `Livrable approuvé — ${file.project.title}`,
-        body: `${ctx.fullName} a approuvé « ${file.originalName} ». Le projet passe en Livré.`,
+        body: `${ctx.fullName} a validé « ${file.originalName} » : c'est la version finale, le projet passe en Livré.`,
         entityType: "project",
         entityId: file.projectId,
       })),

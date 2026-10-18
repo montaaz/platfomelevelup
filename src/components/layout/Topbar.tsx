@@ -14,6 +14,9 @@ const TITLES: Record<string, { title: string; subtitle?: (name: string) => strin
   "/admin/factures": { title: "Factures" },
   "/admin/abonnements": { title: "Abonnements" },
   "/admin/equipe": { title: "Équipe" },
+  "/equipe": { title: "Projets & échéances", subtitle: (n) => `Bonjour ${n.split(" ")[0]}, voici les projets de l'agence.` },
+  "/equipe/clients": { title: "Clients" },
+  "/equipe/projets": { title: "Projet" },
   "/client": { title: "Mes projets", subtitle: (n) => `Bonjour ${n.split(" ")[0]}, bienvenue dans votre espace.` },
   "/client/messages": { title: "Messages" },
   "/client/factures": { title: "Mes factures" },
@@ -31,7 +34,8 @@ export function Topbar({
 }: {
   userName: string;
   roleLabel: string;
-  searchPlaceholder: string;
+  /** Absent : pas de recherche globale (espace équipe, sans accès aux factures). */
+  searchPlaceholder?: string;
   notifications?: NotificationData[];
   /** Admin uniquement : répartition des clients par pays. */
   countries?: CountryOption[];
@@ -52,7 +56,7 @@ export function Topbar({
       </div>
 
       <div className="order-3 flex w-full items-center gap-3 sm:order-2 sm:w-auto">
-        <GlobalSearch placeholder={searchPlaceholder} />
+        {searchPlaceholder ? <GlobalSearch placeholder={searchPlaceholder} /> : <span className="flex-1" />}
         {countries && <CountryFilter countries={countries} />}
         <NotificationsBell notifications={notifications} />
       </div>

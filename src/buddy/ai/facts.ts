@@ -29,7 +29,7 @@ export async function accountFacts(t: Strings, ctx: BuddyCtx, source: BuddyDataS
     const s = await source.summary(ctx);
     if (s.role === "ADMIN") {
       lines.push(
-        fr ? "Rôle : administrateur de l'agence Level Up IA" : "Role: Level Up IA agency administrator",
+        fr ? "Rôle : administrateur de l'agence Level Up AI" : "Role: Level Up AI agency administrator",
         `${fr ? "Projets en cours" : "Projects in progress"} : ${s.projectsInProgress}`,
         `${fr ? "Factures impayées" : "Unpaid invoices"} : ${s.unpaidCount} (${t.money(s.unpaidTotal)})`,
         `${fr ? "Demandes de révision" : "Revision requests"} : ${s.revisionRequests}`,

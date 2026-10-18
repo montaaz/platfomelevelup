@@ -96,11 +96,11 @@ function build(lang: Lang) {
     bye: fr ? "À bientôt ! Je reste ici si vous avez une question." : "See you soon! I'm here if you have a question.",
     help: fr ? "Voici ce que vous pouvez me demander :" : "Here is what you can ask me:",
     howAreYou: (firstName: string) => fr
-      ? `Très bien, merci ${firstName} ! Je suis l'assistant Level Up IA. Je peux vous dire où en sont vos projets, vos livrables, vos factures et vos commandes, ou ajouter une offre à votre panier. Que puis-je faire pour vous ?`
-      : `Very well, thank you ${firstName}! I'm the Level Up IA assistant. I can tell you where your projects, deliverables, invoices and orders stand, or add an offer to your cart. What can I do for you?`,
+      ? `Très bien, merci ${firstName} ! Je suis l'assistant Level Up AI. Je peux vous dire où en sont vos projets, vos livrables, vos factures et vos commandes, ou ajouter une offre à votre panier. Que puis-je faire pour vous ?`
+      : `Very well, thank you ${firstName}! I'm the Level Up AI assistant. I can tell you where your projects, deliverables, invoices and orders stand, or add an offer to your cart. What can I do for you?`,
     whoAreYou: fr
-      ? "Je suis l'assistant de votre espace Level Up IA. Je réponds à partir de vos données (projets, livrables, factures, commandes, messages) et je peux, avec votre accord, ajouter une offre à votre panier, envoyer une demande ou un message à l'équipe. Les validations restent faites par l'équipe."
-      : "I'm the assistant of your Level Up IA space. I answer from your data (projects, deliverables, invoices, orders, messages) and, with your approval, I can add an offer to your cart or send a request or a message to the team. Validations stay with the team.",
+      ? "Je suis l'assistant de votre espace Level Up AI. Je réponds à partir de vos données (projets, livrables, factures, commandes, messages) et je peux, avec votre accord, ajouter une offre à votre panier, envoyer une demande ou un message à l'équipe. Les validations restent faites par l'équipe."
+      : "I'm the assistant of your Level Up AI space. I answer from your data (projects, deliverables, invoices, orders, messages) and, with your approval, I can add an offer to your cart or send a request or a message to the team. Validations stay with the team.",
     helpList: fr
       ? "Vous pouvez me demander par exemple : où en est mon projet, mes factures, mes commandes, mes livrables, les packs et leurs prix, ou « ajoute SEO Starter à mon panier », « envoie un message à l'équipe », « je voudrais un devis »."
       : "You can ask me for example: where my project stands, my invoices, my orders, my deliverables, the packs and prices, or “add SEO Starter to my cart”, “send a message to the team”, “I'd like a quote”.",
@@ -178,8 +178,8 @@ function build(lang: Lang) {
 
     /* ------------------------------ humain, profil, messages */
     humanReply: (projectTitle: string | null) => fr
-      ? `Bien sûr. L'équipe LevelUp IA vous répond en personne dans la messagerie${projectTitle ? ` du projet ${projectTitle}` : ""} : écrivez-lui, elle est prévenue aussitôt par notification et par e-mail.`
-      : `Of course. The LevelUp IA team answers you in person in Messages${projectTitle ? ` for ${projectTitle}` : ""}: write to them, they're notified right away by notification and email.`,
+      ? `Bien sûr. L'équipe LevelUp AI vous répond en personne dans la messagerie${projectTitle ? ` du projet ${projectTitle}` : ""} : écrivez-lui, elle est prévenue aussitôt par notification et par e-mail.`
+      : `Of course. The LevelUp AI team answers you in person in Messages${projectTitle ? ` for ${projectTitle}` : ""}: write to them, they're notified right away by notification and email.`,
     humanAdmin: fr ? "Vous êtes l'équipe : les clients vous écrivent dans la messagerie." : "You are the team: clients write to you in Messages.",
     profileReply: (p: { fullName: string; email: string; companyName: string; phone: string | null; address: string | null; city: string | null; country: string | null; complete: boolean }) =>
       [

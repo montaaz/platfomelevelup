@@ -18,13 +18,22 @@ export default async function ClientLayout({ children }: { children: React.React
     redirect("/api/auth/logout?motif=compte_bloque");
   }
 
-  // Le paiement ne bloque plus l'entrée : le client consulte l'état de sa
-  // commande depuis son espace. Seul le questionnaire d'accueil est requis.
+  // Le questionnaire d'accueil est requis avant tout.
   const gate = await prisma.client.findUnique({
     where: { id: ctx.clientId! },
     select: { onboardingCompletedAt: true },
   });
   if (!gate?.onboardingCompletedAt) redirect("/bienvenue");
+
+  // Notes de Sarra (§02) : tant que le paiement n'est pas confirmé, la plateforme
+  // reste fermée. Un client qui a une commande en attente et aucune commande
+  // payée est renvoyé vers « Régler ma commande » (RIB, carte, état du virement).
+  // Un client sans commande (demande de devis, site marchand) garde l'accès.
+  const [paid, waiting] = await Promise.all([
+    prisma.order.count({ where: { clientId: ctx.clientId!, status: "PAYEE" } }),
+    prisma.order.count({ where: { clientId: ctx.clientId!, status: "EN_ATTENTE_PAIEMENT" } }),
+  ]);
+  if (waiting > 0 && paid === 0) redirect("/paiement");
 
   const [client, projectCount, unread, notifications] = await Promise.all([
     prisma.client.findUnique({ where: { id: ctx.clientId! }, select: { companyName: true } }),

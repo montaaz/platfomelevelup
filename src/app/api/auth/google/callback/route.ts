@@ -11,7 +11,7 @@ import { recordTermsAcceptance } from "@/server/services/signup";
 import { createSession } from "@/lib/session";
 import { findPackByCode, ensurePendingOrder } from "@/server/services/orders";
 import { recordDetectedCountry } from "@/server/services/geo";
-import { ValidationError } from "@/server/context";
+import { ValidationError, homeFor } from "@/server/context";
 import { claimPrepaidFromCookie } from "@/server/prepaidClaim";
 import { readChosenPack, forgetChosenPack } from "@/lib/session";
 
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
 
     if (user.clientId) await recordDetectedCountry(user.clientId, req.headers, user.id);
 
-    const target = user.role === "ADMIN" ? "/admin" : "/client";
+    const target = homeFor(user.role);
     return NextResponse.redirect(buildRedirectUri(req, target), 307);
   } catch (e) {
     if (e instanceof ValidationError) {

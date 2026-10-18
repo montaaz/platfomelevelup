@@ -106,7 +106,7 @@ export function ThreadView({
             <div className={`max-w-[78%] ${m.mine ? "text-right" : ""}`}>
               <p className="text-[11.5px] text-ink/60">
                 {m.senderName}
-                {m.senderRole === "ADMIN" ? ", Level Up IA" : ""} · {formatDateShort(m.createdAt)}
+                {m.senderRole === "ADMIN" && m.senderName !== "LevelUpAI Assistant" ? ", Level Up AI" : ""} · {formatDateShort(m.createdAt)}
               </p>
               <div
                 className={`mt-1 inline-block rounded-2xl px-4 py-2.5 text-left text-[13.5px] leading-relaxed whitespace-pre-wrap ${

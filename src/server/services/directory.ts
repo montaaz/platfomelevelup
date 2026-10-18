@@ -54,6 +54,7 @@ export async function listProjects(ctx: Ctx) {
     clientCompany: p.client.companyName,
     serviceName: p.service.name,
     price: Number(p.price),
+    currency: p.currency,
     status: p.status,
     assigneeName: p.assignedTo?.fullName ?? null,
     startDate: p.startDate?.toISOString() ?? null,
@@ -125,6 +126,7 @@ export async function listInvoices(ctx: Ctx) {
 
 /** One invoice with full detail — admin: any; client: own only (scoped in SQL). */
 export async function getInvoice(ctx: Ctx, invoiceId: bigint) {
+  if (ctx.role === "EQUIPE") throw new ForbiddenError(); // aucune donnée financière pour l'équipe
   const invoice = await prisma.invoice.findFirst({
     where: {
       id: invoiceId,
@@ -186,6 +188,7 @@ export async function listSubscriptions(ctx: Ctx) {
     clientCompany: s.client.companyName,
     planName: s.planName,
     monthlyAmount: Number(s.monthlyAmount),
+    currency: s.currency,
     status: s.status,
     autoRenew: s.autoRenew,
     startDate: s.startDate.toISOString(),

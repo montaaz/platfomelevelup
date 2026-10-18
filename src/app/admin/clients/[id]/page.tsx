@@ -10,8 +10,7 @@ import { AssistantHistoryCard } from "@/components/admin/AssistantHistoryCard";
 import { clientAssistantHistory } from "@/buddy/history";
 import {
   formatDT, formatDateFull, formatDateShort,
-  PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL,
-} from "@/lib/format";
+  PROJECT_STATUS_LABEL, INVOICE_STATUS_LABEL, formatMoney } from "@/lib/format";
 import {
   INDUSTRIES, CONTACT_ROLES, COMPANY_SIZES, MAIN_NEEDS, HEARD_FROM, labelOf, type Option,
 } from "@/lib/onboardingOptions";
@@ -158,7 +157,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
                     <span className="block text-[12px] text-ink/60">{p.serviceName}</span>
                   </span>
                   <StatusBadge status={p.status} label={PROJECT_STATUS_LABEL[p.status] ?? p.status} />
-                  <span className="text-[13px] font-semibold whitespace-nowrap">{formatDT(p.price)}</span>
+                  <span className="text-[13px] font-semibold whitespace-nowrap">{formatMoney(p.price, p.currency)}</span>
                 </Link>
               ))}
             </div>
@@ -180,7 +179,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
                     <span className="block text-[12px] text-ink/60">{formatDateFull(i.issueDate)}</span>
                   </span>
                   <StatusBadge status={i.status} label={INVOICE_STATUS_LABEL[i.status] ?? i.status} />
-                  <span className="text-[13px] font-semibold whitespace-nowrap">{formatDT(i.total, { decimals: 2 })}</span>
+                  <span className="text-[13px] font-semibold whitespace-nowrap">{formatMoney(i.total, i.currency, { decimals: 2 })}</span>
                 </Link>
               ))}
             </div>
@@ -236,7 +235,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
                 {c.subscriptions.map((s, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-3 sm:px-6">
                     <span className="flex-1 text-[13px] font-medium text-ink">{s.planName}</span>
-                    <span className="text-[13px] font-semibold">{formatDT(s.monthlyAmount)}/mois</span>
+                    <span className="text-[13px] font-semibold">{formatMoney(s.monthlyAmount, s.currency)}/mois</span>
                   </div>
                 ))}
               </div>

@@ -29,7 +29,12 @@ export default async function BienvenuePage() {
   const pending = (await myPendingOrders(ctx))[0] ?? null;
   const pendingProof = pending ? ((await latestProofsByOrder([BigInt(pending.id)])).get(pending.id) ?? null) : null;
   const transfer = pending && pendingProof?.status !== "EN_ATTENTE"
-    ? { orderId: pending.id, packName: pending.packName, amount: `${formatMoney(pending.amount, pending.currency)}${pending.isMonthly ? " / mois" : ""}`, label: transferLabel(pending.id), bank: BANK_ACCOUNT, proof: pendingProof }
+    ? {
+        orderId: pending.id, packName: pending.packName,
+        amount: `${formatMoney(pending.amount, pending.currency)}${pending.isMonthly ? (pending.commitmentMonths > 1 ? ` (${pending.commitmentMonths} mois)` : " / mois") : ""}`,
+        label: transferLabel(pending.id), bank: BANK_ACCOUNT, proof: pendingProof,
+        engagement: pending.isMonthly ? { monthly: pending.monthlyPrice, currency: pending.currency, current: pending.commitmentMonths } : null,
+      }
     : null;
 
   return (

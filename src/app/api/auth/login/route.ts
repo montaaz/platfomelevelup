@@ -1,3 +1,4 @@
+import { homeFor } from "@/server/context";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyLogin } from "@/lib/auth";
@@ -64,5 +65,5 @@ export async function POST(req: NextRequest) {
     await recordDetectedCountry(result.user.clientId, req.headers, result.user.id);
   }
 
-  return NextResponse.json({ redirect: result.user.role === "ADMIN" ? "/admin" : "/client" });
+  return NextResponse.json({ redirect: homeFor(result.user.role) });
 }

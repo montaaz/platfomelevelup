@@ -124,7 +124,7 @@ export function UserAccountsCard({
             </div>
             <StatusBadge
               status={account.role === "ADMIN" ? "EN_REVISION" : "EN_COURS"}
-              label={account.role === "ADMIN" ? "Admin" : "Client"}
+              label={account.role === "ADMIN" ? "Admin" : account.role === "EQUIPE" ? "Équipe" : "Client"}
             />
             {!account.isActive && <StatusBadge status="EN_RETARD" label="Désactivé" />}
             <div className="flex gap-2">
@@ -153,6 +153,7 @@ export function UserAccountsCard({
             <select value={values.role} onChange={set("role")} className={inputCls}>
               <option value="ADMIN">Admin — accès total</option>
               <option value="CLIENT">Client — son espace uniquement</option>
+              <option value="EQUIPE">Équipe — projets, échéances et clients, sans données financières</option>
             </select>
           </div>
           {values.role === "CLIENT" && (

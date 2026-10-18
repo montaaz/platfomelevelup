@@ -12,7 +12,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * way to reach one: valid session + ownership of the file's project, checked
  * server-side on every request. The URL uses the file's UUID — non-guessable.
  */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
   const { uuid } = await params;
   if (!UUID_RE.test(uuid)) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
 
@@ -32,6 +32,20 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uui
   if (!file) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
 
   // storage_key is server-generated; resolve + verify it stays inside the root
+  // Validation du projet (notes de Sarra, §04) : le client ne télécharge un
+  // livrable qu'après l'avoir validé. Avant, il peut seulement l'ouvrir en
+  // aperçu dans le navigateur (images, PDF, vidéos) pour décider.
+  const apercu = req.nextUrl.searchParams.get("apercu") === "1";
+  if (session.role === "CLIENT" && file.kind === "LIVRABLE" && file.approval !== "APPROUVE") {
+    const visible = /^(image\/|video\/|audio\/|application\/pdf$)/.test(file.mimeType);
+    if (!apercu || !visible) {
+      return NextResponse.json(
+        { error: "Validez ce livrable dans votre espace pour le télécharger : la version validée devient la version finale." },
+        { status: 403 },
+      );
+    }
+  }
+
   const filePath = path.resolve(STORAGE_ROOT, file.storageKey);
   if (!filePath.startsWith(STORAGE_ROOT)) {
     return NextResponse.json({ error: "Introuvable." }, { status: 404 });
@@ -56,7 +70,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ uui
   return new NextResponse(new Uint8Array(data), {
     headers: {
       "Content-Type": file.mimeType,
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+      "Content-Disposition": `${apercu ? "inline" : "attachment"}; filename="${encodeURIComponent(file.originalName)}"`,
+      "X-Content-Type-Options": "nosniff",
       "Content-Length": String(data.byteLength),
       "Cache-Control": "private, no-store",
     },

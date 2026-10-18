@@ -7,7 +7,7 @@ import { Card, CardHeader, Avatar, StatusBadge, EmptyState } from "@/components/
 import { ProjectFormButton } from "@/components/admin/ProjectFormModal";
 import { RequestsCard } from "@/components/admin/RequestsCard";
 import { DeleteProjectButton } from "@/components/admin/DeleteProjectButton";
-import { formatDT, formatDateShort, PROJECT_STATUS_LABEL } from "@/lib/format";
+import { formatDT, formatDateShort, PROJECT_STATUS_LABEL, formatMoney, formatTotals } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +37,7 @@ export default async function AdminProjectsPage() {
           </div>
           <div className="glass-dark kpi-tile rounded-2xl p-3 sm:p-4">
             <p className="text-[12px] text-white/80">Valeur en production</p>
-            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatDT(active.reduce((s, p) => s + p.price, 0))}</p>
+            <p className="mt-1 text-[22px] leading-none font-bold sm:text-[28px]">{formatTotals(active.map((p) => ({ amount: p.price, currency: p.currency })))}</p>
           </div>
         </div>
       </section>
@@ -84,7 +84,7 @@ export default async function AdminProjectsPage() {
                     <StatusBadge status={project.status} label={PROJECT_STATUS_LABEL[project.status] ?? project.status} />
                   </td>
                   <td className="px-4 py-3.5 text-[13px] text-ink/82">{project.assigneeName ?? "—"}</td>
-                  <td className="px-4 py-3.5 text-right text-[13px] font-medium">{formatDT(project.price)}</td>
+                  <td className="px-4 py-3.5 text-right text-[13px] font-medium">{formatMoney(project.price, project.currency)}</td>
                   <td className={`px-4 py-3.5 text-right text-[13px] font-medium whitespace-nowrap ${project.overdue ? "text-red-500" : "text-ink/72"}`}>
                     {project.overdue ? "en retard" : formatDateShort(project.dueDate)}
                   </td>

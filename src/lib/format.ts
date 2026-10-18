@@ -3,6 +3,7 @@
 /** Montant dans sa devise : « 890 DT » en Tunisie, « 890 € » pour un client hors Tunisie. */
 export function formatMoney(value: number | string, currency?: string | null, opts: { decimals?: number } = {}) {
   if (currency === "EUR") return formatDT(value, opts).replace(/\s*DT$/, " €");
+  if (currency === "USD") return formatDT(value, opts).replace(/\s*DT$/, " USD");
   return formatDT(value, opts);
 }
 
@@ -75,3 +76,15 @@ export const INVOICE_STATUS_LABEL: Record<string, string> = {
   EN_RETARD: "En retard",
   ANNULEE: "Annulée",
 };
+
+/** Somme par devise : « 890 DT + 290 USD » (jamais de dinars et de dollars additionnés). */
+export function formatTotals(rows: { amount: number; currency?: string | null }[], opts: { decimals?: number } = {}) {
+  const by = new Map<string, number>();
+  for (const r of rows) {
+    const c = r.currency || "TND";
+    by.set(c, (by.get(c) ?? 0) + (Number(r.amount) || 0));
+  }
+  if (by.size === 0) return formatDT(0, opts);
+  return [...by.entries()].sort(([a], [b]) => (a === "TND" ? -1 : b === "TND" ? 1 : a.localeCompare(b)))
+    .map(([c, v]) => formatMoney(v, c, opts)).join(" + ");
+}

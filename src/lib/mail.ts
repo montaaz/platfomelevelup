@@ -11,7 +11,7 @@ import { stripPublicPort } from "@/lib/publicUrl";
  */
 const FROM =
   process.env.EMAIL_FROM ??
-  (process.env.SMTP_USER ? `Level Up IA <${process.env.SMTP_USER}>` : "Level Up IA <notifications@levelupia.tn>");
+  (process.env.SMTP_USER ? `LevelUpAI Assistant <${process.env.SMTP_USER}>` : "LevelUpAI Assistant <notifications@levelupia.tn>");
 // Le port interne recopié dans APP_URL rendrait ces liens injoignables depuis
 // la boîte mail du destinataire.
 const APP_URL = stripPublicPort(process.env.APP_URL ?? "http://localhost:3000");
@@ -27,7 +27,7 @@ function emailHtml(title: string, body: string | null): string {
       ${body ? `<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#475569">${body}</p>` : ""}
       <a href="${APP_URL}" style="display:inline-block;background:#1687ff;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:11px 22px;border-radius:10px">Ouvrir mon espace</a>
     </div>
-    <p style="margin:0;padding:0 28px 24px;font-size:11px;color:#94a3b8">Level Up IA — Digital marketing powered by AI</p>
+    <p style="margin:0;padding:0 28px 24px;font-size:11px;color:#94a3b8">Level Up AI — Digital marketing powered by AI</p>
   </div></body></html>`;
 }
 

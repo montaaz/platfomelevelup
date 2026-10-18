@@ -11,6 +11,7 @@ import { clientIsTunisian } from "@/lib/region";
 import { prisma } from "@/lib/prisma";
 import { BANK_ACCOUNT, transferLabel } from "@/lib/bank";
 import { TransferPayment } from "@/components/client/TransferPayment";
+import { EngagementPicker } from "@/components/client/EngagementPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,9 @@ export default async function PaiementPage({
   ]);
   // La commande désignée par le bouton « Payer », sinon la plus récente.
   const order = pendingOrders.find((o) => o.id === commande) ?? pendingOrders[0] ?? null;
+  // Plateforme fermée tant qu'aucune commande n'est payée (voir app/client/layout).
+  const paidCount = await prisma.order.count({ where: { clientId: ctx.clientId!, status: "PAYEE" } });
+  const blocked = pendingOrders.length > 0 && paidCount === 0;
   if (!order && access.accessGranted) redirect("/client");
   const proofs = order ? await latestProofsByOrder([BigInt(order.id)]) : new Map();
   const proof = order ? (proofs.get(order.id) ?? null) : null;
@@ -57,8 +61,11 @@ export default async function PaiementPage({
               <p style={{ fontSize: 15, fontWeight: 800, color: "#26303f" }}>{order.packName}</p>
               <p style={{ marginTop: 6, fontSize: 22, fontWeight: 800, color: "#0a5ff0" }}>
                 {formatMoney(order.amount, order.currency)}
-                {order.isMonthly ? " / mois" : ""}
+                {order.isMonthly ? (order.commitmentMonths > 1 ? ` pour ${order.commitmentMonths} mois` : " / mois") : ""}
               </p>
+              {order.isMonthly && (
+                <EngagementPicker orderId={order.id} monthly={order.monthlyPrice} currency={order.currency} current={order.commitmentMonths} />
+              )}
               {pendingOrders.length > 1 && (
                 <p className={styles.hint} style={{ marginTop: 8 }}>
                   Autres commandes en attente :{" "}
@@ -103,7 +110,7 @@ export default async function PaiementPage({
             {/* ------------------------------------------------ virement */}
             <TransferPayment
               orderId={order.id}
-              amount={`${formatMoney(order.amount, order.currency)}${order.isMonthly ? " / mois" : ""}`}
+              amount={`${formatMoney(order.amount, order.currency)}${order.isMonthly ? (order.commitmentMonths > 1 ? ` (${order.commitmentMonths} mois)` : " / mois") : ""}`}
               label={transferLabel(order.id)}
               bank={BANK_ACCOUNT}
               proof={proof}
@@ -119,7 +126,13 @@ export default async function PaiementPage({
           Une question ? contact@levelupia.agency
         </p>
 
-        {access.accessGranted ? (
+        {blocked && (
+          <p role="status" style={{ marginTop: 16, padding: "10px 12px", borderRadius: 12, background: "#eef3ff", color: "#1c3f8a", fontSize: 12.5, fontWeight: 600, lineHeight: 1.5 }}>
+            🔒 Votre espace Level Up AI s&apos;ouvre dès que l&apos;équipe confirme votre paiement. Vous recevez alors une notification par e-mail.
+          </p>
+        )}
+
+        {access.accessGranted && !blocked ? (
           <Link
             href="/client"
             className={styles.back}

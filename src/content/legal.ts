@@ -66,7 +66,7 @@ export const TERMS_FR: LegalDoc = {
     {
       heading: "6. Exécution et livraison",
       paragraphs: [
-        "Les prestations sont des services numériques livrés dans l'espace client sous forme de fichiers, d'accès ou de mises en ligne. Chaque projet suit cinq étapes visibles par le client : Brief reçu, Production, Première version, Votre validation, Livraison finale.",
+        "Les prestations sont des services numériques livrés dans l'espace client sous forme de fichiers, d'accès ou de mises en ligne. Chaque projet suit quatre étapes visibles par le client : Brief reçu, Production, Votre validation, Livraison finale. Le client valide une seule fois : la version validée est la version finale, téléchargeable dès sa validation.",
         "Les délais indicatifs sont communiqués lors du cadrage du projet. Ils courent à compter de la réception des éléments nécessaires fournis par le client (textes, visuels, accès). Un retard du client décale d'autant la livraison.",
         "Le client dispose de la première version pour formuler ses retours ; une série d'ajustements est comprise dans chaque pack, dans le périmètre de l'offre commandée. Toute demande hors périmètre fait l'objet d'un devis.",
       ],

@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import styles from "@/styles/neu.module.css";
 import { MAIN_NEEDS } from "@/lib/onboardingOptions";
-import { CONTACT_MAILTO, NEED_SPECS, PAGES, PALETTES, STYLES, type NeedDetails } from "@/lib/needs";
+import { NEED_SPECS, PAGES, PALETTES, STYLES, type NeedDetails } from "@/lib/needs";
 import { NeedFiles } from "./NeedFiles";
+import { CallBooking } from "./CallBooking";
 import { DictationMic } from "@/components/DictationMic";
 
 /**
@@ -119,16 +120,10 @@ export function NeedsForm({
                     );
                   }
                   if (f.kind === "call") {
-                    const want = d[f.key] === true;
+                    const at = (d[`${f.key}At`] as string | undefined) ?? null;
                     return (
-                      <div key={f.key} className={styles.callBox}>
-                        <p className={styles.callTitle}>Planifier un échange téléphonique</p>
-                        <button type="button" onClick={() => setField(o.value, f.key, !want)} className={`${styles.tick} ${styles.tickRound} ${want ? styles.tickOn : ""}`} aria-pressed={want} style={{ width: "100%", justifyContent: "center" }}>
-                          <span className={styles.tickBox} aria-hidden="true" />
-                          {f.label}
-                        </button>
-                        <p className={styles.callHint}>{f.hint}</p>
-                      </div>
+                      <CallBooking key={f.key} need={o.value} bookedAt={at} hint={f.hint}
+                        onChange={(when) => onChange(mainNeeds, { ...details, [o.value]: { ...(details[o.value] ?? {}), [f.key]: when ? true : false, [`${f.key}At`]: when ?? "" } })} />
                     );
                   }
                   return null;
@@ -136,10 +131,6 @@ export function NeedsForm({
 
                 <NeedFiles need={o.value} />
                 <p className={styles.note}>{spec.attachNote}</p>
-                <div className={styles.mailRow}>
-                  <a href={CONTACT_MAILTO} className={styles.mailBtn}>✉ Nous contacter par e-mail</a>
-                  <span style={{ fontSize: 11.5, color: "#6b7689" }}>contact@levelupia.agency</span>
-                </div>
               </div>
             )}
           </div>

@@ -137,8 +137,8 @@ export function TransferPayment({
       )}
 
       {variant === "accueil" && (
-        <Link href="/client" className={styles.back} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 10, height: 48, textDecoration: "none", width: "100%" }}>
-          Entrer dans la plateforme
+        <Link href="/paiement" className={styles.back} style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 10, height: 48, textDecoration: "none", width: "100%" }}>
+          Terminer
         </Link>
       )}
     </div>

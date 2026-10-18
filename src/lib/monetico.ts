@@ -86,6 +86,8 @@ export type PaymentRequest = {
   /** 12 caractères alphanumériques au plus, unique. */
   reference: string;
   amountEur: number;
+  /** Devise encaissée (EUR par défaut ; USD accepté par le TPE). */
+  currency?: "EUR" | "USD";
   email: string;
   lang: "FR" | "EN";
   urlRetourOk: string;
@@ -113,7 +115,7 @@ export function buildPaymentForm(req: PaymentRequest, cfg: MoneticoConfig): { ac
     date: moneticoDate(),
     lgue: req.lang,
     mail: req.email.slice(0, 80),
-    montant: `${req.amountEur.toFixed(2)}EUR`,
+    montant: `${req.amountEur.toFixed(2)}${req.currency ?? "EUR"}`,
     reference,
     societe: cfg.societe,
     url_retour_err: req.urlRetourErr,

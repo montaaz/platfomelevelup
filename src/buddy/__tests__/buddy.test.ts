@@ -89,7 +89,7 @@ describe("français — cas du cahier", () => {
   it("« Je veux parler à un humain. » explique le vrai canal, sans menu", async () => {
     const r = await ask(nour, "Je veux parler à un humain.");
     expect(r.kind).toBe("answer");
-    expect(r.text).toContain("L'équipe LevelUp IA vous répond en personne dans la messagerie");
+    expect(r.text).toContain("L'équipe LevelUp AI vous répond en personne dans la messagerie");
     expect(r.actions?.[0]?.href).toBe("/client/messages");
     expect(r.text).not.toContain("Voici ce que vous pouvez me demander");
   });
@@ -136,7 +136,7 @@ describe("english — brief cases", () => {
 
   it("“I want to talk with a human.”", async () => {
     const r = await ask(nour, "I want to talk with a human.");
-    expect(r.text).toContain("The LevelUp IA team answers you in person in Messages");
+    expect(r.text).toContain("The LevelUp AI team answers you in person in Messages");
     expect(r.actions?.[0]?.href).toBe("/client/messages");
   });
 

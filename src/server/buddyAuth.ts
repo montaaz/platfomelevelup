@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/session";
-import { toCtx, isAccountActive, type Ctx } from "@/server/context";
+import { toCtx, isAccountActive } from "@/server/context";
+import type { BuddyCtx } from "@/buddy/data/types";
 
 /** Authentification et anti-abus partagés par les routes de l'assistant (/api/buddy/*). */
 export const MAX_CHARS = 1500;
@@ -35,7 +36,7 @@ function crossOrigin(req: NextRequest): boolean {
 }
 
 /** Session valide et compte actif, ou la réponse d'erreur à renvoyer. */
-export async function authenticate(req: NextRequest): Promise<{ ctx: Ctx } | { error: NextResponse }> {
+export async function authenticate(req: NextRequest): Promise<{ ctx: BuddyCtx } | { error: NextResponse }> {
   const session = await getSession();
   if (!session) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) };
   const ctx = toCtx(session);
@@ -43,6 +44,7 @@ export async function authenticate(req: NextRequest): Promise<{ ctx: Ctx } | { e
     return { error: NextResponse.json({ error: "Compte désactivé." }, { status: 403 }) };
   }
   if (crossOrigin(req)) return { error: NextResponse.json({ error: "Origine refusée." }, { status: 403 }) };
-  return { ctx };
+  if (ctx.role === "EQUIPE") return { error: NextResponse.json({ error: "Assistant réservé aux clients et à l'administration." }, { status: 403 }) };
+  return { ctx: ctx as BuddyCtx };
 }
 

@@ -29,7 +29,7 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           <div>
             <p className="text-[20px] font-extrabold tracking-wide text-ink">
-              LEVEL UP<span className="brand-text-gradient"> IA</span>
+              LEVEL UP<span className="brand-text-gradient"> AI</span>
             </p>
             <p className="text-[10px] font-medium tracking-[0.14em] text-ink/60 uppercase">
               Digital marketing powered by AI
@@ -149,7 +149,7 @@ export function InvoiceDocument({ invoice, backHref }: { invoice: InvoiceDetail;
         {invoice.notes && <p className="mt-8 text-[12.5px] text-ink/72">{invoice.notes}</p>}
 
         <p className="mt-10 border-t border-ink/5 pt-4 text-center text-[11px] text-ink/60">
-          Level Up IA — Digital marketing powered by AI · Merci de votre confiance.
+          Level Up AI — Digital marketing powered by AI · Merci de votre confiance.
         </p>
       </section>
     </div>

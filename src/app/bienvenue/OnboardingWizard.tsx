@@ -11,6 +11,7 @@ import { COUNTRIES, searchCountries, countryByCode } from "@/lib/countries";
 import { NeedsForm } from "@/components/client/NeedsForm";
 import { NEED_SPECS, type NeedDetails } from "@/lib/needs";
 import { TransferPayment } from "@/components/client/TransferPayment";
+import { EngagementPicker } from "@/components/client/EngagementPicker";
 
 type Answers = {
   contactName: string;
@@ -112,10 +113,10 @@ export function OnboardingWizard({
     orderId: string; packName: string; amount: string; label: string;
     bank: { holder: string; bank: string; rib: string; iban: string; bic: string };
     proof: { id: string; status: string; reviewNote: string | null; originalName: string | null; createdAt: string } | null;
+    engagement?: { monthly: number; currency: string; current: number } | null;
   } | null;
 }) {
-  // 7 étapes de questionnaire, plus l'étape « Votre règlement » si une commande attend un virement.
-  const TOTAL_STEPS = QUESTION_STEPS + (transfer ? 1 : 0);
+
   const startCountry = detectedCountry && countryByCode(detectedCountry) ? detectedCountry : "TN";
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -139,6 +140,12 @@ export function OnboardingWizard({
     heardFroms: [],
     heardFromOther: "",
   });
+
+  // Site marchand seul (sans site vitrine) : sur devis, pas de paiement à l'accueil.
+  const merchantOnly = a.mainNeeds.includes("SITE_MARCHAND") && !a.mainNeeds.includes("SITE_WEB");
+  const payStep = Boolean(transfer) && !merchantOnly;
+  // 7 étapes de questionnaire, plus l'étape « Votre règlement » si une commande attend un virement.
+  const TOTAL_STEPS = QUESTION_STEPS + (payStep ? 1 : 0);
 
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((p) => ({ ...p, [k]: v }));
 
@@ -204,7 +211,7 @@ export function OnboardingWizard({
           heardFromOther: a.heardFromOther || null,
         },
       });
-      if (transfer) {
+      if (payStep) {
         // Questionnaire enregistré : place au règlement (RIB), puis à la plateforme.
         setSaving(false);
         setStep(QUESTION_STEPS);
@@ -450,13 +457,16 @@ export function OnboardingWizard({
       )}
 
       {/* 8 — règlement par virement : RIB à copier, « J'ai fait le virement », entrée dans la plateforme */}
-      {transfer && step === QUESTION_STEPS && (
+      {transfer && payStep && step === QUESTION_STEPS && (
         <>
           <h2 className={styles.question}>Votre règlement</h2>
           <p className={styles.hint}>
             {transfer.packName} — copiez le RIB, faites le virement avec le libellé indiqué, puis cliquez sur le bouton vert.
-            Vous pouvez aussi entrer dans la plateforme et le faire plus tard depuis « Régler ma commande ».
+            Votre espace s&apos;ouvre dès que l&apos;équipe confirme le paiement.
           </p>
+          {transfer.engagement && (
+            <EngagementPicker orderId={transfer.orderId} monthly={transfer.engagement.monthly} currency={transfer.engagement.currency} current={transfer.engagement.current} />
+          )}
           <TransferPayment orderId={transfer.orderId} amount={transfer.amount} label={transfer.label} bank={transfer.bank} proof={transfer.proof} variant="accueil" />
         </>
       )}

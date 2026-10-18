@@ -166,6 +166,6 @@ export function proposalPrompt(p: Proposal, lang: "fr" | "en" = "fr"): string {
 /** Réponse quand la demande relève de l'équipe. */
 export function adminOnlyMessage(lang: "fr" | "en" = "fr"): string {
   return lang === "en"
-    ? "This needs the Level Up IA team: I can't do it myself. I can pass your request on to them, do you confirm?"
-    : "Cette action relève de l'équipe Level Up IA : je ne peux pas la faire moi-même. Je peux transmettre votre demande à l'équipe, confirmez-vous ?";
+    ? "This needs the Level Up AI team: I can't do it myself. I can pass your request on to them, do you confirm?"
+    : "Cette action relève de l'équipe Level Up AI : je ne peux pas la faire moi-même. Je peux transmettre votre demande à l'équipe, confirmez-vous ?";
 }

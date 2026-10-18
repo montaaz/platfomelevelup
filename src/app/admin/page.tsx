@@ -242,7 +242,7 @@ export default async function AdminDashboardPage({
       </div>
 
       <p className="text-center text-[11px] text-ink/40">
-        Données au {formatDateFull(new Date())} — Level Up IA
+        Données au {formatDateFull(new Date())} — Level Up AI
       </p>
     </div>
   );
