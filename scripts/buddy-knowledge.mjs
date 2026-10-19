@@ -28,10 +28,10 @@ const add = (lang, id, title, text) => {
 
 for (const lang of ["fr", "en"]) {
   const d = JSON.parse(readFileSync(join(dictDir, `${lang}.json`), "utf8"));
-  const about = lang === "fr" ? "À propos de Level Up IA" : "About Level Up IA";
+  const about = lang === "fr" ? "À propos de Level Up AI" : "About Level Up AI";
   add(lang, "about", about, [d.meta?.description, d.hero?.copy, (d.hero?.proof ?? []).join(". "), d.work?.lead, d.pricing?.lead].filter(Boolean).join(" "));
   if (d.about?.people?.length) {
-    add(lang, "team", `${d.about.title} — ${lang === "fr" ? "fondatrices et équipe derrière Level Up IA" : "founders and team behind Level Up IA"}`,
+    add(lang, "team", `${d.about.title} — ${lang === "fr" ? "fondatrices et équipe derrière Level Up AI" : "founders and team behind Level Up AI"}`,
       d.about.people.map((p) => `${p.name}, ${p.role} : ${p.bio?.[0] ?? ""}`).join(" "));
   }
   const sectors = Object.values(d.carousel?.labels ?? {});
